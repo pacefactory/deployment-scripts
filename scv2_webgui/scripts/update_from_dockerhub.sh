@@ -4,7 +4,7 @@
 # Set image-specific variables
 
 # Set naming
-image_name="pacefactory/safety-gui2-js:latest"
+image_name="pacefactory/safety-gui2-js"
 container_name="scv2_webgui"
 
 

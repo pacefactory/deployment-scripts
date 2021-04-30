@@ -5,7 +5,7 @@
 
 # Set naming
 image_name="scv2_webgui_image"
-container_name="scv2_webgui"
+container_name="webgui"
 
 
 # -------------------------------------------------------------------------

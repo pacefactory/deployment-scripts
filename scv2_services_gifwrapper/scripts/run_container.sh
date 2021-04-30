@@ -4,8 +4,8 @@
 # Set image-specific variables
 
 # Set naming
-image_name="services_gifwrapper_image"
-container_name="services_gifwrapper"
+image_name="pacefactory/service-gifwrapper"
+container_name="service_gifwrapper"
 
 # Set networking
 network_setting="host"
@@ -45,6 +45,27 @@ case "$user_response" in
   * ) echo "  --> Enabling auto-restart!";;
 esac
 
+# -------------------------------------------------------------------------
+# Prompt to overwrite image_name
+echo ""
+echo "Overwrite default image_name to run?"
+echo "Current: '$image_name'"
+read -p "(y/[N])" user_response
+case "$user_response" in
+  y|Y ) read -p "  --> Enter the image_name to use: " image_name ;;
+  * ) echo "  --> Will run '$image_name'";;
+esac
+
+# -------------------------------------------------------------------------
+# Prompt to overwrite container_name
+echo ""
+echo "Overwrite default container_name?"
+echo "Current: '$container_name'"
+read -p "(y/[N])" user_response
+case "$user_response" in
+  y|Y ) read -p "  --> Enter the container_name to use: " container_name ;;
+  * ) echo "  --> Will run image as '$container_name'";;
+esac
 
 # -------------------------------------------------------------------------
 # Automated commands

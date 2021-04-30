@@ -1,0 +1,87 @@
+version: "3.3"
+
+services:
+  mongo:
+    container_name: mongo
+    image: mongo:4.2.3-bionic
+    hostname: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - "~/scv2/volumes/mongo:/data/db"
+    networks:
+      - internal_network
+
+  dbserver:
+    container_name: dbserver
+    image: pacefactory/dbserver
+    hostname: dbserver
+    restart: always
+    stdin_open: true
+    tty: true
+    environment:
+      - "MONGO_HOST=mongo"
+    ports:
+      - "8050:8050"
+    volumes:
+      - "~/scv2/volumes/dbserver:/home/scv2/volume"
+    networks:
+      - internal_network
+      - external_network
+
+  realtime:
+    container_name: realtime
+    image: pacefactory/realtime
+    hostname: realtime
+    restart: always
+    stdin_open: true
+    tty: true
+    environment:
+      - "DBSERVER_HOST=dbserver"
+    ports:
+      - "8181:8181"
+    volumes:
+      - "~/scv2/volumes/realtime:/home/scv2/locations"
+    networks:
+      - external_network
+
+  webgui:
+    container_name: webgui
+    image: pacefactory/safety-gui2-js
+    hostname: webgui
+    restart: always
+    environment:
+      - "REACT_APP_DB_HOST=dbserver"
+    ports:
+      - "81:80"
+    networks:
+      - external_network
+
+  service_gifwrapper:
+    container_name: service_gifwrapper
+    image: pacefactory/service-gifwrapper
+    restart: always
+    environment:
+      - "DBSERVER_HOST=dbserver"
+    ports:
+      - "7171:7171"
+    networks:
+      - external_network
+
+  services_dtreeserver:
+    container_name: services_dtreeserver
+    image: pacefactory/service-dtreeserver
+    restart: always
+    environment:
+      - "DBSERVER_HOST=dbserver"
+    ports:
+      - "7272:7272"
+    volumes:
+      - "~/scv2/volumes/services_dtreeserver:/home/scv2/volume"
+    networks:
+      - external_network
+
+networks:
+  internal_network:
+  external_network:
