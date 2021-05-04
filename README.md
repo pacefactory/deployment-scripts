@@ -85,7 +85,13 @@ Updates can be performed simply by bringing the compose offline and online again
 docker-compose down
 ```
 
-2. Bring compose online again (will pull any updates to containers on DockerHub)
+2. Update the images from DockerHub
+
+```bash
+docker-compose pull
+```
+
+3. Bring compose online again
 
 ```bash
 docker-compose up -d
