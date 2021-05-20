@@ -82,6 +82,28 @@ services:
     networks:
       - external_network
 
+  social_web_app:
+    container_name: social_web_app
+    image: pacefactory/social_web_app
+    hostname: social_web_app
+    restart: always
+    ports:
+      - "9898:80"
+    networks:
+      - external_network
+
+  social_video_server:
+    container_name: social_video_server
+    image: pacefactory/social_video_server
+    hostname: social_video_server
+    restart: always
+    ports:
+      - "9999:9999"
+    volumes:
+      - "~/scv2/volumes/social_video_server:/home/scv2/volume"
+    networks:
+      - external_network
+
 networks:
   internal_network:
   external_network:
