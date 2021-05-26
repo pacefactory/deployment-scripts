@@ -77,27 +77,21 @@ docker login -u YOUR_USERNAME -p YOUR_PASSWORD
 
 ### Updates
 
-Updates can be performed simply by bringing the compose offline and online again:
+Updates can be performed by pulling any updated images, then bringing the compose online again:
 
-1. Bring compose offline
-
-```bash
-docker-compose down
-```
-
-2. Update the images from DockerHub
+1. Update the images from DockerHub
 
 ```bash
 docker-compose pull
 ```
 
-3. Bring compose online again
+2. Bring compose online again
 
 ```bash
 docker-compose up -d
 ```
 
-NOTE: If you received a pull access denied error in step 3, you may need to login (using dev account for this, if possible):
+NOTE: If you received a pull access denied error in step 1 or 2, you may need to login (using dev account for this, if possible):
 
 ```bash
 docker login -u YOUR_USERNAME -p YOUR_PASSWORD
