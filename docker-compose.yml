@@ -9,7 +9,9 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - "~/scv2/volumes/mongo:/data/db"
+      # Old path for the volume, prior to using a proper docker volume
+      # - "~/scv2/volumes/mongo:/data/db"
+      - mongodata:/data/db
     networks:
       - internal_network
 
@@ -103,6 +105,9 @@ services:
       - "~/scv2/volumes/social_video_server:/home/scv2/volume"
     networks:
       - external_network
+
+volumes:
+  mongodata:
 
 networks:
   internal_network:
