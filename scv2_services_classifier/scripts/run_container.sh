@@ -4,12 +4,16 @@
 # Set image-specific variables
 
 # Set naming
-image_name="pacefactory/service-classifier"
+image_name="services_classifier_image"
 container_name="service_classifier"
 
 # Set networking
 network_setting="host"
 
+# Set volume pathing
+docker_volume_name="$container_name-data"
+container_volume_path="/home/scv2/volume"
+docker_volume_regex="(^|\s)${docker_volume_name}($|\s)"
 
 # -------------------------------------------------------------------------
 # Get environment variables from script args
@@ -29,6 +33,20 @@ then
   echo "$env_vars"
 fi
 
+# -------------------------------------------------------------------------
+# Prompt to overwrite docker_volume_name
+echo ""
+echo "Overwrite default docker_volume_name?"
+echo "Current: '$docker_volume_name'"
+read -p "(y/[N])" user_response
+case "$user_response" in
+  y|Y ) read -p "  --> Enter the docker_volume_name to use: " docker_volume_name ;;
+  * ) echo "  --> Will mount Docker volume '$docker_volume_name'";;
+esac
+
+# -------------------------------------------------------------------------
+# Warn user that volume didn't exist if volume didn't already exist
+[ ! "$(docker volume ls | grep -E ${docker_volume_regex})" ] && echo "Warning: existing docker volume not found. Will create one with name ${docker_volume_name}"
 
 # -------------------------------------------------------------------------
 # Prompt to force container to always restart
@@ -86,6 +104,7 @@ echo "Running container ($container_name)"
 docker run -d \
            $env_vars \
            --network=$network_setting \
+           -v $docker_volume_name:$container_volume_path \
            --name $container_name \
            --restart $container_restart \
            $image_name \
