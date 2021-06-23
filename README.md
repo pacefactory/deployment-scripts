@@ -111,6 +111,23 @@ git clone https://github.com/pacefactory/scv2_dbserver.git
 
 3. Use the `run_container.sh` script in the appropriate subdirectory to bring the container online. IMPORTANT: Make sure to overwrite the image name when prompted in the script, if needed
 
+### Linux (Ubuntu) Installation Notes
+
+#### Run `docker ...` without sudo (Non-root user access)
+
+By default on new Ubuntu installations, `docker ...` commands cannot be ran without sudo permissions. To change this, perform the following in a terminal:
+
+1. Create the `docker` group: `sudo groupadd docker`
+2. Add your user to the group: `sudo usermod -aG docker $USER`
+3. Log out/in of your session to see changes OR run the following: `newgrp docker`
+4. Verify you can run `docker ...` commands without sudo: `docker run hello-world`
+
+For more info, see [Docker Linux Post-install](https://docs.docker.com/engine/install/linux-postinstall/)
+
+#### Root User Data Location
+
+If Docker is used without setting up non-root user access, data may be stored in the root home directory, `/root`. This may result in migration scripts not working properly and/or the illusion of missing data. Be sure to check this directory.
+
 ### Windows Installation Notes
 
 If using the WSL2 backend for Docker on Windows, resources need to be managed through the WSL container system.
@@ -125,6 +142,8 @@ kernel=C:\\temp\\myCustomKernel
 memory=8GB # Limits VM memory in WSL 2 to 8 GB
 processors=4 # Makes the WSL 2 VM use four virtual processors
 ```
+
+For more info, see [Windows WSL Config](https://docs.microsoft.com/en-us/windows/wsl/wsl-config)
 
 #### Changing default Docker storage path
 
@@ -153,6 +172,8 @@ To move the storage location (e.g. to another drive), one can recreate the WSL2 
 7. If everything appears to be working again, you may delete the exported container archives
    1. Delete `docker-desktop` data in PowerShell: `rm C:\path\to\Docker\wsl\distro\docker-desktop.tar`
    2. Delete `docker-desktop-data` data in PowerShell: `rm C:\path\to\Docker\wsl\data\docker-desktop-data.tar`
+
+For more info, see [Change WSL Docker Location](https://stackoverflow.com/questions/62441307/how-can-i-change-the-location-of-docker-images-when-using-docker-desktop-on-wsl2) and [Docker WSL Volume Locations](https://stackoverflow.com/questions/61083772/where-are-docker-volumes-located-when-running-wsl-using-docker-desktop)
 
 ##### <a name="wsl-container-list"></a>WSL Container List
 
