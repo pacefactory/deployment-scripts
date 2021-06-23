@@ -13,7 +13,7 @@ echo "Is the software stack offline? (i.e. you ran 'docker-compose down' and the
 read -p "(y/[N]) " user_response
 case "$user_response" in
   y|Y ) echo "  --> Confirmed containers offline; continuing..." ;;
-  * ) echo "  --> Container not offile! Exiting..."; exit ;;
+  * ) echo "  --> Container not offline! Exiting..."; exit ;;
 esac
 
 # -------------------------------------------------------------------------

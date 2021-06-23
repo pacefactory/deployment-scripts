@@ -23,6 +23,8 @@ docker login -u YOUR_USERNAME -p YOUR_PASSWORD
 
 ### Single Container
 
+IMPORTANT: The single container run scripts (`update_from_dockerhub.sh` and `run_container.sh`) are not configured to use Docker volumes. Moreover, volumes and bind mounts are not interchangeable. This can result in possible data loss if using both docker-compose and single container scripts
+
 To deploy by bringing each container online separately (manually), you can pull an image from DockerHub and spin up a container using the `update_from_dockerhub.sh` script, e.g.
 
 ```bash
