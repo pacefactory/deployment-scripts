@@ -27,7 +27,7 @@ services:
     ports:
       - "8050:8050"
     volumes:
-      - "~/scv2/volumes/dbserver:/home/scv2/volume"
+      - "dbserver-data:/home/scv2/volume"
     networks:
       - internal_network
       - external_network
@@ -44,7 +44,7 @@ services:
     ports:
       - "8181:8181"
     volumes:
-      - "~/scv2/volumes/realtime:/home/scv2/locations"
+      - "realtime-data:/home/scv2/locations"
     networks:
       - external_network
 
@@ -71,8 +71,8 @@ services:
     networks:
       - external_network
 
-  services_dtreeserver:
-    container_name: services_dtreeserver
+  service_dtreeserver:
+    container_name: service_dtreeserver
     image: pacefactory/service-dtreeserver
     restart: always
     environment:
@@ -80,7 +80,7 @@ services:
     ports:
       - "7272:7272"
     volumes:
-      - "~/scv2/volumes/services_dtreeserver:/home/scv2/volume"
+      - "service_dtreeserver-data:/home/scv2/volume"
     networks:
       - external_network
 
@@ -115,13 +115,17 @@ services:
     ports:
       - "9999:9999"
     volumes:
-      - "~/scv2/volumes/social_video_server:/home/scv2/volume"
+      - "social_video_server-data:/home/scv2/volume"
     networks:
       - external_network
 
 volumes:
   mongodata:
+  dbserver-data:
+  realtime-data:
+  service_dtreeserver-data:
   service_classifier-data:
+  social_video_server-data:
 
 networks:
   internal_network:

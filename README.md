@@ -111,6 +111,78 @@ git clone https://github.com/pacefactory/scv2_dbserver.git
 
 3. Use the `run_container.sh` script in the appropriate subdirectory to bring the container online. IMPORTANT: Make sure to overwrite the image name when prompted in the script, if needed
 
+### Linux (Ubuntu) Installation Notes
+
+#### Run `docker ...` without sudo (Non-root user access)
+
+By default on new Ubuntu installations, `docker ...` commands cannot be ran without sudo permissions. To change this, perform the following in a terminal:
+
+1. Create the `docker` group: `sudo groupadd docker`
+2. Add your user to the group: `sudo usermod -aG docker $USER`
+3. Log out/in of your session to see changes OR run the following: `newgrp docker`
+4. Verify you can run `docker ...` commands without sudo: `docker run hello-world`
+
+For more info, see [Docker Linux Post-install](https://docs.docker.com/engine/install/linux-postinstall/)
+
+#### Root User Data Location
+
+If Docker is used without setting up non-root user access, data may be stored in the root home directory, `/root`. This may result in migration scripts not working properly and/or the illusion of missing data. Be sure to check this directory.
+
+### Windows Installation Notes
+
+If using the WSL2 backend for Docker on Windows, resources need to be managed through the WSL container system.
+
+To configure the allocation of physical resources (CPU, memory, etc.), one needs to create a `.wslconfig` in the location `%UserProfile%\.wslconfig`.
+
+Example config file:
+
+```
+[wsl2]
+kernel=C:\\temp\\myCustomKernel
+memory=8GB # Limits VM memory in WSL 2 to 8 GB
+processors=4 # Makes the WSL 2 VM use four virtual processors
+```
+
+For more info, see [Windows WSL Config](https://docs.microsoft.com/en-us/windows/wsl/wsl-config)
+
+#### Changing default Docker storage path
+
+Docker Desktop creates two WSL2 containers by default, `docker-desktop` and `docker-desktop-data`. The virtual disk images are stored by default in `%USERPROFILE%\AppData\Local\Docker\wsl\distro\ext4.vhdx` and `%USERPROFILE%\AppData\Local\Docker\wsl\data\ext4.vhdx`, respectively. Any Docker images, container file systems, and volumes will be stored within these virtual disks.
+
+To move the storage location (e.g. to another drive), one can recreate the WSL2 containers elsewhere AND preserve any existing Docker data whilst doing so. Be sure to replace `C:\path\to\Docker` with the appropriate **destination storage path**. The process is as follows:
+
+1. Stop Docker Desktop (including in the system tray)
+2. Check the installed WSL containers and verify they are stopped.
+   1. In PowerShell, run `wsl --list -v`
+   2. You should see output similar to that of [WSL Container List](#wsl-container-list) with both containers being 'Stopped' before proceeding
+3. Make sure the new directories exist in your **destination storage path**
+   1. Make sure the base directory, `C:\path\to\Docker`, exists (create it if it does not exist)
+   2. Make sure the WSL subdirectory, `C:\path\to\Docker\wsl`, exists (create it if it does not exist)
+   3. Make sure the data subdirectory, `C:\path\to\Docker\wsl\data`, exists (create it if it does not exist)
+   4. Make sure the distro subdirectory, `C:\path\to\Docker\wsl\distro`, exists (create it if it does not exist)
+4. Export, remove, and recreate the `docker-desktop` container
+   1. Export existing container in PowerShell: `wsl --export docker-desktop "C:\path\to\Docker\wsl\distro\docker-desktop.tar"`
+   2. Remove existing container in PowerShell: `wsl --unregister docker-desktop`
+   3. Import the container in PowerShell: `wsl --import docker-desktop "C:\path\to\Docker\wsl\distro" "C:\path\to\Docker\wsl\distro\docker-desktop.tar" --version 2`
+5. Export, remove, and recreate the `docker-desktop-data` container
+   1. Export existing container in PowerShell: `wsl --export docker-desktop-data "C:\path\to\Docker\wsl\data\docker-desktop-data.tar"`
+   2. Remove existing container in PowerShell: `wsl --unregister docker-desktop-data`
+   3. Import the container in PowerShell: `wsl --import docker-desktop-data "C:\path\to\Docker\wsl\data" "C:\path\to\Docker\wsl\data\docker-desktop-data.tar" --version 2`
+6. Start Docker Desktop again, and ensure there are no issues during Docker Engine startup
+7. If everything appears to be working again, you may delete the exported container archives
+   1. Delete `docker-desktop` data in PowerShell: `rm C:\path\to\Docker\wsl\distro\docker-desktop.tar`
+   2. Delete `docker-desktop-data` data in PowerShell: `rm C:\path\to\Docker\wsl\data\docker-desktop-data.tar`
+
+For more info, see [Change WSL Docker Location](https://stackoverflow.com/questions/62441307/how-can-i-change-the-location-of-docker-images-when-using-docker-desktop-on-wsl2) and [Docker WSL Volume Locations](https://stackoverflow.com/questions/61083772/where-are-docker-volumes-located-when-running-wsl-using-docker-desktop)
+
+##### <a name="wsl-container-list"></a>WSL Container List
+
+```
+  NAME                   STATE           VERSION
+* docker-desktop         Stopped         2
+  docker-desktop-data    Stopped         2
+```
+
 ### GitHub Repositories
 
 <table>
@@ -135,8 +207,20 @@ git clone https://github.com/pacefactory/scv2_dbserver.git
     <td>https://github.com/pacefactory/scv2_services_gifwrapper.git</td>
   </tr>
   <tr>
+    <td>service_classifier</td>
+    <td>https://github.com/pacefactory/scv2_services_classifier.git</td>
+  </tr>
+  <tr>
     <td>webgui</td>
     <td>https://github.com/pacefactory/scv2_webgui.git</td>
+  </tr>
+  <tr>
+    <td>social_web_app</td>
+    <td>https://github.com/pacefactory/social_web_app.git</td>
+  </tr>
+  <tr>
+    <td>social_video_server</td>
+    <td>https://github.com/pacefactory/social_video_server.git</td>
   </tr>
 </table>
 
