@@ -84,6 +84,19 @@ services:
     networks:
       - external_network
 
+  service_classifier:
+    container_name: service_classifier
+    image: pacefactory/service-classifier
+    restart: always
+    environment:
+      - "DBSERVER_HOST=dbserver"
+    ports:
+      - "7373:7373"
+    volumes:
+      - service_classifier-data:/home/scv2/volume
+    networks:
+      - external_network
+
   social_web_app:
     container_name: social_web_app
     image: pacefactory/social_web_app
@@ -111,6 +124,7 @@ volumes:
   dbserver-data:
   realtime-data:
   service_dtreeserver-data:
+  service_classifier-data:
   social_video_server-data:
 
 networks:
