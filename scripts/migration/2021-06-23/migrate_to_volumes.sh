@@ -80,6 +80,7 @@ dbserver_migrate="no"
 dbserver_existing_path="$HOME/scv2/volumes/dbserver"
 dbserver_volume="deployment-scripts_dbserver-data"
 dbserver_continue_if_volume_exists="yes"
+dbserver_delete_images="no"
 
 # Prompt to see if we want to migrate dbserver
 echo ""
@@ -101,6 +102,16 @@ if [ "$dbserver_migrate" = "yes" ]; then
     * ) echo "  --> Will migrate data from '$dbserver_existing_path'" ;;
   esac
 
+  # Prompt to see if we want to migrate dbserver
+  echo ""
+  echo "Delete all jpg images before migrating?"
+  echo "(this is necessary if storage is limited)"
+  read -p "(y/[N]) " user_response
+  case "$user_response" in
+    y|Y ) echo "  --> Will delete images before migrating"; dbserver_delete_images="yes" ;;
+    * ) echo "  --> Will NOT delete images before migrating" ;;
+  esac
+
   # Check that a docker volume of that name already exists
   if docker volume ls | grep -q $dbserver_volume; then
     dbserver_continue_if_volume_exists="no"
@@ -117,6 +128,11 @@ if [ "$dbserver_migrate" = "yes" ]; then
   if [ "$dbserver_continue_if_volume_exists" = "yes" ]; then
     echo ""
     echo "dbserver migration starting:"
+    if [ "$dbserver_delete_images" = "yes" ]; then
+      echo "Deleting images... (will prompt for sudo)"
+      echo "Deletion path: $dbserver_existing_path/**/*.jpg"
+      sudo find $dbserver_existing_path -type f -name '*.jpg' -delete
+    fi
     docker volume create $dbserver_volume
     docker run -d --rm --name dbserver_migrate -v $dbserver_volume:/data alpine tail -f /dev/null
     docker cp $dbserver_existing_path/. dbserver_migrate:/data
