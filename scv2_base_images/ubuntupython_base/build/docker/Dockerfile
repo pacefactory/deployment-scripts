@@ -12,7 +12,7 @@ FROM ubuntu:bionic
 RUN apt-get update && \
     apt-get upgrade --assume-yes && \
     apt-get install --quiet --assume-yes \
-    htop nano vim git python3 python3-pip
+    htop nano vim git python3 python3-pip wget unzip
 
 
 # -----------------------------------------------------------------------------
