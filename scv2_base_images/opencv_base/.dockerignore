@@ -1,0 +1,8 @@
+
+# Project files
+Dockerfile*
+README*
+
+# Git files
+.git
+.gitignore

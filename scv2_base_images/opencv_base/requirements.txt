@@ -1,0 +1,5 @@
+
+# CV & Math libraries
+numpy==1.*
+opencv-python-headless==4.3.*
+scipy==1.*
