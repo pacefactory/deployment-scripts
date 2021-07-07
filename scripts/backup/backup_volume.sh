@@ -36,10 +36,20 @@ docker run -v deployment-scripts_mongodata:/data --name mongo_data ubuntu /bin/b
 docker run --rm --volumes-from mongo_data -v $output_folder_path:/backup ubuntu tar czvf backup/mongo.tar.gz data
 docker rm mongo_data
 
+# -------------------------------------------------------------------------
+# Prompt for image backup
+echo ""
+echo "Backup images from dbserver?"
+read -p "(y/[N]) " user_response
+case "$user_response" in
+  y|Y ) echo "  --> Will backup dbserver images!"; dbserver_tar_cmd="tar czvf backup/dbserver.tar.gz data" ;;
+  * ) echo "  --> Will NOT backup dbserver images!"; dbserver_tar_cmd="find ./data -type f ! -name '*.jpg' | tar czvf backup/dbserver.tar.gz -T -" ;;
+esac
+
 echo ""
 echo "Backing up dbserver volume"
 docker run -v deployment-scripts_dbserver-data:/data --name dbserver_data ubuntu /bin/bash
-docker run --rm --volumes-from dbserver_data -v $output_folder_path:/backup ubuntu tar czvf backup/dbserver.tar.gz data
+docker run --rm --volumes-from dbserver_data -v $output_folder_path:/backup ubuntu $dbserver_tar_cmd
 docker rm dbserver_data
 
 echo ""
