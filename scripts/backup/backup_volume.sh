@@ -12,6 +12,14 @@ echo ""
 echo "This script will create an archive backup of all volumes in use by the docker-compose deployment"
 echo "Ensure the docker-compose stack is OFFLINE before proceeding"
 
+if [ "$EUID" -ne 0 ]; then
+  echo ""
+  echo "***************************************************************"
+  echo "WARNING: script is not being run as root. Bad things may happen"
+  echo "***************************************************************"
+  echo ""
+fi
+
 # -------------------------------------------------------------------------
 # Prompt for software being offline
 echo ""
@@ -43,7 +51,7 @@ echo "Backup images from dbserver?"
 read -p "(y/[N]) " user_response
 case "$user_response" in
   y|Y ) echo "  --> Will backup dbserver images!"; dbserver_tar_cmd="tar czvf backup/dbserver.tar.gz data" ;;
-  * ) echo "  --> Will NOT backup dbserver images!"; dbserver_tar_cmd="find ./data -type f ! -name '*.jpg' | tar czvf backup/dbserver.tar.gz -T -" ;;
+  * ) echo "  --> Will NOT backup dbserver images!"; dbserver_tar_cmd="find data -type f ! -name '*.jpg' | tar czvf backup/dbserver.tar.gz -T -" ;;
 esac
 
 echo ""
