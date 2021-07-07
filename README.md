@@ -230,8 +230,7 @@ For more info, see [Change WSL Docker Location](https://stackoverflow.com/questi
 
 There are a few oddities in the repo:
 
-1. `service_gifwrapper` vs. `services_dtreeserver` (one not pluralized)
-2. `service_gifwrapper` is `service-gifwrapper` on DockerHub, and `services_dtreeserver` is `service-dtreeserver` on DockerHub
-3. `scv2_webgui` is referred to as `safety-gui2-js` on DockerHub (and, by extension, in the image name too)
+1. Container `service_gifwrapper` is image `service-gifwrapper` on DockerHub, container `service_dtreeserver` is image `service-dtreeserver` on DockerHub, and `service_classifier` is `service-classifier` on DockerHub
+3. Container `webgui` is referred to as `safety-gui2-js` on DockerHub (and, by extension, in the image name too)
 4. Although Docker is transitioning from `docker-compose` to `docker compose`, we still prefer to use `docker-compose`
    as it is more stable
