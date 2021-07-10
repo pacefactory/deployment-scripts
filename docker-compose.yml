@@ -50,7 +50,7 @@ services:
 
   webgui:
     container_name: webgui
-    image: pacefactory/safety-gui2-js
+    image: pacefactory/safety-gui2-js:latest
     hostname: webgui
     restart: always
     environment:
