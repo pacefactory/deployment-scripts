@@ -12,7 +12,7 @@ FROM jrei/systemd-ubuntu:20.04
 RUN apt-get update && \
     apt-get upgrade --assume-yes && \
     apt-get install --quiet --assume-yes \
-    htop nano vim git wget unzip
+    htop nano vim git wget curl unzip
 
 
 # -----------------------------------------------------------------------------
@@ -21,7 +21,7 @@ RUN apt-get update && \
 # Add nodejs package manager source from Node Source
 # (https://github.com/nodesource/distributions/blob/master/README.md)
 # and install
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash - && \
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
     apt-get install -y nodejs
 
 # Verify installation
