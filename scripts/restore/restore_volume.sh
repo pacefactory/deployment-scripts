@@ -21,11 +21,6 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-## Pathing
-backups_path="$HOME/scv2_backups"
-output_folder_path="$backups_path/$export_name"
-output_archive_path="$backups_path/$export_archive_name"
-
 echo ""
 echo "This script will restore volumes from an archive backup created by backup_volume.sh"
 echo "Ensure the docker-compose stack is OFFLINE before proceeding"
@@ -44,7 +39,9 @@ esac
 # Prompt to set archive_file path, if not already supplied
 if [ -z ${archive_file+x} ]; then
   echo ""
-  read -p "Enter the archive file path: " archive_file
+  read -e -p "Enter the archive file path: " archive_file
+  # Replace tilde if given
+  archive_file="${archive_file/#~/$HOME}"
 fi
 
 if [ -d restore_archive ]; then
@@ -59,8 +56,9 @@ fi
 # Extract main archive
 echo ""
 echo "Exracting archive..."
-mkdir restore_archive
-tar -xzvf $archive_file -C restore_archive
+unarchived_path="$(pwd)/restore_archive"
+mkdir $unarchived_path
+tar -xzvf $archive_file -C $unarchived_path
 
 # -------------------------------------------------------------------------
 # Restore all volumes individually, if they exist
@@ -68,7 +66,7 @@ echo ""
 echo "Restoring mongo volume"
 if [ -f restore_archive/mongo.tar.gz ]; then
   docker run -v deployment-scripts_mongodata:/data --name mongo_data ubuntu /bin/bash
-  docker run --rm --volumes-from mongo_data -v "$(pwd)"/restore_archive:/backup ubuntu tar xzvf backup/mongo.tar.gz
+  docker run --rm --volumes-from mongo_data --mount type=bind,src=$unarchived_path,dst=/backup ubuntu tar xzvf backup/mongo.tar.gz
   docker rm mongo_data
 else
   echo "Mongo backup not found, skipping"
@@ -78,7 +76,7 @@ echo ""
 echo "Restoring dbserver volume"
 if [ -f restore_archive/dbserver.tar.gz ]; then
   docker run -v deployment-scripts_dbserver-data:/data --name dbserver_data ubuntu /bin/bash
-  docker run --rm --volumes-from dbserver_data -v "$(pwd)"/restore_archive:/backup ubuntu tar xzvf ../backup/dbserver.tar.gz
+  docker run --rm --volumes-from dbserver_data --mount type=bind,src=$unarchived_path,dst=/backup ubuntu tar xzvf ../backup/dbserver.tar.gz
   docker rm dbserver_data
 else
   echo "dbserver backup not found, skipping"
@@ -88,7 +86,7 @@ echo ""
 echo "Restoring realtime volume"
 if [ -f restore_archive/realtime.tar.gz ]; then
   docker run -v deployment-scripts_realtime-data:/data --name realtime_data ubuntu /bin/bash
-  docker run --rm --volumes-from realtime_data -v "$(pwd)"/restore_archive:/backup ubuntu tar xzvf backup/realtime.tar.gz
+  docker run --rm --volumes-from realtime_data --mount type=bind,src=$unarchived_path,dst=/backup ubuntu tar xzvf backup/realtime.tar.gz
   docker rm realtime_data
 else
   echo "realtime backup not found, skipping"
@@ -98,7 +96,7 @@ echo ""
 echo "Restoring service_dtreeserver volume"
 if [ -f restore_archive/service_dtreeserver.tar.gz ]; then
   docker run -v deployment-scripts_service_dtreeserver-data:/data --name service_dtreeserver_data ubuntu /bin/bash
-  docker run --rm --volumes-from service_dtreeserver_data -v "$(pwd)"/restore_archive:/backup ubuntu tar xzvf backup/service_dtreeserver.tar.gz
+  docker run --rm --volumes-from service_dtreeserver_data --mount type=bind,src=$unarchived_path,dst=/backup ubuntu tar xzvf backup/service_dtreeserver.tar.gz
   docker rm service_dtreeserver_data
 else
   echo "service_dtreeserver backup not found, skipping"
@@ -108,7 +106,7 @@ echo ""
 echo "Restoring service_classifier volume"
 if [ -f restore_archive/service_classifier.tar.gz ]; then
   docker run -v deployment-scripts_service_classifier-data:/data --name service_classifier_data ubuntu /bin/bash
-  docker run --rm --volumes-from service_classifier_data -v "$(pwd)"/restore_archive:/backup ubuntu tar xzvf backup/service_classifier.tar.gz
+  docker run --rm --volumes-from service_classifier_data --mount type=bind,src=$unarchived_path,dst=/backup ubuntu tar xzvf backup/service_classifier.tar.gz
   docker rm service_classifier_data
 else
   echo "service_classifier backup not found, skipping"
@@ -118,7 +116,7 @@ echo ""
 echo "Restoring social_video_server volume"
 if [ -f restore_archive/social_video_server.tar.gz ]; then
   docker run -v deployment-scripts_social_video_server-data:/data --name social_video_server_data ubuntu /bin/bash
-  docker run --rm --volumes-from social_video_server_data -v "$(pwd)"/restore_archive:/backup ubuntu tar xzvf backup/social_video_server.tar.gz
+  docker run --rm --volumes-from social_video_server_data --mount type=bind,src=$unarchived_path,dst=/backup ubuntu tar xzvf backup/social_video_server.tar.gz
   docker rm social_video_server_data
 else
   echo "social_video_server backup not found, skipping"

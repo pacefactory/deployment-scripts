@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## Pathing
-export_name="volume_backup-$(date +"%Y-%m-%dT%H_%M_%S%z")"
+export_name="volume_backup-$(date +"%Y-%m-%dT%H_%M_%S")"
 export_archive_name="$export_name.tar.gz"
 
 backups_path="$HOME/scv2_backups"
