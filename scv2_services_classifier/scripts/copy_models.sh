@@ -17,8 +17,14 @@ echo ""
 echo "Override model source path? (default: '$model_path')"
 read -p "(y/[N]) " user_response
 case "$user_response" in
-  y|Y ) read -p "  --> Enter model source path: " model_path ;;
-  * ) echo "  --> Will copy models from '$model_path'" ;;
+  y|Y )
+    read -e -p "  --> Enter model source path: " model_path
+    # Replace tilde if given
+    model_path="${model_path/#~/$HOME}"
+    ;;
+  * )
+    echo "  --> Will copy models from '$model_path'"
+    ;;
 esac
 
 echo ""
