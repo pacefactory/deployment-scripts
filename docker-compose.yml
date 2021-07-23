@@ -88,7 +88,7 @@ services:
     container_name: service_classifier
     image: pacefactory/service-classifier
     restart: always
-    shm_size: 256M
+    shm_size: 2G
     environment:
       - "DBSERVER_HOST=dbserver"
     ports:
