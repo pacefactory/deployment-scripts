@@ -98,6 +98,19 @@ services:
     networks:
       - external_network
 
+  service_processing:
+    container_name: service_processing
+    image: pacefactory/service-processing:latest
+    restart: always
+    environment:
+      - "DB_HOST=dbserver"
+      - "CLASSIFIER_HOST=service_dtreeserver"
+      - "ML_CLASSIFIER_HOST=service_classifier"
+      - "SERVICE_EXECUTION_PERIOD_MINS=15"
+      - "REPORT_CHECK_DURATION_DAYS=7"
+    networks:
+      - external_network
+
   social_web_app:
     container_name: social_web_app
     image: pacefactory/social_web_app
