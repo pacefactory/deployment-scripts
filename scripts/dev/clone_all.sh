@@ -122,3 +122,19 @@ if [ "$pull_all" = "yes" ] || [ "$clone_social_video_server" = "yes" ]; then
   git clone $social_video_server_remote
 fi
 
+# -------------------------------------------------------------------------
+# Prompt to pull scv2_relational_dbserver, if not pulling all
+scv2_relational_dbserver_remote="git@github.com:pacefactory/scv2_relational_dbserver.git"
+if [ -z ${pull_all+x} ]; then
+  echo ""
+  echo "Clone scv2_relational_dbserver?"
+  read -p "(y/[N]) " user_response
+  case "$user_response" in
+    y|Y ) echo "  --> Will clone scv2_relational_dbserver"; clone_scv2_relational_dbserver=yes ;;
+    * ) clone_scv2_relational_dbserver=no ;;
+  esac
+fi
+if [ "$pull_all" = "yes" ] || [ "$clone_scv2_relational_dbserver" = "yes" ]; then
+  git clone $scv2_relational_dbserver_remote
+fi
+

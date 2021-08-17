@@ -48,6 +48,16 @@ services:
     networks:
       - external_network
 
+  relational_dbserver:
+    container_name: relational_dbserver
+    image: pacefactory/relational_dbserver
+    hostname: relational_dbserver
+    restart: always
+    ports:
+      - "8282:8282"
+    volumes:
+      - "relational_dbserver-data:/home/scv2/volume"
+
   webgui:
     container_name: webgui
     image: pacefactory/safety-gui2-js:latest-master
@@ -140,6 +150,7 @@ volumes:
   service_dtreeserver-data:
   service_classifier-data:
   social_video_server-data:
+  relational_dbserver-data:
 
 networks:
   internal_network:
