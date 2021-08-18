@@ -20,6 +20,8 @@ services:
     image: pacefactory/dbserver
     hostname: dbserver
     restart: always
+    depends_on:
+      - mongo
     stdin_open: true
     tty: true
     environment:
@@ -51,6 +53,7 @@ services:
   relational_dbserver:
     container_name: relational_dbserver
     image: pacefactory/relational-dbserver
+    profiles: ["rdb"]
     hostname: relational_dbserver
     restart: always
     ports:
@@ -65,6 +68,8 @@ services:
     image: pacefactory/safety-gui2-js:latest-master
     hostname: webgui
     restart: always
+    depends_on:
+      - dbserver
     environment:
       - "REACT_APP_DB_HOST=dbserver"
     ports:
@@ -76,6 +81,8 @@ services:
     container_name: service_gifwrapper
     image: pacefactory/service-gifwrapper
     restart: always
+    depends_on:
+      - dbserver
     environment:
       - "DBSERVER_HOST=dbserver"
     ports:
@@ -87,6 +94,8 @@ services:
     container_name: service_dtreeserver
     image: pacefactory/service-dtreeserver
     restart: always
+    depends_on:
+      - dbserver
     environment:
       - "DBSERVER_HOST=dbserver"
     ports:
@@ -99,7 +108,10 @@ services:
   service_classifier:
     container_name: service_classifier
     image: pacefactory/service-classifier
+    profiles: ["ml"]
     restart: always
+    depends_on:
+      - dbserver
     ipc: host
     environment:
       - "DBSERVER_HOST=dbserver"
@@ -113,19 +125,22 @@ services:
   service_processing:
     container_name: service_processing
     image: pacefactory/service-processing:latest
+    profiles: ["proc"]
     restart: always
+    depends_on:
+      - dbserver
+      - service_dtreeserver
     environment:
       - "DB_HOST=dbserver"
       - "CLASSIFIER_HOST=service_dtreeserver"
       - "ML_CLASSIFIER_HOST=service_classifier"
-      - "SERVICE_EXECUTION_PERIOD_MINS=15"
-      - "REPORT_CHECK_DURATION_DAYS=7"
     networks:
       - external_network
 
   social_web_app:
     container_name: social_web_app
     image: pacefactory/social_web_app
+    profiles: ["social"]
     hostname: social_web_app
     restart: always
     ports:
@@ -136,6 +151,7 @@ services:
   social_video_server:
     container_name: social_video_server
     image: pacefactory/social_video_server
+    profiles: ["social"]
     hostname: social_video_server
     restart: always
     ports:

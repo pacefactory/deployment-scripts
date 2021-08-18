@@ -1,0 +1,8 @@
+version: "3.3"
+
+services:
+  webgui:
+    image: pacefactory/safety-gui2-js:latest-master
+
+  social_web_app:
+    image: pacefactory/social_web_app:latest

@@ -2,42 +2,82 @@
 
 Public scripts for deployment of scv2 suite
 
+## Quick start
+
+### Production
+
+**To put services online OR to update WITH ALL SERVICES ENABLED**
+
+1. `docker login`
+2. `docker-compose --profile social --profile rdb --profile proc --profile ml pull`
+3. `docker-compose --profile social --profile rdb --profile proc --profile ml up -d`
+4. `docker logout`
+
+Remove one or more profiles from steps 2-3 to disable in a production environment
+
+**To set webgui and social_web_app to use specific release tag**
+
+1. Open `docker-compose.override.yml` in text editor
+2. Change the tag (everything after the `:`) for each of the lines that begin with `image:`
+3. Repeat steps 1-4 above
+
+### Development/offline
+
+**To put services online OR to update WITH ALL SERVICES ENABLED**
+
+1. `docker login`
+2. `docker-compose --profile social --profile rdb --profile proc --profile ml pull`
+3. `docker-compose --profile social --profile rdb --profile proc --profile ml -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml up -d`
+4. `docker logout`
+
+Remove one or more profiles from steps 2-3 to disable in a development environment.
+The `-f` flags will ensure proper environment configured for dbserver.
+
+**To set webgui and social_web_app to use specific release tag**
+
+1. Open `docker-compose.override.yml` in text editor
+2. Change the tag (everything after the `:`) for each of the lines that begin with `image:`
+3. Repeat steps 1-4 above
+
 ## Overview
 
-All containers can be run independently or via Docker compose. Docker compose is the preferred way to handle
-deployments. See below on instructions for both.
+All containers should be run via Docker compose. Docker compose is the preferred way to handle
+deployments. There are a handful of profiles that can be enabled/disabled to run all or only a subset of services.
 
-### Docker Compose
+### Profiles
 
-To deploy using Docker compose, run the following from this directory:
-
-```bash
-docker-compose up -d
-```
-
-If access is denied, you need to login first:
+Profiles are used when running the `docker-compose up -d` command. To enable one or more profiles, run
 
 ```bash
-docker login -u YOUR_USERNAME -p YOUR_PASSWORD
+docker-compose --profile my_profile_1 --profile my_profile_2 up -d
 ```
 
-### Single Container
+#### Profile-to-service map
 
-IMPORTANT: The single container run scripts (`update_from_dockerhub.sh` and `run_container.sh`) are not configured to use Docker volumes. Moreover, volumes and bind mounts are not interchangeable. This can result in possible data loss if using both docker-compose and single container scripts
+All services not listed below will always be put online, regardless of profiles used
 
-To deploy by bringing each container online separately (manually), you can pull an image from DockerHub and spin up a container using the `update_from_dockerhub.sh` script, e.g.
-
-```bash
-./scv2_dbserver/scripts/update_from_dockerhub.sh
-```
-
-Alternatively, if the image is already located on the machine, you can choose to run a new container directly with `run_container.sh`, e.g.
-
-```bash
-./scv2_dbserver/scripts/run_container.sh
-```
-
-Performing this for all services (and changing `scv2_dbserver` appropriately for each) will bring the entire suite online.
+<table>
+  <tr>
+    <th>Profile name</th>
+    <th>Services</th>
+  </tr>
+  <tr>
+    <td>social</td>
+    <td>social_video_server; social_web_app</td>
+  </tr>
+  <tr>
+    <td>ml</td>
+    <td>service_classifier</td>
+  </tr>
+  <tr>
+    <td>proc</td>
+    <td>service_processing</td>
+  </tr>
+  <tr>
+    <td>rdb</td>
+    <td>relational_dbserver</td>
+  </tr>
+</table>
 
 ## Deployments
 
@@ -112,6 +152,24 @@ git clone https://github.com/pacefactory/scv2_dbserver.git
 2. Build the image. This will be different depending on the repo, but there will be a `build_image.sh` script present in the repo somewhere. You should then be able to see the new image with `docker images`
 
 3. Use the `run_container.sh` script in the appropriate subdirectory to bring the container online. IMPORTANT: Make sure to overwrite the image name when prompted in the script, if needed
+
+### Single Container
+
+IMPORTANT: The single container run scripts (`update_from_dockerhub.sh` and `run_container.sh`) are not configured to use Docker volumes. Moreover, volumes and bind mounts are not interchangeable. This can result in possible data loss if using both docker-compose and single container scripts
+
+To deploy by bringing each container online separately (manually), you can pull an image from DockerHub and spin up a container using the `update_from_dockerhub.sh` script, e.g.
+
+```bash
+./scv2_dbserver/scripts/update_from_dockerhub.sh
+```
+
+Alternatively, if the image is already located on the machine, you can choose to run a new container directly with `run_container.sh`, e.g.
+
+```bash
+./scv2_dbserver/scripts/run_container.sh
+```
+
+Performing this for all services (and changing `scv2_dbserver` appropriately for each) will bring the entire suite online.
 
 ### Linux (Ubuntu) Installation Notes
 
@@ -201,6 +259,10 @@ For more info, see [Change WSL Docker Location](https://stackoverflow.com/questi
     <td>https://github.com/pacefactory/scv2_realtime.git</td>
   </tr>
   <tr>
+    <td>relational_dbserver</td>
+    <td>https://github.com/pacefactory/scv2_relational_dbserver.git</td>
+  </tr>
+  <tr>
     <td>services_dtreeserver</td>
     <td>https://github.com/pacefactory/scv2_services_dtreeserver.git</td>
   </tr>
@@ -211,6 +273,10 @@ For more info, see [Change WSL Docker Location](https://stackoverflow.com/questi
   <tr>
     <td>service_classifier</td>
     <td>https://github.com/pacefactory/scv2_services_classifier.git</td>
+  </tr>
+  <tr>
+    <td>services_processing</td>
+    <td>https://github.com/pacefactory/scv2_services_processing.git</td>
   </tr>
   <tr>
     <td>webgui</td>
@@ -230,7 +296,6 @@ For more info, see [Change WSL Docker Location](https://stackoverflow.com/questi
 
 There are a few oddities in the repo:
 
-1. Container `service_gifwrapper` is image `service-gifwrapper` on DockerHub, container `service_dtreeserver` is image `service-dtreeserver` on DockerHub, and `service_classifier` is `service-classifier` on DockerHub
-3. Container `webgui` is referred to as `safety-gui2-js` on DockerHub (and, by extension, in the image name too)
-4. Although Docker is transitioning from `docker-compose` to `docker compose`, we still prefer to use `docker-compose`
+1. Container `webgui` is referred to as `safety-gui2-js` on DockerHub (and, by extension, in the image name too)
+2. Although Docker is transitioning from `docker-compose` to `docker compose`, we still prefer to use `docker-compose`
    as it is more stable
