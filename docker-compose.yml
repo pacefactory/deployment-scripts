@@ -50,7 +50,7 @@ services:
 
   relational_dbserver:
     container_name: relational_dbserver
-    image: pacefactory/relational_dbserver
+    image: pacefactory/relational-dbserver
     hostname: relational_dbserver
     restart: always
     ports:
