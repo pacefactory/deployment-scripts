@@ -57,6 +57,8 @@ services:
       - "8282:8282"
     volumes:
       - "relational_dbserver-data:/home/scv2/volume"
+    networks:
+      - external_network
 
   webgui:
     container_name: webgui
