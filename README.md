@@ -1,145 +1,133 @@
 # deployment-scripts
 
-Public scripts for deployment of scv2 suite
+Scripts and deployment configurations for deployment of SCV2 software.
 
-## Quick start
+# Overview
 
-### Production
+All containers should be run via Docker compose. Docker compose is the preferred
+way to handle deployments. That is to say, it is not recommended to use the
+individual deployment scripts.
 
-**To put services online OR to update WITH ALL SERVICES ENABLED**
+There are a handful of profiles that can be enabled/disabled to run all or only
+a subset of services. The profiles are listed below, and are explained in the
+update script.
 
-1. `docker login`
-2. `docker-compose --profile social --profile rdb --profile proc --profile ml pull`
-3. `docker-compose --profile social --profile rdb --profile proc --profile ml up -d`
-4. `docker logout`
+Notes for deployment
 
-Remove one or more profiles from steps 2-3 to disable in a production environment
+# Quick start
 
-**To set webgui and social_web_app to use specific release tag**
+## First time setup
 
-1. Open `docker-compose.override.yml` in text editor
-2. Change the tag (everything after the `:`) for each of the lines that begin with `image:`
-3. Repeat steps 1-4 above
+1. Ensure the following programs are installed:
+   Docker >= 19.03.0,
+   Docker-compose >= 3.8,
+   Git >= 2.x.x
+2. Clone this repository
+3. Edit the `.env` file in the root directory of this repository
 
-### Development/offline
+- Change the tags according to the release branches you want to run, replacing the value _after_ the `=` sign
+- E.g. for Modatek:
 
-**To put services online OR to update WITH ALL SERVICES ENABLED**
-
-1. `docker login`
-2. `docker-compose --profile social --profile rdb --profile proc --profile ml pull`
-3. `docker-compose --profile social --profile rdb --profile proc --profile ml -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml up -d`
-4. `docker logout`
-
-Remove one or more profiles from steps 2-3 to disable in a development environment.
-The `-f` flags will ensure proper environment configured for dbserver.
-
-**To set webgui and social_web_app to use specific release tag**
-
-1. Open `docker-compose.override.yml` in text editor
-2. Change the tag (everything after the `:`) for each of the lines that begin with `image:`
-3. Repeat steps 1-4 above
-
-## Overview
-
-All containers should be run via Docker compose. Docker compose is the preferred way to handle
-deployments. There are a handful of profiles that can be enabled/disabled to run all or only a subset of services.
-
-### Profiles
-
-Profiles are used when running the `docker-compose up -d` command. To enable one or more profiles, run
-
-```bash
-docker-compose --profile my_profile_1 --profile my_profile_2 up -d
+```
+WEBGUI_TAG=release-modatek-milton
+SOCIAL_WEB_APP_TAG=release-modatek-milton
+SERVICE_PROCESSING_TAG=latest
 ```
 
-#### Profile-to-service map
+## Start/update procedure
 
-All services not listed below will always be put online, regardless of profiles used
+- Run the update script
+  - On Mac/Linux systems (or within WSL on Windows), run `./update.sh`
+  - On Windows (e.g. Powershell or similar), run `./update.ps1`
+- Read the information and answer the prompts accordingly
 
-<table>
-  <tr>
-    <th>Profile name</th>
-    <th>Services</th>
-  </tr>
-  <tr>
-    <td>social</td>
-    <td>social_video_server; social_web_app</td>
-  </tr>
-  <tr>
-    <td>ml</td>
-    <td>service_classifier</td>
-  </tr>
-  <tr>
-    <td>proc</td>
-    <td>service_processing</td>
-  </tr>
-  <tr>
-    <td>rdb</td>
-    <td>relational_dbserver</td>
-  </tr>
-</table>
-
-## Deployments
+# Deployment
 
 Instructions for deployments (installations and updates) are as follows
 
-### New Installation
+## New install
 
 To install on a fresh machine, first ensure that the requisite programs are installed:
 
-- Docker
-- Docker-compose
-- Git
+- Docker >= 19.03.0
+- Docker-compose >= 3.8
+- Git >= 2.x.x
+- (optional) ffmpeg
 
-Assuming these requirements are met, do the following to deploy:
+Once these requirements are satisfied, proceed with the following steps
+
+0. Chose a directory in which to keep a copy of this repository. The standard is `~/scv2/git_clones/`
+
+Mac/Linux/WSL
+
+```bash
+mkdir ~/scv2/git_clones
+cd ~/scv2/git_clones
+```
+
+Windows
+
+```powershell
+mkdir ~/scv2/git_clones
+cd ~/scv2/git_clones
+```
 
 1. Clone this repo (https://github.com/pacefactory/deployment-scripts.git)
+
+Mac/Linux/WSL
 
 ```bash
 git clone https://github.com/pacefactory/deployment-scripts.git
 ```
 
+Windows
+
+```powershell
+git clone https://github.com/pacefactory/deployment-scripts.git
+```
+
 2. Move into the directory
+
+Mac/Linux/WSL
 
 ```bash
 cd deployment-scripts
 ```
 
-3. Bring the services online with Docker compose
+Windows
 
-```bash
-docker-compose up -d
+```powershell
+cd deployment-scripts
 ```
 
-NOTE: If you received a pull access denied error in step 3, you may need to login (using dev account for this, if possible):
+3. Edit the `.env` file in the root directory of this repository
 
-```bash
-docker login -u YOUR_USERNAME -p YOUR_PASSWORD
+- Change the tags according to the release branches you want to run, replacing the value _after_ the `=` sign
+- E.g. for Modatek:
+
+```
+WEBGUI_TAG=release-modatek-milton
+SOCIAL_WEB_APP_TAG=release-modatek-milton
+SERVICE_PROCESSING_TAG=latest
 ```
 
-### Updates
+4. Run the update script
 
-Updates can be performed by pulling any updated images, then bringing the compose online again:
-
-1. Update the images from DockerHub
+Mac/Linux/WSL
 
 ```bash
-docker-compose pull
+./update.sh
 ```
 
-2. Bring compose online again
+Windows
 
 ```bash
-docker-compose up -d
+./update.ps1
 ```
 
-NOTE: If you received a pull access denied error in step 1 or 2, you may need to login (using dev account for this, if possible):
+# Advanced usage
 
-```bash
-docker login -u YOUR_USERNAME -p YOUR_PASSWORD
-```
-
-## Advanced Usage
+## Build images locally
 
 One could build images and then use the scripts in this repo to bring the services online. An example process for this could look like:
 
@@ -153,7 +141,9 @@ git clone https://github.com/pacefactory/scv2_dbserver.git
 
 3. Use the `run_container.sh` script in the appropriate subdirectory to bring the container online. IMPORTANT: Make sure to overwrite the image name when prompted in the script, if needed
 
-### Single Container
+## Run single container
+
+NOTE: THIS INFO IS OUTDATED. THE SINGLE-CONTAINER RUN SCRIPTS ARE NOT UP-TO-DATE. PROCEED WITH CAUTION.
 
 IMPORTANT: The single container run scripts (`update_from_dockerhub.sh` and `run_container.sh`) are not configured to use Docker volumes. Moreover, volumes and bind mounts are not interchangeable. This can result in possible data loss if using both docker-compose and single container scripts
 
@@ -171,9 +161,17 @@ Alternatively, if the image is already located on the machine, you can choose to
 
 Performing this for all services (and changing `scv2_dbserver` appropriately for each) will bring the entire suite online.
 
-### Linux (Ubuntu) Installation Notes
+## Docker-compose usage
 
-#### Run `docker ...` without sudo (Non-root user access)
+Profiles are used when running any `docker-compose` command. To enable one or more profiles, run
+
+```bash
+docker-compose --profile <profile_name> <command>
+```
+
+## Linux (Ubuntu) Installation Notes
+
+### Run `docker ...` without sudo (Non-root user access)
 
 By default on new Ubuntu installations, `docker ...` commands cannot be ran without sudo permissions. To change this, perform the following in a terminal:
 
@@ -184,11 +182,11 @@ By default on new Ubuntu installations, `docker ...` commands cannot be ran with
 
 For more info, see [Docker Linux Post-install](https://docs.docker.com/engine/install/linux-postinstall/)
 
-#### Root User Data Location
+### Root User Data Location
 
 If Docker is used without setting up non-root user access, data may be stored in the root home directory, `/root`. This may result in migration scripts not working properly and/or the illusion of missing data. Be sure to check this directory.
 
-### Windows Installation Notes
+## Windows Installation Notes
 
 If using the WSL2 backend for Docker on Windows, resources need to be managed through the WSL container system.
 
@@ -205,7 +203,7 @@ processors=4 # Makes the WSL 2 VM use four virtual processors
 
 For more info, see [Windows WSL Config](https://docs.microsoft.com/en-us/windows/wsl/wsl-config)
 
-#### Changing default Docker storage path
+### Changing default Docker storage path
 
 Docker Desktop creates two WSL2 containers by default, `docker-desktop` and `docker-desktop-data`. The virtual disk images are stored by default in `%USERPROFILE%\AppData\Local\Docker\wsl\distro\ext4.vhdx` and `%USERPROFILE%\AppData\Local\Docker\wsl\data\ext4.vhdx`, respectively. Any Docker images, container file systems, and volumes will be stored within these virtual disks.
 
@@ -235,7 +233,7 @@ To move the storage location (e.g. to another drive), one can recreate the WSL2 
 
 For more info, see [Change WSL Docker Location](https://stackoverflow.com/questions/62441307/how-can-i-change-the-location-of-docker-images-when-using-docker-desktop-on-wsl2) and [Docker WSL Volume Locations](https://stackoverflow.com/questions/61083772/where-are-docker-volumes-located-when-running-wsl-using-docker-desktop)
 
-##### <a name="wsl-container-list"></a>WSL Container List
+#### <a name="wsl-container-list"></a>WSL Container List
 
 ```
   NAME                   STATE           VERSION
@@ -243,7 +241,36 @@ For more info, see [Change WSL Docker Location](https://stackoverflow.com/questi
   docker-desktop-data    Stopped         2
 ```
 
-### GitHub Repositories
+# Tables
+
+## Profile-to-service map
+
+All services not listed below will always be put online, regardless of profiles used
+
+<table>
+  <tr>
+    <th>Profile name</th>
+    <th>Services</th>
+  </tr>
+  <tr>
+    <td>social</td>
+    <td>social_video_server; social_web_app</td>
+  </tr>
+  <tr>
+    <td>ml</td>
+    <td>service_classifier</td>
+  </tr>
+  <tr>
+    <td>proc</td>
+    <td>service_processing</td>
+  </tr>
+  <tr>
+    <td>rdb</td>
+    <td>relational_dbserver</td>
+  </tr>
+</table>
+
+## GitHub Repositories
 
 <table>
   <tr>
@@ -292,7 +319,7 @@ For more info, see [Change WSL Docker Location](https://stackoverflow.com/questi
   </tr>
 </table>
 
-## Notes
+# Notes
 
 There are a few oddities in the repo:
 
