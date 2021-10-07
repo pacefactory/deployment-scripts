@@ -6,8 +6,8 @@ services:
     image: mongo:4.2.3-bionic
     hostname: mongo
     restart: always
-    ports:
-      - "27017:27017"
+    expose:
+      - "27017"
     volumes:
       # Old path for the volume, prior to using a proper docker volume
       # - "~/scv2/volumes/mongo:/data/db"
