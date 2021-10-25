@@ -160,7 +160,17 @@ else {
 
 Write-Output ""
 Write-Output "Updating deployment..."
-$up_command = "docker-compose --env-file .env $profile_str $override_str up -d" -replace '\s+', ' '
+
+$env_file = "$($PSScriptRoot)\.env"
+
+if (Test-Path -Path $env_file -PathType leaf) {
+  $up_command = "docker-compose --env-file .env $profile_str $override_str up -d" -replace '\s+', ' '
+}
+else {
+  Write-Output ".env file not found. Using the example file."
+  $up_command = "docker-compose --env-file .env.example $profile_str $override_str up -d" -replace '\s+', ' '
+}
+
 Write-Host "$up_command"
 Invoke-Expression $up_command
 

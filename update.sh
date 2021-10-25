@@ -159,7 +159,13 @@ fi
 
 echo ""
 echo "Updating deployment..."
-docker-compose --env-file .env $profile_str $override_str up -d
+if [ -f .env ];
+then
+  up_command="docker-compose --env-file .env $profile_str $override_str up -d"
+else
+  up_command="docker-compose --env-file .env.example $profile_str $override_str up -d"
+fi
+$up_command
 
 echo ""
 read -r -p "Logout from DockerHub? ([y]/n)"

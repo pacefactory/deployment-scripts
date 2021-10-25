@@ -23,7 +23,7 @@ Notes for deployment
    Docker-compose >= 3.8,
    Git >= 2.x.x
 2. Clone this repository
-3. Edit the `.env` file in the root directory of this repository
+3. Create and edit the `.env` file from `.env.example` file in the root directory of this repository
 
 - Change the tags according to the release branches you want to run, replacing the value _after_ the `=` sign
 - E.g. for Modatek:
@@ -100,7 +100,7 @@ Windows
 cd deployment-scripts
 ```
 
-3. Edit the `.env` file in the root directory of this repository
+3. Create and edit the `.env` file from `.env.example` file in the root directory of this repository
 
 - Change the tags according to the release branches you want to run, replacing the value _after_ the `=` sign
 - E.g. for Modatek:
