@@ -2,10 +2,10 @@ version: "3.3"
 
 services:
   webgui:
-    image: pacefactory/safety-gui2-js:${WEBGUI_TAG}
+    image: pacefactory/safety-gui2-js:${WEBGUI_TAG:-latest-master}
 
   social_web_app:
-    image: pacefactory/social_web_app:${SOCIAL_WEB_APP_TAG}
+    image: pacefactory/social_web_app:${SOCIAL_WEB_APP_TAG:-latest}
 
   service_processing:
-    image: pacefactory/service-processing:${SERVICE_PROCESSING_TAG}
+    image: pacefactory/service-processing:${SERVICE_PROCESSING_TAG:-latest}
