@@ -153,28 +153,34 @@ else
   echo " -> Will pull from DockerHub"
   echo "Log in to DockerHub:"
   docker login
+
+  NEEDS_LOGOUT=1
+
   echo "Login complete; pulling..."
-  docker-compose $profile_str pull
+  docker compose --env-file .env $profile_str pull
 fi
 
 echo ""
 echo "Updating deployment..."
 if [ -f .env ];
 then
-  up_command="docker-compose --env-file .env $profile_str $override_str up -d"
+  up_command="docker compose -p deployment-scripts --env-file .env $profile_str $override_str up --detach"
 else
-  up_command="docker-compose --env-file .env.example $profile_str $override_str up -d"
+  up_command="docker compose -p deployment-scripts --env-file .env.example $profile_str $override_str up --detach"
 fi
 $up_command
 
-echo ""
-read -r -p "Logout from DockerHub? ([y]/n)"
-if [[ "$REPLY" == "n" ]];
+if [[ "$NEEDS_LOGOUT" == "1" ]];
 then
-  echo " -> Will NOT logout from DockerHub"
-else
-  echo " -> Logging out from DockerHub"
-  docker logout
+  echo ""
+  read -r -p "Logout from DockerHub? ([y]/n)"l
+  if [[ "$REPLY" == "n" ]];
+  then
+    echo " -> Will NOT logout from DockerHub"
+  else
+    echo " -> Logging out from DockerHub"
+    docker logout
+  fi
 fi
 
 echo ""
