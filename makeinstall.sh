@@ -52,7 +52,7 @@ fi
 
 echo "Creating $INSTALL_PATH/docker-compose.yml image digests resolved for selected profiles"
 
-docker compose --env-file .env $profile_str config --resolve-image-digests > $INSTALL_PATH/docker-compose.yml
+docker compose --env-file .env $profile_str config > $INSTALL_PATH/docker-compose.yml
 
 all_images=$(cat $INSTALL_PATH/docker-compose.yml | yq '.services[].image' -r | sort | uniq)
 
