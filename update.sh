@@ -22,6 +22,23 @@ profile_str=""
 override_str=""
 DEBUG=true
 
+PROJECT_NAME=$1
+
+echo ""
+if [[ -z $PROJECT_NAME ]];
+then
+    DEFAULT_PROJECT=scv2
+    CURRENT_PROJECT=$(docker compose ls --all --quiet | head -1)
+    PROJECT_NAME=${CURRENT_PROJECT:-$DEFAULT_PROJECT}
+
+    read -r -p "Confirm project name [$PROJECT_NAME]: "
+    if [[ ! -z "$REPLY" ]];
+    then
+        PROJECT_NAME=$REPLY
+    fi;
+fi
+echo "Project name: '$PROJECT_NAME'"
+
 # Enable social profile?
 echo ""
 while read -r -p "Enable the social profile? (y/[n]/?) "
@@ -157,23 +174,23 @@ else
   NEEDS_LOGOUT=1
 
   echo "Login complete; pulling..."
-  docker compose --env-file .env $profile_str pull
+  docker compose -p PROJECT_NAME --env-file .env $profile_str pull
 fi
 
 echo ""
 echo "Updating deployment..."
 if [ -f .env ];
 then
-  up_command="docker compose -p deployment-scripts --env-file .env $profile_str $override_str up --detach"
+  up_command="docker compose --project-name $PROJECT_NAME --env-file .env $profile_str $override_str up --detach"
 else
-  up_command="docker compose -p deployment-scripts --env-file .env.example $profile_str $override_str up --detach"
+  up_command="docker compose --project-name $PROJECT_NAME --env-file .env.example $profile_str $override_str up --detach"
 fi
 $up_command
 
 if [[ "$NEEDS_LOGOUT" == "1" ]];
 then
   echo ""
-  read -r -p "Logout from DockerHub? ([y]/n)"l
+  read -r -p "Logout from DockerHub? ([y]/n)"
   if [[ "$REPLY" == "n" ]];
   then
     echo " -> Will NOT logout from DockerHub"
