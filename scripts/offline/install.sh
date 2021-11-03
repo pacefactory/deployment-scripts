@@ -58,6 +58,7 @@ if [[ -z $DOCKER_COMPOSE ]];
 then
     echo ""
     echo "Installing docker compose"
+    mkdir -p ~/.docker/cli-plugins/
     cp -f docker-cli-plugins/docker-compose ~/.docker/cli-plugins/docker-compose
     chmod +x ~/.docker/cli-plugins/docker-compose
 fi
