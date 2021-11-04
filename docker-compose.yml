@@ -74,6 +74,8 @@ services:
       - "REACT_APP_DB_HOST=dbserver"
     ports:
       - "81:80"
+    volumes:
+      - "webgui-data:/home/scv2/volume"
     networks:
       - external_network
 
@@ -169,6 +171,7 @@ volumes:
   service_classifier-data:
   social_video_server-data:
   relational_dbserver-data:
+  webgui-data:
 
 networks:
   internal_network:
