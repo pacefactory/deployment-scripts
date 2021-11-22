@@ -65,15 +65,14 @@ services:
 
   webgui:
     container_name: webgui
-    image: pacefactory/safety-gui2-js:latest-master
+    image: pacefactory/safety-gui2-js
     hostname: webgui
     restart: always
     depends_on:
       - dbserver
     environment:
-      - "REACT_APP_DB_HOST=dbserver"
-    ports:
-      - "81:80"
+      - "WEBGUI_STATIC_PATH=/static"
+      - "WEBGUI_GATEWAY=true"
     networks:
       - external_network
 
@@ -171,11 +170,9 @@ services:
       - service_dtreeserver
       - service_gifwrapper
       - service_classifier
-      - social_video_server
       - webgui
-      - social_web_app
     ports:
-      - "80:80"
+      - "9000:80"
     networks:
       - external_network      
 
