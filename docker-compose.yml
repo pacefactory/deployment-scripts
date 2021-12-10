@@ -65,7 +65,8 @@ services:
 
   webgui:
     container_name: webgui
-    image: pacefactory/safety-gui2-js:latest-master
+    # TODO: Revert to latest-master upon merge into main
+    image: pacefactory/safety-gui2-js:frontend-ui-config
     hostname: webgui
     restart: always
     depends_on:
