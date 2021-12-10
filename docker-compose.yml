@@ -70,8 +70,8 @@ services:
     restart: always
     depends_on:
       - dbserver
-    environment:
-      - "REACT_APP_DB_HOST=dbserver"
+      - service_gifwrapper
+      - service_dtreeserver
     ports:
       - "81:80"
     volumes:
