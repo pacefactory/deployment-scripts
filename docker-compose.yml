@@ -65,15 +65,18 @@ services:
 
   webgui:
     container_name: webgui
-    image: pacefactory/safety-gui2-js:latest-master
+    # TODO: Revert to latest-master upon merge into main
+    image: pacefactory/safety-gui2-js:frontend-ui-config
     hostname: webgui
     restart: always
     depends_on:
       - dbserver
-    environment:
-      - "REACT_APP_DB_HOST=dbserver"
+      - service_gifwrapper
+      - service_dtreeserver
     ports:
       - "81:80"
+    volumes:
+      - "webgui-data:/home/scv2/volume"
     networks:
       - external_network
 
@@ -169,6 +172,7 @@ volumes:
   service_classifier-data:
   social_video_server-data:
   relational_dbserver-data:
+  webgui-data:
 
 networks:
   internal_network:
