@@ -23,7 +23,7 @@ fi
 #---------------------------------------
 # Install directory 
 
-INSTALL_PATH=install/$SAVE_PROFILE_LABEL
+INSTALL_PATH="scv2-$SAVE_PROFILE_LABEL"
 
 echo "Creating offline install fileset in $INSTALL_PATH"
 mkdir -p $INSTALL_PATH
@@ -42,10 +42,11 @@ echo "Downloading docker service definitions"
 mkdir -p $INSTALL_PATH/systemd
 curl -s https://raw.githubusercontent.com/moby/moby/master/contrib/init/systemd/docker.service > $INSTALL_PATH/systemd/docker.service
 curl -s https://raw.githubusercontent.com/moby/moby/master/contrib/init/systemd/docker.socket > $INSTALL_PATH/systemd/docker.socket
-curl -s https://raw.githubusercontent.com/containerd/containerd/main/containerd.service > $INSTALL_PATH/systemd/containerd.service
+curl -s https://raw.githubusercontent.com/containerd/containerd/main/containerd.service > $INSTALL_PATH/systemd/containerd.orig.service
 
 # fix paths for containerd
-cat $INSTALL_PATH/systemd/containerd.service | sed 's/\/usr\/local\/bin\/containerd/\/usr\/bin\/containerd/' > $INSTALL_PATH/systemd/containerd.service
+cat $INSTALL_PATH/systemd/containerd.orig.service | sed 's/\/usr\/local\/bin\/containerd/\/usr\/bin\/containerd/' > $INSTALL_PATH/systemd/containerd.service
+rm $INSTALL_PATH/systemd/containerd.orig.service
 
 #---------------------------------------
 # Docker Compose
@@ -110,4 +111,6 @@ mkdir -p $INSTALL_PATH/scripts
 cp -f scripts/backup/backup_volume.sh $INSTALL_PATH/scripts/ 
 cp -f scripts/backup/volumes.json $INSTALL_PATH/scripts/ 
 
-echo "Offline install fileset complete in $INSTALL_PATH"
+tar -czvf scv2-$SAVE_PROFILE_LABEL.tar.gz $INSTALL_PATH
+rm -rf $INSTALL_PATH
+echo "Offline install fileset complete in scv2-$SAVE_PROFILE_LABEL.tar.gz"

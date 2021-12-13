@@ -1,5 +1,46 @@
 #!/bin/bash
 
+#--------------------
+# Docker
+
+if [ ! -f /usr/bin/docker ];
+then
+    read -p "Do you want to install docker from binaries? (y/[N])"
+    if [[ "$REPLY" == "y" ]];
+    then
+        echo "Installing docker"
+        tar xzvf docker.tgz
+        sudo cp docker/* /usr/bin
+        sudo groupadd docker
+        sudo usermod -aG docker $USER
+
+        sudo cp systemd/* /etc/systemd/system
+        sudo systemctl enable docker.service
+        sudo systemctl enable containerd.service
+
+        read -p "System needs reboot, do you want to reboot now? (y/[N])"
+        if [[ "$REPLY" == "y" ]];
+        then
+            sudo reboot
+        fi
+    else
+        echo "Install docker using package manager"
+    fi
+    exit
+fi
+
+#--------------------
+# Docker Compose
+
+if [[ -z $(docker compose version 2> /dev/null) ]];
+then
+    echo ""
+    echo "Installing docker compose"
+    mkdir -p ~/.docker/cli-plugins
+    cp -f docker-cli-plugins/docker-compose ~/.docker/cli-plugins/docker-compose
+    chmod +x ~/.docker/cli-plugins/docker-compose
+fi
+
 #---------------------------------------
 # Arguments and Defaults 
 
@@ -19,48 +60,6 @@ then
     fi;
 fi
 echo "Project name: '$PROJECT_NAME'"
-
-#--------------------
-# Docker
-
-if [ ! -f /usr/bin/docker ];
-then
-    read -p "Do you want to install docker from binaries? (y/[N])"
-    if [[ "$REPLY" == "y" ]];
-    then
-        echo "Installing docker"
-        tar xzvf docker.tgz
-        sudo cp docker/* /usr/bin
-        sudo groupadd docker
-        sudo usermod -aG docker $USER
-
-        sudo cp systemd/* /etc/systemd/system
-
-        sudo systemctl enable docker.service
-        sudo systemctl enable containerd.service
-
-        read -p "System needs reboot, do you want to reboot now? (y/[N])"
-        if [[ "$REPLY" == "y" ]];
-        then
-            sudo reboot
-        fi
-    else
-        echo "Install docker using package manager"
-    fi
-    exit
-fi
-
-#--------------------
-# Docker Compose
-
-DOCKER_COMPOSE=$(docker compose version)
-if [[ -z $DOCKER_COMPOSE ]];
-then
-    echo ""
-    echo "Installing docker compose"
-    cp -f docker-cli-plugins/docker-compose ~/.docker/cli-plugins/docker-compose
-    chmod +x ~/.docker/cli-plugins/docker-compose
-fi
 
 echo ""
 echo "Loading images..."
