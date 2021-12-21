@@ -169,10 +169,10 @@ services:
       - dbserver
       - service_dtreeserver
       - service_gifwrapper
-      - service_classifier
       - webgui
     ports:
-      - "9000:80"
+      - "80:80"
+      - "81:81"
     networks:
       - external_network      
 
