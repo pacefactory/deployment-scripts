@@ -9,3 +9,6 @@ services:
 
   service_processing:
     image: pacefactory/service-processing:${SERVICE_PROCESSING_TAG:-latest}
+    
+  realtime:
+    image: pacefactory/realtime:${REALTIME_TAG:-latest}
