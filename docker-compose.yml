@@ -26,8 +26,8 @@ services:
     tty: true
     environment:
       - "MONGO_HOST=mongo"
-    # ports:
-    #   - "8050:8050"
+    ports:
+      - "8050:8050"
     volumes:
       - "dbserver-data:/home/scv2/volume"
     networks:
@@ -43,8 +43,8 @@ services:
     tty: true
     environment:
       - "DBSERVER_HOST=dbserver"
-    # ports:
-    #   - "8181:8181"
+    ports:
+      - "8181:8181"
     volumes:
       - "realtime-data:/home/scv2/locations"
     networks:
