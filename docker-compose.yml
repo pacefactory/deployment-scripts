@@ -133,10 +133,12 @@ services:
     depends_on:
       - dbserver
       - service_dtreeserver
+      - webgui
     environment:
       - "DB_HOST=dbserver"
       - "CLASSIFIER_HOST=service_dtreeserver"
       - "ML_CLASSIFIER_HOST=service_classifier"
+      - "UISERVER_HOST=webgui"
     networks:
       - external_network
 
