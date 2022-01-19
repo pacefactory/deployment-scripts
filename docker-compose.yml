@@ -73,7 +73,7 @@ services:
       - service_gifwrapper
       - service_dtreeserver
     environment:
-      - "WEBGUI_STATIC_PATH=/static"
+      - "WEBGUI_STATIC_PATH=/static/"
       - "WEBGUI_APIGATEWAY=true"
     volumes:
       - "webgui-data:/home/scv2/volume"
@@ -171,6 +171,8 @@ services:
     image: pacefactory/scv2_apigateway
     hostname: apigateway
     restart: always
+    environment:
+      - "SCV2_PROFILES="    
     depends_on:
       - dbserver
       - service_dtreeserver
