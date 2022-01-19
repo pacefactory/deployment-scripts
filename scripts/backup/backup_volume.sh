@@ -7,7 +7,7 @@ PROJECT_NAME=$1
 echo ""
 if [[ -z $PROJECT_NAME ]];
 then
-    DEFAULT_PROJECT=scv2
+    DEFAULT_PROJECT=deployment-scripts
     CURRENT_PROJECT=$(docker compose ls --all --quiet | head -1)
     PROJECT_NAME=${CURRENT_PROJECT:-$DEFAULT_PROJECT}
 
