@@ -56,8 +56,8 @@ services:
     profiles: ["rdb"]
     hostname: relational_dbserver
     restart: always
-    # ports:
-    #   - "8282:8282"
+    ports:
+      - "8282:8282"
     volumes:
       - "relational_dbserver-data:/home/scv2/volume"
     networks:
@@ -72,7 +72,7 @@ services:
       - dbserver
     environment:
       - "WEBGUI_STATIC_PATH=/static"
-      - "WEBGUI_GATEWAY=true"
+      - "WEBGUI_APIGATEWAY=true"
     networks:
       - external_network
 
@@ -84,8 +84,8 @@ services:
       - dbserver
     environment:
       - "DBSERVER_HOST=dbserver"
-    # ports:3
-    #   - "7171:7171"
+    ports:
+      - "7171:7171"
     networks:
       - external_network
 
@@ -97,8 +97,8 @@ services:
       - dbserver
     environment:
       - "DBSERVER_HOST=dbserver"
-    # ports:
-    #   - "7272:7272"
+    ports:
+      - "7272:7272"
     volumes:
       - "service_dtreeserver-data:/home/scv2/volume"
     networks:
@@ -114,8 +114,8 @@ services:
     ipc: host
     environment:
       - "DBSERVER_HOST=dbserver"
-    # ports:
-    #   - "7373:7373"
+    ports:
+      - "7373:7373"
     volumes:
       - service_classifier-data:/home/scv2/volume
     networks:
@@ -142,8 +142,8 @@ services:
     profiles: ["social"]
     hostname: social_web_app
     restart: always
-    # ports:
-    #   - "9898:80"
+    ports:
+      - "9898:80"
     networks:
       - external_network
 
@@ -153,8 +153,8 @@ services:
     profiles: ["social"]
     hostname: social_video_server
     restart: always
-    # ports:
-    #   - "9999:9999"
+    ports:
+      - "9999:9999"
     volumes:
       - "social_video_server-data:/home/scv2/volume"
     networks:
