@@ -70,9 +70,13 @@ services:
     restart: always
     depends_on:
       - dbserver
+      - service_gifwrapper
+      - service_dtreeserver
     environment:
       - "WEBGUI_STATIC_PATH=/static"
       - "WEBGUI_APIGATEWAY=true"
+    volumes:
+      - "webgui-data:/home/scv2/volume"
     networks:
       - external_network
 
@@ -129,10 +133,12 @@ services:
     depends_on:
       - dbserver
       - service_dtreeserver
+      - webgui
     environment:
       - "DB_HOST=dbserver"
       - "CLASSIFIER_HOST=service_dtreeserver"
       - "ML_CLASSIFIER_HOST=service_classifier"
+      - "UISERVER_HOST=webgui"
     networks:
       - external_network
 
@@ -184,6 +190,7 @@ volumes:
   service_classifier-data:
   social_video_server-data:
   relational_dbserver-data:
+  webgui-data:
 
 networks:
   internal_network:
