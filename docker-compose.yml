@@ -168,11 +168,11 @@ services:
 
   apigateway:
     container_name: apigateway
-    image: pacefactory/scv2_apigateway
+    image: pacefactory/apigateway
     hostname: apigateway
     restart: always
     environment:
-      - "SCV2_PROFILES="    
+      - "SCV2_PROFILES="
     depends_on:
       - dbserver
       - service_dtreeserver
@@ -182,7 +182,7 @@ services:
       - "80:80"
       - "81:81"
     networks:
-      - external_network      
+      - external_network
 
 volumes:
   mongodata:
