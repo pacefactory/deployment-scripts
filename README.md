@@ -29,9 +29,7 @@ Notes for deployment
 - E.g. for Modatek:
 
 ```
-WEBGUI_TAG=release-modatek-milton
 SOCIAL_WEB_APP_TAG=release-modatek-milton
-SERVICE_PROCESSING_TAG=latest
 ```
 
 ## Start/update procedure
@@ -106,9 +104,7 @@ cd deployment-scripts
 - E.g. for Modatek:
 
 ```
-WEBGUI_TAG=release-modatek-milton
 SOCIAL_WEB_APP_TAG=release-modatek-milton
-SERVICE_PROCESSING_TAG=latest
 ```
 
 4. Run the update script

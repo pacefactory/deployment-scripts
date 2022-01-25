@@ -3,9 +3,6 @@ version: "3.3"
 services:
   social_web_app:
     image: pacefactory/social_web_app:${SOCIAL_WEB_APP_TAG:-latest}
-
-  service_processing:
-    image: pacefactory/service-processing:${SERVICE_PROCESSING_TAG:-latest}
     
   realtime:
     image: pacefactory/realtime:${REALTIME_TAG:-latest}
