@@ -173,6 +173,18 @@ services:
     restart: always
     environment:
       - "SCV2_PROFILES="
+      - "DBSERVER_HOST=dbserver"
+      - "DBSERVER_PORT=8050"
+      - "DTREE_HOST=service_dtreeserver"
+      - "DTREE_PORT=7272"
+      - "GIF_HOST=service_gifwrapper"
+      - "GIF_PORT=7171"
+      - "REALTIME_HOST=realtime"
+      - "REALTIME_PORT=8181"
+      - "WEBGUI_HOST=webgui"
+      - "WEBGUI_PORT=80"
+      - "CLASSIFIER_HOST=service_classifier"
+      - "CLASSIFIER_PORT=7373"
     depends_on:
       - dbserver
       - service_dtreeserver
