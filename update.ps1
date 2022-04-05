@@ -1,3 +1,7 @@
+param (
+  [string]$ProjectName = "deployment-scripts"
+)
+
 Write-Output ""
 Write-Output "This will update the Pacefactory SCV2 deployment running on this machine."
 Write-Output ""
@@ -19,6 +23,15 @@ $profile_str = ""
 # Init override string as empty
 $override_str = ""
 $DEBUG = $TRUE
+
+$env_file = Join-Path -Path $PSScriptRoot -ChildPath ".env"
+
+Write-Output ""
+$REPLY = Read-Host "Confirm project name [$ProjectName]"
+if ( $REPLY -ne "" ) {
+  $ProjectName = $REPLY
+}
+Write-Output "Project name: '$ProjectName'"
 
 # Enable social profile?
 Write-Output ""
@@ -153,7 +166,14 @@ else {
   Write-Output "Log in to DockerHub:"
   docker login
   Write-Output "Login complete; pulling..."
-  $pull_command = "docker-compose $profile_str pull" -replace '\s+', ' '
+  if (Test-Path -Path $env_file -PathType leaf) {
+    $pull_command = "docker compose -p $ProjectName --env-file .env $profile_str $override_str pull" -replace '\s+', ' '
+  }
+  else {
+    Write-Output ".env file not found. Using the .env.example for pull"
+    $pull_command = "docker compose -p $ProjectName --env-file .env.example $profile_str $override_str pull" -replace '\s+', ' '
+  }
+  
   Write-Host "$pull_command"
   Invoke-Expression $pull_command
 }
@@ -161,14 +181,12 @@ else {
 Write-Output ""
 Write-Output "Updating deployment..."
 
-$env_file = "$($PSScriptRoot)\.env"
-
 if (Test-Path -Path $env_file -PathType leaf) {
-  $up_command = "docker-compose --env-file .env $profile_str $override_str up -d" -replace '\s+', ' '
+  $up_command = "docker compose --remove-orphans -p $ProjectName --env-file .env $profile_str $override_str up --detach" -replace '\s+', ' '
 }
 else {
-  Write-Output ".env file not found. Using the example file."
-  $up_command = "docker-compose --env-file .env.example $profile_str $override_str up -d" -replace '\s+', ' '
+  Write-Output ".env file not found. Using the .env.example for launch"
+  $up_command = "docker compose --remove-orphans -p $ProjectName --env-file .env.example $profile_str $override_str up --detach" -replace '\s+', ' '
 }
 
 Write-Host "$up_command"

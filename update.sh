@@ -174,17 +174,28 @@ else
   NEEDS_LOGOUT=1
 
   echo "Login complete; pulling..."
-  docker compose -p PROJECT_NAME --env-file .env $profile_str pull
+  if [ -f .env ];
+  then
+    pull_command="docker compose -p $PROJECT_NAME --env-file .env $profile_str $override_str pull"
+  else
+    echo ".env file not found. Using .env.example for pull"
+    pull_command="docker compose -p $PROJECT_NAME --env-file .env.example $profile_str $override_str pull"
+  fi
+  echo $pull_command
+  $pull_command
 fi
 
 echo ""
 echo "Updating deployment..."
 if [ -f .env ];
 then
-  up_command="docker compose --project-name $PROJECT_NAME --env-file .env $profile_str $override_str up --detach"
+  up_command="docker compose --remove-orphans -p $PROJECT_NAME --env-file .env $profile_str $override_str up --detach"
 else
-  up_command="docker compose --project-name $PROJECT_NAME --env-file .env.example $profile_str $override_str up --detach"
+  echo ".env file not found. Using .env.example for launch"
+  up_command="docker compose --remove-orphans -p $PROJECT_NAME --env-file .env.example $profile_str $override_str up --detach"
 fi
+
+echo $up_command
 $up_command
 
 if [[ "$NEEDS_LOGOUT" == "1" ]];
