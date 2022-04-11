@@ -182,11 +182,11 @@ Write-Output ""
 Write-Output "Updating deployment..."
 
 if (Test-Path -Path $env_file -PathType leaf) {
-  $up_command = "docker compose --remove-orphans -p $ProjectName --env-file .env $profile_str $override_str up --detach" -replace '\s+', ' '
+  $up_command = "docker compose -p $ProjectName --env-file .env $profile_str $override_str up --detach --remove-orphans" -replace '\s+', ' '
 }
 else {
   Write-Output ".env file not found. Using the .env.example for launch"
-  $up_command = "docker compose --remove-orphans -p $ProjectName --env-file .env.example $profile_str $override_str up --detach" -replace '\s+', ' '
+  $up_command = "docker compose -p $ProjectName --env-file .env.example $profile_str $override_str up --detach --remove-orphans" -replace '\s+', ' '
 }
 
 Write-Host "$up_command"

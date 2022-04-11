@@ -189,10 +189,10 @@ echo ""
 echo "Updating deployment..."
 if [ -f .env ];
 then
-  up_command="docker compose --remove-orphans -p $PROJECT_NAME --env-file .env $profile_str $override_str up --detach"
+  up_command="docker compose -p $PROJECT_NAME --env-file .env $profile_str $override_str up --detach --remove-orphans"
 else
   echo ".env file not found. Using .env.example for launch"
-  up_command="docker compose --remove-orphans -p $PROJECT_NAME --env-file .env.example $profile_str $override_str up --detach"
+  up_command="docker compose -p $PROJECT_NAME --env-file .env.example $profile_str $override_str up --detach --remove-orphans"
 fi
 
 echo $up_command
