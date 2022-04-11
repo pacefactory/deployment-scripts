@@ -18,8 +18,8 @@ echo "tool. This disabled the autodelete feature, so data persists in the dbserv
 
 # Init profiles string as empty (no optional profiles)
 profile_str=""
-# Init override string as empty
-override_str="-f docker-compose.yml"
+# Init override string with base docker-compose and override docker-compose file
+override_str="-f docker-compose.yml -f docker-compose.override.yml"
 DEBUG=true
 
 PROJECT_NAME=$1
@@ -142,13 +142,11 @@ do
     if [[ "$REPLY" == "1" ]];
     then
         echo " -> Will run in ONLINE mode"
-        # Should not need to change the override string
-        # override_str=""
         break;
     elif [[ "$REPLY" == "2" ]];
     then
         echo " -> Will run in OFFLINE mode"
-        override_str="$override_str -f docker-compose.override.yml -f docker-compose.dev.yml"
+        override_str="$override_str -f docker-compose.dev.yml"
         break;
     # Default option (assumed to be no). Break
     else
