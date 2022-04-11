@@ -20,8 +20,8 @@ Write-Output "tool. This disabled the autodelete feature, so data persists in th
 
 # Init profiles string as empty (no optional profiles)
 $profile_str = ""
-# Init override string as empty
-$override_str = ""
+# Init override string with base docker-compose and override docker-compose file
+$override_str="-f docker-compose.yml -f docker-compose.override.yml"
 $DEBUG = $TRUE
 
 $env_file = Join-Path -Path $PSScriptRoot -ChildPath ".env"
@@ -61,6 +61,7 @@ Do {
   $REPLY = Read-Host "Enable the machine learning (ml) profile? (y/[n]/?) "
   if ( $REPLY -eq "y" ) {
     $profile_str = "$profile_str --profile ml"
+    $override_str = "$override_str -f docker-compose.ml.yml"
     Write-Output " -> Will enable machine learning profile"
     break
   }
@@ -137,12 +138,11 @@ While ($TRUE) {
   # Online mode: docker-compose.yml and docker-compose.override.yml used by default
   if ($REPLY -eq "1") {
     Write-Output " -> Will run in ONLINE mode"
-    $override_str = ""
     break
   }
   elseif ($REPLY -eq "2") {
     Write-Output " -> Will run in OFFLINE mode"
-    $override_str = "-f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml"
+    $override_str = "$override_str -f docker-compose.dev.yml"
     break
   }
   else {
