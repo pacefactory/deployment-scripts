@@ -22,27 +22,23 @@ From this folder, use the command:
 
 `docker build -t pacefactory/scv2_ubuntupython_base -f ./ubuntupython_base/build/docker/Dockerfile ./ubuntupython_base`
 
-
-
 #### opencv_base
 
 From this folder, use the command:
 
 `docker build -t pacefactory/scv2_opencv_base -f ./opencv_base/build/docker/Dockerfile ./opencv_base`
 
-
-
 ---
 
 ## Uploading to Dockerhub (Manually)
 
-Most repos are setup to automatically build new docker images after every repo change. This may not make sense for the base images, as they aren't (shouldn't be) changed often, and require other images be updated for the changes to take effect anyways. Therefore more delibrate (manual) updates may be required here.
+Most repos are setup to automatically build new docker images after every repo change. This may not make sense for the base images, as they aren't (shouldn't be) changed often, and require other images be updated for the changes to take effect anyways. Therefore more deliberate (manual) updates may be required here.
 
 To manually upload a newly built image to dockerhub, first use the `docker images` command to list out your images. From the list of images, find your newly built image. The new image should be listed by the tag name you gave it in the build command and will have the label `latest` beside it in the image list. It should also say that it was built recently if the build resulted in some meaningful change to the image. Then use the following commands:
 
 ```
-docker tag (image id) (tag name):(version number)
-docker push (tag name):(version number)
+docker tag (image id) (repository name):(version number)
+docker push (repository name name):(version number)
 ```
 
 The first line will cause the `latest` label to be changed to the version number you specified (this is important for other images that rely on specific versions behaving in a predictable way!). The second line should start an upload that may take a while, depending on your internet connection!
