@@ -1,5 +1,9 @@
 #!/bin/bash
 
+hash jq 2>/dev/null || { printf >&2 "'jq' required, but not found.\nInstall via:\n  sudo apt install jq\nAborting.\n"; exit 1; }
+hash yq 2>/dev/null || { printf >&2 "'yq' required, but not found.\nInstall via:\n  python3 -m pip install yq\nAborting.\n"; exit 1; }
+hash docker compose 2>/dev/null || { printf >&2 "'docker compose' required, but not found.\nInstall via: https://docs.docker.com/compose/install/\nAborting.\n"; exit 1; }
+
 DOCKER_VERSION=20.10.9
 
 #---------------------------------------

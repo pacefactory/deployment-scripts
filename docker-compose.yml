@@ -1,10 +1,47 @@
 version: "3.3"
 
+x-pf-info:
+  settings:
+    PROJECT_PREFIX:
+      default: ""
+    DBSERVER_TAG:
+      default: latest      
+    DBSERVER_PUBLIC_PORT:
+      default: 8050      
+    REALTIME_TAG:
+      default: latest      
+    REALTIME_PUBLIC_PORT:
+      default: 8181      
+    WEBGUI_TAG:
+      default: latest      
+    WEBGUI_FORCE_GHOSTING:
+      default: true
+    WEBGUI_ATTEMPT_REPORT_COMPUTE:
+      description: UI will attempt to compute missing pool/trend values
+      default: true        
+    WEBGUI_RETRIEVED_REALTIME_CAM_CONFIG_ON_INIT:
+      description: Retrieve all realtime configs (for station zone information) on startup, else wait for an efficiency rule
+      default: false        
+    WEBGUI_OBJ_REQ_BATCH_SIZE:
+      description: The number of objects requested at one time when displaying a rule in the UI
+      default: 20        
+    GIFWRAPPER_TAG:
+      default: latest      
+    GIFWRAPPER_PUBLIC_PORT:
+      default: 7171      
+    DTREESERVER_TAG:
+      default: latest      
+    DTREESERVER_PUBLIC_PORT:
+      default: 7272      
+    HTTP_PORT:
+      default: 80      
+
 services:
   mongo:
-    container_name: mongo
+    container_name: ${PROJECT_PREFIX:-}mongo
+    hostname: ${PROJECT_PREFIX:-}mongo
     image: mongo:4.2.3-bionic
-    hostname: mongo
+    pull_policy: never
     restart: always
     expose:
       - "27017"
@@ -16,18 +53,19 @@ services:
       - internal_network
 
   dbserver:
-    container_name: dbserver
-    image: pacefactory/dbserver
-    hostname: dbserver
+    container_name: ${PROJECT_PREFIX:-}dbserver
+    hostname: ${PROJECT_PREFIX:-}dbserver
+    image: pacefactory/dbserver:${DBSERVER_TAG:-latest}
+    pull_policy: never
     restart: always
     depends_on:
       - mongo
     stdin_open: true
     tty: true
     environment:
-      - "MONGO_HOST=mongo"
+      - "MONGO_HOST=${PROJECT_PREFIX:-}mongo"
     ports:
-      - "8050:8050"
+      - "${DBSERVER_PUBLIC_PORT:-8050}:8050"
     volumes:
       - "dbserver-data:/home/scv2/volume"
     networks:
@@ -35,38 +73,27 @@ services:
       - external_network
 
   realtime:
-    container_name: realtime
-    image: pacefactory/realtime
-    hostname: realtime
+    container_name: ${PROJECT_PREFIX:-}realtime
+    image: pacefactory/realtime:${REALTIME_TAG:-latest}
+    pull_policy: never
+    hostname: ${PROJECT_PREFIX:-}realtime
     restart: always
     stdin_open: true
     tty: true
     environment:
-      - "DBSERVER_HOST=dbserver"
+      - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
     ports:
-      - "8181:8181"
+      - "${REALTIME_PUBLIC_PORT:-8181}:8181"
     volumes:
       - "realtime-data:/home/scv2/locations"
     networks:
       - external_network
 
-  relational_dbserver:
-    container_name: relational_dbserver
-    image: pacefactory/relational-dbserver
-    profiles: ["rdb"]
-    hostname: relational_dbserver
-    restart: always
-    ports:
-      - "8282:8282"
-    volumes:
-      - "relational_dbserver-data:/home/scv2/volume"
-    networks:
-      - external_network
-
   webgui:
-    container_name: webgui
-    image: pacefactory/safety-gui2-js
-    hostname: webgui
+    container_name: ${PROJECT_PREFIX:-}webgui
+    hostname: ${PROJECT_PREFIX:-}webgui
+    image: pacefactory/safety-gui2-js:${WEBGUI_TAG:-latest}
+    pull_policy: never
     restart: always
     depends_on:
       - dbserver
@@ -75,124 +102,69 @@ services:
     environment:
       - "WEBGUI_STATIC_PATH=/static/"
       - "WEBGUI_APIGATEWAY=true"
+      - "WEBGUI_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
+      - "WEBGUI_ATTEMPT_REPORT_COMPUTE=${WEBGUI_ATTEMPT_REPORT_COMPUTE:-true}"
+      - "WEBGUI_RETRIEVED_REALTIME_CAM_CONFIG_ON_INIT=${WEBGUI_RETRIEVED_REALTIME_CAM_CONFIG_ON_INIT:-false}"
+      - "WEBGUI_OBJ_REQ_BATCH_SIZE=${WEBGUI_OBJ_REQ_BATCH_SIZE:-20}"
     volumes:
       - "webgui-data:/home/scv2/volume"
     networks:
       - external_network
 
   service_gifwrapper:
-    container_name: service_gifwrapper
-    image: pacefactory/service-gifwrapper
+    container_name: ${PROJECT_PREFIX:-}service_gifwrapper
+    image: pacefactory/service-gifwrapper:${GIFWRAPPER_TAG:-latest}
+    pull_policy: never
     restart: always
     depends_on:
       - dbserver
     environment:
-      - "DBSERVER_HOST=dbserver"
+      - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
     ports:
-      - "7171:7171"
+      - "${GIFWRAPPER_PUBLIC_PORT:-7171}:7171"
     networks:
       - external_network
 
   service_dtreeserver:
-    container_name: service_dtreeserver
-    image: pacefactory/service-dtreeserver
+    container_name: ${PROJECT_PREFIX:-}service_dtreeserver
+    image: pacefactory/service-dtreeserver:${DTREESERVER_TAG:-latest}
+    pull_policy: never
     restart: always
     depends_on:
       - dbserver
     environment:
-      - "DBSERVER_HOST=dbserver"
+      - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
     ports:
-      - "7272:7272"
+      - "${DTREESERVER_PUBLIC_PORT:-7272}:7272"
     volumes:
       - "service_dtreeserver-data:/home/scv2/volume"
     networks:
       - external_network
 
-  service_classifier:
-    container_name: service_classifier
-    image: pacefactory/service-classifier
-    profiles: ["ml"]
-    restart: always
-    depends_on:
-      - dbserver
-    ipc: host
-    environment:
-      - "DBSERVER_HOST=dbserver"
-    ports:
-      - "7373:7373"
-    volumes:
-      - service_classifier-data:/home/scv2/volume
-    networks:
-      - external_network
-
-  service_processing:
-    container_name: service_processing
-    image: pacefactory/service-processing:latest
-    profiles: ["proc"]
-    restart: always
-    depends_on:
-      - dbserver
-      - service_dtreeserver
-      - webgui
-    environment:
-      - "DB_HOST=dbserver"
-      - "CLASSIFIER_HOST=service_dtreeserver"
-      - "ML_CLASSIFIER_HOST=service_classifier"
-      - "UISERVER_HOST=webgui"
-    networks:
-      - external_network
-
-  social_web_app:
-    container_name: social_web_app
-    image: pacefactory/social_web_app
-    profiles: ["social"]
-    hostname: social_web_app
-    restart: always
-    ports:
-      - "9898:80"
-    networks:
-      - external_network
-
-  social_video_server:
-    container_name: social_video_server
-    image: pacefactory/social_video_server
-    profiles: ["social"]
-    hostname: social_video_server
-    restart: always
-    ports:
-      - "9999:9999"
-    volumes:
-      - "social_video_server-data:/home/scv2/volume"
-    networks:
-      - external_network
-
   apigateway:
-    container_name: apigateway
+    container_name: ${PROJECT_PREFIX:-}apigateway
+    hostname: ${PROJECT_PREFIX:-}apigateway
     image: pacefactory/apigateway
-    hostname: apigateway
+    pull_policy: never
     restart: always
     environment:
-      - "SCV2_PROFILES="
-      - "DBSERVER_HOST=dbserver"
+      - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
       - "DBSERVER_PORT=8050"
-      - "DTREE_HOST=service_dtreeserver"
+      - "DTREE_HOST=${PROJECT_PREFIX:-}service_dtreeserver"
       - "DTREE_PORT=7272"
-      - "GIF_HOST=service_gifwrapper"
+      - "GIF_HOST=${PROJECT_PREFIX:-}service_gifwrapper"
       - "GIF_PORT=7171"
-      - "REALTIME_HOST=realtime"
+      - "REALTIME_HOST=${PROJECT_PREFIX:-}realtime"
       - "REALTIME_PORT=8181"
-      - "WEBGUI_HOST=webgui"
+      - "WEBGUI_HOST=${PROJECT_PREFIX:-}webgui"
       - "WEBGUI_PORT=80"
-      - "CLASSIFIER_HOST=service_classifier"
-      - "CLASSIFIER_PORT=7373"
     depends_on:
       - dbserver
       - service_dtreeserver
       - service_gifwrapper
       - webgui
     ports:
-      - "80:80"
-      - "81:81"
+      - "${HTTP_PORT:-80}:80"
     networks:
       - external_network
 
@@ -201,9 +173,6 @@ volumes:
   dbserver-data:
   realtime-data:
   service_dtreeserver-data:
-  service_classifier-data:
-  social_video_server-data:
-  relational_dbserver-data:
   webgui-data:
 
 networks:

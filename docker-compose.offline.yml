@@ -1,0 +1,18 @@
+version: "3.3"
+
+x-pf-info:
+  name: OFFLINE MODE
+  prompt: Enable OFFLINE MODE, only for when running videos using the "Offline Processing"?
+  description:
+    The default mode is ONLINE. It is to be used for client sites where the autodelete feature
+    must be enabled to manage storage constraints.
+    OFFLINE MODE is to be used when running videos using the Offline Processing
+    tool. This disabled the autodelete feature, so data persists in the dbserver.
+
+services:
+  dbserver:
+    environment:
+      - "DAYS_TO_KEEP=9999999"
+      - "UPPER_DISK_USAGE_PCT=100"
+      - "MAX_DISK_USAGE_PCT=100"
+      - "WEBGUI_FORCE_GHOSTING=false"

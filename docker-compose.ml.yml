@@ -1,6 +1,43 @@
 version: "3.3"
 
+x-pf-info:
+  name: machine learning (ml) profile
+  prompt: Enable the machine learning (ml) profile?
+  description:
+    The machine learning profile enables the machine learning service, used
+    to enhance object classifications and detections within the webgui
+    (service_classifier)
+  settings:
+    CLASSIFIER_TAG:
+      default: "latest"
+    CLASSIFIER_PUBLIC_PORT:
+      default: "7373"    
+
 services:
   apigateway:
+    depends_on:
+      - service_classifier
     environment:
-      - "SCV2_PROFILES=ml"
+      - "SCV2_PROFILE_ML=true"
+      - "CLASSIFIER_HOST=${PROJECT_PREFIX:-}service_classifier"
+      - "CLASSIFIER_PORT=7373"
+
+  service_classifier:
+    container_name: ${PROJECT_PREFIX:-}service_classifier
+    image: pacefactory/service-classifier:${CLASSIFIER_TAG:-latest}
+    profiles: ["ml"]
+    restart: always
+    depends_on:
+      - dbserver
+    ipc: host
+    environment:
+      - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+    ports:
+      - "${CLASSIFIER_PUBLIC_PORT:-7373}:7373"
+    volumes:
+      - service_classifier-data:/home/scv2/volume
+    networks:
+      - external_network
+
+volumes:
+  service_classifier-data:

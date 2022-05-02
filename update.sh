@@ -1,218 +1,330 @@
 #!/bin/bash
 
+# Requirements
+
+hash jq 2>/dev/null || { printf >&2 "'jq' required, but not found.\nInstall via:\n  sudo apt install jq\nAborting.\n"; exit 1; }
+hash yq 2>/dev/null || { printf >&2 "'yq' required, but not found.\nInstall via:\n  python3 -m pip install yq\nAborting.\n"; exit 1; }
+hash docker compose 2>/dev/null || { printf >&2 "'docker compose' required, but not found.\nInstall via: https://docs.docker.com/compose/install/\nAborting.\n"; exit 1; }
+
+declare -A SCV2_PROFILES=()
+POSITIONAL=()
+
+settingsfile=".settings"
+
+. "$settingsfile" 2>/dev/null || :
+
+SCV2_PROFILES[custom]="true"
+
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -n|--name)
+    PROJECT_NAME="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -q|--quiet)
+    QUIET_MODE=true
+    shift # past argument
+    ;;
+    -d|--debug)
+    DEBUG=true
+    shift # past argument
+    ;;
+    --logout)
+    DOCKER_LOGOUT="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --pull)
+    DOCKER_PULL="$2"
+    shift # past argument
+    shift # past value
+    ;;    
+    --*)
+    profile_id="${key#--}"
+    profile_compose_file="docker-compose.${profile_id}.yml"
+    if [ -e $profile_compose_file ]; 
+    then
+        SCV2_PROFILES[$profile_id]=true
+    else
+        echo >&2 "Invalid profile '${profile_id}': '$profile_compose_file' does not exist."
+        exit 1
+    fi
+
+    shift # past argument
+    ;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+
+yn_prompt() {
+  local prompt_text=$1
+  local var_name=$2
+
+  if [[ -z $QUIET_MODE ]];
+  then
+      if [[ "${!var_name}" == "false" ]];
+      then
+        local prompt_options="(y/[n])"
+        local prompt_nondefault="y"
+        local value_nondefault="true"
+      else
+        local prompt_options="([y]/n)"
+        local prompt_nondefault="n"
+        local value_nondefault="false"
+      fi  
+
+      read -r -p "${prompt_text}? ${prompt_options}" INPUT_VALUE
+      if [[ "${INPUT_VALUE}" == "${prompt_nondefault}" ]];
+      then
+        printf -v "${var_name}" "%s" "${value_nondefault}"
+      fi
+  fi
+}
+
+if [[ -z $QUIET_MODE ]];
+then
+
 echo ""
 echo "This will update the Pacefactory SCV2 deployment running on this machine."
 echo ""
-echo "You will be prompted to enable optional services."
-echo "For each prompt, you may enter 'y', 'n', or '?'"
-echo "corresponding to yes, no, and help, respectively."
-echo "If you are unsure of the importance of given service, select the '?' option."
-echo ""
-echo ""
-echo "The final prompt will ask if you are running in ONLINE or OFFLINE mode."
-echo ""
-echo "ONLINE mode is to be used for client sites where the autodelete feature"
-echo "must be enabled to manage storage constraints."
-echo "OFFLINE mode is to be used when running videos using the Offline Processing"
-echo "tool. This disabled the autodelete feature, so data persists in the dbserver."
 
-# Init profiles string as empty (no optional profiles)
-profile_str=""
-# Init override string with base docker-compose and override docker-compose file
-override_str="-f docker-compose.yml -f docker-compose.override.yml"
-DEBUG=true
-
-PROJECT_NAME=$1
-
-echo ""
-if [[ -z $PROJECT_NAME ]];
-then
-    DEFAULT_PROJECT=deployment-scripts
-    CURRENT_PROJECT=$(docker compose ls --all --quiet | head -1)
-    PROJECT_NAME=${CURRENT_PROJECT:-$DEFAULT_PROJECT}
-
-    read -r -p "Confirm project name [$PROJECT_NAME]: "
-    if [[ ! -z "$REPLY" ]];
-    then
-        PROJECT_NAME=$REPLY
-    fi;
 fi
-echo "Project name: '$PROJECT_NAME'"
 
-# Enable social profile?
-echo ""
-while read -r -p "Enable the social profile? (y/[n]/?) "
-do
-    if [[ "$REPLY" == "y" ]];
-    then
-        profile_str="$profile_str --profile social"
-        echo " -> Will enable social profile"
-        break;
-    elif [[ "$REPLY" == "?" ]];
-    then
-      echo ""
-      echo "The social profile enables the video-based social media web app and video server"
-      echo "(social_web_app, social_video_server)"
-    # Default option (assumed to be no). Break
-    else
-        echo " -> Will NOT enable social profile"
-        break;
-    fi
-done
+ENV_FILE=""
 
-# Enable ml profile?
-echo ""
-while read -r -p "Enable the machine learning (ml) profile? (y/[n]/?) "
-do
-    if [[ "$REPLY" == "y" ]];
-    then
-        profile_str="$profile_str --profile ml"
-        override_str="$override_str -f docker-compose.ml.yml"
-        echo " -> Will enable machine learning profile"
-        break;
-    elif [[ "$REPLY" == "?" ]];
-    then
-      echo ""
-      echo "The machine learning profile enables the machine learning service, used"
-      echo "to enhance object classifications and detections within the webgui"
-      echo "(service_classifier)"
-    # Default option (assumed to be no). Break
-    else
-        echo " -> Will NOT enable machine learning profile"
-        break;
-    fi
-done
-
-# Enable rdb profile?
-echo ""
-while read -r -p "Enable the relational dbserver profile? (y/[n]/?) "
-do
-    if [[ "$REPLY" == "y" ]];
-    then
-        profile_str="$profile_str --profile rdb"
-        echo " -> Will enable relational dbserver profile"
-        break;
-    elif [[ "$REPLY" == "?" ]];
-    then
-      echo ""
-      echo "The relational dbserver profile enables the relational_dbserver service,"
-      echo "which allows integrations between the webgui and a client's existing SQL database"
-      echo "(relational_dbserver)"
-    # Default option (assumed to be no). Break
-    else
-        echo " -> Will NOT enable relational dbserver profile"
-        break;
-    fi
-done
-
-# Enable proc profile?
-echo ""
-while read -r -p "Enable the report processing profile? (y/[n]/?) "
-do
-    if [[ "$REPLY" == "y" ]];
-    then
-        profile_str="$profile_str --profile proc"
-        echo " -> Will enable report processing profile"
-        break;
-    elif [[ "$REPLY" == "?" ]];
-    then
-      echo ""
-      echo "The report processing profile enables the processing of report data for"
-      echo "a deployment as a periodic service. This means a user need not view the"
-      echo "webgui to have report data processed and stored in the dbserver's uistore"
-      echo "(service_processing)"
-    # Default option (assumed to be no). Break
-    else
-        echo " -> Will NOT enable report processing profile"
-        break;
-    fi
-done
-
-# Prompt for online/offline mode
-echo ""
-echo "Which mode (ONLINE or OFFLINE) should be used?"
-echo "1 - ONLINE"
-echo "2 - OFFLINE"
-
-# This needs to be an infinite loop
-while true
-do
-    read -r -p "Select an option (1 or 2): "
-    # Online mode: docker-compose.yml and docker-compose.override.yml used by default
-    if [[ "$REPLY" == "1" ]];
-    then
-        echo " -> Will run in ONLINE mode"
-        break;
-    elif [[ "$REPLY" == "2" ]];
-    then
-        echo " -> Will run in OFFLINE mode"
-        override_str="$override_str -f docker-compose.dev.yml"
-        break;
-    # Default option (assumed to be no). Break
-    else
-        echo "Please select a valid option (1 or 2)";
-    fi
-done
-
-if [ DEBUG ];
+if [ -f .env ];
 then
-  echo ""
+    ENV_FILE="--env-file .env"
+    source .env
+fi
+
+DEFAULT_PROJECT=deployment-scripts
+CURRENT_PROJECT=$(docker compose ls --all --quiet | head -1)
+CURRENT_PROJECT=${CURRENT_PROJECT:-$DEFAULT_PROJECT}
+PROJECT_NAME=${PROJECT_NAME:-$CURRENT_PROJECT}
+
+if [[ -z $QUIET_MODE ]];
+then 
+  read -r -p "Confirm project name [${PROJECT_NAME}]: "
+  if [[ ! -z "$REPLY" ]];
+  then
+      PROJECT_NAME=$REPLY
+  fi;
+fi
+
+echo "Project name: '$PROJECT_NAME'"
+echo ""
+
+rm -f .env.new
+load_pf_compose_settings() {
+    local compose_file=$1
+
+    mapfile -t settings < <(cat $compose_file | yq -r '.["x-pf-info"].settings // empty | keys[]')
+
+    for setting in ${settings[@]}
+    do
+        default=$(cat $compose_file | yq --arg setting $setting -r '.["x-pf-info"].settings[$setting].default // empty')
+        description=$(cat $compose_file | yq --arg setting $setting -r '.["x-pf-info"].settings[$setting].description // empty')
+
+        if [[ -z $QUIET_MODE ]];
+        then 
+            read -r -p "${setting} ${description} [${!setting:-$default}]: "
+            if [[ ! -z "$REPLY" ]];
+            then
+                printf -v "${setting}" "%s" "${REPLY}"
+            fi
+        fi
+
+        if [[ ! -z "${!setting}" ]];
+        then    
+            echo "${setting}=${!setting}" >> .env.new
+        fi
+    done
+}
+
+load_pf_compose_settings "docker-compose.yml"
+
+override_str="-f docker-compose.yml"
+profile_str=""
+
+if [[ -z $QUIET_MODE ]];
+then 
+  echo "You will be prompted to enable optional services."
+  echo "For each prompt, you may enter 'y', 'n', or '?'"
+  echo "corresponding to yes, no, and help, respectively."
+  echo "If you are unsure of the importance of given service, select the '?' option."
+fi
+
+for profile_compose_file in docker-compose.*.yml
+do
+    profile_id="${profile_compose_file#docker-compose.}"
+    profile_id=${profile_id%.yml}
+
+    name=$(cat $profile_compose_file | yq -e -r '.["x-pf-info"].name // empty')
+    name="${name:-$profile_id}"
+
+    profile_prompt=$(cat $profile_compose_file | yq -e -r '.["x-pf-info"].prompt // empty')
+    profile_prompt="${profile_prompt:-Enable $name?}"    
+
+    if [[ -z $QUIET_MODE && "$profile_id" != "custom" ]] ;
+    then
+        echo ""
+        if [[ "${SCV2_PROFILES[$profile_id]}" == "true" ]];
+        then
+          prompt_options="([y]/n/?)"
+        else
+          prompt_options="(y/[n]/?)"
+        fi
+
+        while read -r -p "$profile_prompt $prompt_options "
+        do
+          case $REPLY in
+              y|yes)
+                SCV2_PROFILES[$profile_id]=true
+                break
+                ;;
+              n|no)
+                SCV2_PROFILES[$profile_id]=false
+                break
+                ;;
+              ?)
+                description=$(cat $profile_compose_file | yq -r '.["x-pf-info"].description // empty')
+                description="${description:-No description found in '$profile_compose_file' at x-pf-info.description}"
+                echo ""
+                echo $description
+                ;;
+              *)
+                # keep existing value
+                break
+                ;;
+          esac        
+        done
+    fi
+
+    if [[ "${SCV2_PROFILES[$profile_id]}" == "true" ]];
+    then    
+        profile_str="$profile_str --profile $profile_id"
+        override_str="$override_str -f $profile_compose_file"
+        echo " -> Will enable $name"
+
+        load_pf_compose_settings $profile_compose_file
+    else
+        echo " -> Will NOT enable $name"
+    fi
+done
+
+if [[ -f ".env.new" ]];
+then
+  if [[ -f ".env" ]];
+  then
+    env_diff=$(diff .env .env.new)
+    if [[ "${env_diff}" != "" ]];
+    then
+      printf >&2 "New settings:\n${env_diff}\n"
+      read -r -p "Continue and write settings to '.env'? (y/[n])"
+      if [[ "${REPLY}" != "y" ]];
+      then
+        printf >&2 "Aborting."
+        exit 2
+      fi
+    fi
+    
+    mv -f .env .env.backup
+  fi
+
+  mv .env.new .env
+  ENV_FILE="--env-file .env"
+fi
+
+if [[ -f .env ]];
+then
+  printf "\nSettings:\n\n$(cat .env)\n\n"
+fi
+
+if [ -n "$DEBUG" ];
+then
   echo "profile_str: $profile_str"
   echo "override_str: $override_str"
 fi
 
-echo ""
-read -r -p "Pull from DockerHub? ([y]/n)"
-if [[ "$REPLY" == "n" ]];
+DOCKER_PULL="${DOCKER_PULL:-true}"
+
+yn_prompt "Pull from DockerHub" "DOCKER_PULL"
+
+if [[ "$DOCKER_PULL" == "true" ]];
 then
-  echo " -> Will NOT pull from DockerHub; using local images only..."
+    echo " -> Will pull from DockerHub"
+    
+    if ! docker login;
+    then
+        echo >&2 "docker login failed. Aborting."
+        exit 1
+    fi
+
+    NEEDS_LOGOUT=true
+
+    pull_command="docker compose --project-name $PROJECT_NAME $ENV_FILE $profile_str $override_str pull"
+    echo $pull_command
+
+    if $pull_command;
+    then
+        PULL_SUCCESS=true
+    fi
+    echo ""
 else
-  echo " -> Will pull from DockerHub"
-  echo "Log in to DockerHub:"
-  docker login
-
-  NEEDS_LOGOUT=1
-
-  echo "Login complete; pulling..."
-  if [ -f .env ];
-  then
-    pull_command="docker compose -p $PROJECT_NAME --env-file .env $profile_str $override_str pull"
-  else
-    echo ".env file not found. Using .env.example for pull"
-    pull_command="docker compose -p $PROJECT_NAME --env-file .env.example $profile_str $override_str pull"
-  fi
-  echo $pull_command
-  $pull_command
+  echo " -> Will NOT pull from DockerHub"
+  PULL_SUCCESS=true
 fi
 
-echo ""
-echo "Updating deployment..."
-if [ -f .env ];
-then
-  up_command="docker compose -p $PROJECT_NAME --env-file .env $profile_str $override_str up --detach --remove-orphans"
-else
-  echo ".env file not found. Using .env.example for launch"
-  up_command="docker compose -p $PROJECT_NAME --env-file .env.example $profile_str $override_str up --detach --remove-orphans"
-fi
+if [[ "$PULL_SUCCESS" == "true" ]];
+then  
+  up_command="docker compose --project-name $PROJECT_NAME $ENV_FILE $profile_str $override_str up --detach --remove-orphans"
 
-echo $up_command
-$up_command
-
-if [[ "$NEEDS_LOGOUT" == "1" ]];
-then
+  echo "Updating deployment..."
   echo ""
-  read -r -p "Logout from DockerHub? ([y]/n)"
-  if [[ "$REPLY" == "n" ]];
-  then
-    echo " -> Will NOT logout from DockerHub"
-  else
-    echo " -> Logging out from DockerHub"
-    docker logout
-  fi
+  echo $up_command
+
+  $up_command
+
+  echo ""
+  echo "Deployment complete; any errors will be noted above."
+  echo "To check the status of your deployment, run"
+  echo "'docker ps -a'"
+  echo ""    
 fi
 
-echo ""
-echo "Deployment complete; any errors will be noted above."
-echo "To check the status of your deployment, run"
-echo "'docker ps -a'"
-echo ""
+DOCKER_LOGOUT="${DOCKER_LOGOUT:-false}"
+
+if [[ "$NEEDS_LOGOUT" == "true" ]];
+then
+    echo ""
+        
+    yn_prompt "Logout from DockerHub" "DOCKER_LOGOUT"
+
+    if [[ "$DOCKER_LOGOUT" == "true" ]];
+    then
+        docker logout
+    fi
+fi
+
+save_state () {
+  typeset -p "$@" >"$settingsfile"
+}
+
+yn_prompt "Save settings" "SAVE_SETTINGS"
+
+if [[ "$SAVE_SETTINGS" != "n" ]];
+then
+    echo " -> Saving settings to '$settingsfile'"
+    save_state SCV2_PROFILES PROJECT_NAME DOCKER_LOGOUT DOCKER_PULL
+fi
