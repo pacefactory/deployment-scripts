@@ -2,7 +2,7 @@
 #%% Base setup
 
 # Start with ubuntu base. Not the most efficient, but avoids headaches
-FROM ubuntu:bionic
+FROM ubuntu:focal
 
 
 # -----------------------------------------------------------------------------
