@@ -1,0 +1,22 @@
+[
+    {
+        "name": "dbserver",
+        "volume_suffix": "_dbserver-data"
+    },
+    {
+        "name":"mongo",
+        "volume_suffix":"_mongodata"
+    },
+    {
+        "name": "realtime",
+        "volume_suffix": "_realtime-data"
+    },
+    {
+        "name": "service_dtreeserver",
+        "volume_suffix": "_service_dtreeserver-data"
+    },
+    {
+        "name": "service_classifier",
+        "volume_suffix": "_service_classifier-data"
+    }
+]

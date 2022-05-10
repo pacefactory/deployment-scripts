@@ -29,9 +29,7 @@ Notes for deployment
 - E.g. for Modatek:
 
 ```
-WEBGUI_TAG=release-modatek-milton
 SOCIAL_WEB_APP_TAG=release-modatek-milton
-SERVICE_PROCESSING_TAG=latest
 ```
 
 ## Start/update procedure
@@ -56,7 +54,7 @@ To install on a fresh machine, first ensure that the requisite programs are inst
 
 Once these requirements are satisfied, proceed with the following steps
 
-0. Chose a directory in which to keep a copy of this repository. The standard is `~/scv2/git_clones/`
+1. Chose a directory in which to keep a copy of this repository. The standard is `~/scv2/git_clones/`
 
 Mac/Linux/WSL
 
@@ -106,9 +104,7 @@ cd deployment-scripts
 - E.g. for Modatek:
 
 ```
-WEBGUI_TAG=release-modatek-milton
 SOCIAL_WEB_APP_TAG=release-modatek-milton
-SERVICE_PROCESSING_TAG=latest
 ```
 
 4. Run the update script
@@ -123,6 +119,20 @@ Windows
 
 ```bash
 ./update.ps1
+```
+
+## Stop the deployment-scripts project
+
+Mac/Linux/WSL
+
+```bash
+./down.sh
+```
+
+Windows
+
+```pwsh
+./down.ps1
 ```
 
 # Advanced usage
@@ -163,10 +173,10 @@ Performing this for all services (and changing `scv2_dbserver` appropriately for
 
 ## Docker-compose usage
 
-Profiles are used when running any `docker-compose` command. To enable one or more profiles, run
+Profiles are used when running any `docker compose` command. To enable one or more profiles, run
 
 ```bash
-docker-compose --profile <profile_name> <command>
+docker compose --profile <profile_name> <command>
 ```
 
 ## Linux (Ubuntu) Installation Notes
@@ -324,5 +334,3 @@ All services not listed below will always be put online, regardless of profiles 
 There are a few oddities in the repo:
 
 1. Container `webgui` is referred to as `safety-gui2-js` on DockerHub (and, by extension, in the image name too)
-2. Although Docker is transitioning from `docker-compose` to `docker compose`, we still prefer to use `docker-compose`
-   as it is more stable

@@ -1,3 +1,7 @@
+param (
+  [string]$ProjectName = "deployment-scripts"
+)
+
 Write-Output ""
 Write-Output "This will update the Pacefactory SCV2 deployment running on this machine."
 Write-Output ""
@@ -16,9 +20,18 @@ Write-Output "tool. This disabled the autodelete feature, so data persists in th
 
 # Init profiles string as empty (no optional profiles)
 $profile_str = ""
-# Init override string as empty
-$override_str = ""
+# Init override string with base docker-compose and override docker-compose file
+$override_str="-f docker-compose.yml -f docker-compose.override.yml"
 $DEBUG = $TRUE
+
+$env_file = Join-Path -Path $PSScriptRoot -ChildPath ".env"
+
+Write-Output ""
+$REPLY = Read-Host "Confirm project name [$ProjectName]"
+if ( $REPLY -ne "" ) {
+  $ProjectName = $REPLY
+}
+Write-Output "Project name: '$ProjectName'"
 
 # Enable social profile?
 Write-Output ""
@@ -48,6 +61,7 @@ Do {
   $REPLY = Read-Host "Enable the machine learning (ml) profile? (y/[n]/?) "
   if ( $REPLY -eq "y" ) {
     $profile_str = "$profile_str --profile ml"
+    $override_str = "$override_str -f docker-compose.ml.yml"
     Write-Output " -> Will enable machine learning profile"
     break
   }
@@ -124,12 +138,11 @@ While ($TRUE) {
   # Online mode: docker-compose.yml and docker-compose.override.yml used by default
   if ($REPLY -eq "1") {
     Write-Output " -> Will run in ONLINE mode"
-    $override_str = ""
     break
   }
   elseif ($REPLY -eq "2") {
     Write-Output " -> Will run in OFFLINE mode"
-    $override_str = "-f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml"
+    $override_str = "$override_str -f docker-compose.dev.yml"
     break
   }
   else {
@@ -153,7 +166,14 @@ else {
   Write-Output "Log in to DockerHub:"
   docker login
   Write-Output "Login complete; pulling..."
-  $pull_command = "docker-compose $profile_str pull" -replace '\s+', ' '
+  if (Test-Path -Path $env_file -PathType leaf) {
+    $pull_command = "docker compose -p $ProjectName --env-file .env $profile_str $override_str pull" -replace '\s+', ' '
+  }
+  else {
+    Write-Output ".env file not found. Using the .env.example for pull"
+    $pull_command = "docker compose -p $ProjectName --env-file .env.example $profile_str $override_str pull" -replace '\s+', ' '
+  }
+  
   Write-Host "$pull_command"
   Invoke-Expression $pull_command
 }
@@ -161,14 +181,12 @@ else {
 Write-Output ""
 Write-Output "Updating deployment..."
 
-$env_file = "$($PSScriptRoot)\.env"
-
 if (Test-Path -Path $env_file -PathType leaf) {
-  $up_command = "docker-compose --env-file .env $profile_str $override_str up -d" -replace '\s+', ' '
+  $up_command = "docker compose -p $ProjectName --env-file .env $profile_str $override_str up --detach --remove-orphans" -replace '\s+', ' '
 }
 else {
-  Write-Output ".env file not found. Using the example file."
-  $up_command = "docker-compose --env-file .env.example $profile_str $override_str up -d" -replace '\s+', ' '
+  Write-Output ".env file not found. Using the .env.example for launch"
+  $up_command = "docker compose -p $ProjectName --env-file .env.example $profile_str $override_str up --detach --remove-orphans" -replace '\s+', ' '
 }
 
 Write-Host "$up_command"

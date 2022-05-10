@@ -65,15 +65,18 @@ services:
 
   webgui:
     container_name: webgui
-    image: pacefactory/safety-gui2-js:latest-master
+    image: pacefactory/safety-gui2-js
     hostname: webgui
     restart: always
     depends_on:
       - dbserver
+      - service_gifwrapper
+      - service_dtreeserver
     environment:
-      - "REACT_APP_DB_HOST=dbserver"
-    ports:
-      - "81:80"
+      - "WEBGUI_STATIC_PATH=/static/"
+      - "WEBGUI_APIGATEWAY=true"
+    volumes:
+      - "webgui-data:/home/scv2/volume"
     networks:
       - external_network
 
@@ -130,10 +133,12 @@ services:
     depends_on:
       - dbserver
       - service_dtreeserver
+      - webgui
     environment:
       - "DB_HOST=dbserver"
       - "CLASSIFIER_HOST=service_dtreeserver"
       - "ML_CLASSIFIER_HOST=service_classifier"
+      - "UISERVER_HOST=webgui"
     networks:
       - external_network
 
@@ -161,6 +166,36 @@ services:
     networks:
       - external_network
 
+  apigateway:
+    container_name: apigateway
+    image: pacefactory/apigateway
+    hostname: apigateway
+    restart: always
+    environment:
+      - "SCV2_PROFILES="
+      - "DBSERVER_HOST=dbserver"
+      - "DBSERVER_PORT=8050"
+      - "DTREE_HOST=service_dtreeserver"
+      - "DTREE_PORT=7272"
+      - "GIF_HOST=service_gifwrapper"
+      - "GIF_PORT=7171"
+      - "REALTIME_HOST=realtime"
+      - "REALTIME_PORT=8181"
+      - "WEBGUI_HOST=webgui"
+      - "WEBGUI_PORT=80"
+      - "CLASSIFIER_HOST=service_classifier"
+      - "CLASSIFIER_PORT=7373"
+    depends_on:
+      - dbserver
+      - service_dtreeserver
+      - service_gifwrapper
+      - webgui
+    ports:
+      - "80:80"
+      - "81:81"
+    networks:
+      - external_network
+
 volumes:
   mongodata:
   dbserver-data:
@@ -169,6 +204,7 @@ volumes:
   service_classifier-data:
   social_video_server-data:
   relational_dbserver-data:
+  webgui-data:
 
 networks:
   internal_network:

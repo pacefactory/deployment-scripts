@@ -18,9 +18,26 @@ echo "tool. This disabled the autodelete feature, so data persists in the dbserv
 
 # Init profiles string as empty (no optional profiles)
 profile_str=""
-# Init override string as empty
-override_str=""
+# Init override string with base docker-compose and override docker-compose file
+override_str="-f docker-compose.yml -f docker-compose.override.yml"
 DEBUG=true
+
+PROJECT_NAME=$1
+
+echo ""
+if [[ -z $PROJECT_NAME ]];
+then
+    DEFAULT_PROJECT=deployment-scripts
+    CURRENT_PROJECT=$(docker compose ls --all --quiet | head -1)
+    PROJECT_NAME=${CURRENT_PROJECT:-$DEFAULT_PROJECT}
+
+    read -r -p "Confirm project name [$PROJECT_NAME]: "
+    if [[ ! -z "$REPLY" ]];
+    then
+        PROJECT_NAME=$REPLY
+    fi;
+fi
+echo "Project name: '$PROJECT_NAME'"
 
 # Enable social profile?
 echo ""
@@ -50,6 +67,7 @@ do
     if [[ "$REPLY" == "y" ]];
     then
         profile_str="$profile_str --profile ml"
+        override_str="$override_str -f docker-compose.ml.yml"
         echo " -> Will enable machine learning profile"
         break;
     elif [[ "$REPLY" == "?" ]];
@@ -124,12 +142,11 @@ do
     if [[ "$REPLY" == "1" ]];
     then
         echo " -> Will run in ONLINE mode"
-        override_str=""
         break;
     elif [[ "$REPLY" == "2" ]];
     then
         echo " -> Will run in OFFLINE mode"
-        override_str="-f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml"
+        override_str="$override_str -f docker-compose.dev.yml"
         break;
     # Default option (assumed to be no). Break
     else
@@ -153,28 +170,45 @@ else
   echo " -> Will pull from DockerHub"
   echo "Log in to DockerHub:"
   docker login
+
+  NEEDS_LOGOUT=1
+
   echo "Login complete; pulling..."
-  docker-compose $profile_str pull
+  if [ -f .env ];
+  then
+    pull_command="docker compose -p $PROJECT_NAME --env-file .env $profile_str $override_str pull"
+  else
+    echo ".env file not found. Using .env.example for pull"
+    pull_command="docker compose -p $PROJECT_NAME --env-file .env.example $profile_str $override_str pull"
+  fi
+  echo $pull_command
+  $pull_command
 fi
 
 echo ""
 echo "Updating deployment..."
 if [ -f .env ];
 then
-  up_command="docker-compose --env-file .env $profile_str $override_str up -d"
+  up_command="docker compose -p $PROJECT_NAME --env-file .env $profile_str $override_str up --detach --remove-orphans"
 else
-  up_command="docker-compose --env-file .env.example $profile_str $override_str up -d"
+  echo ".env file not found. Using .env.example for launch"
+  up_command="docker compose -p $PROJECT_NAME --env-file .env.example $profile_str $override_str up --detach --remove-orphans"
 fi
+
+echo $up_command
 $up_command
 
-echo ""
-read -r -p "Logout from DockerHub? ([y]/n)"
-if [[ "$REPLY" == "n" ]];
+if [[ "$NEEDS_LOGOUT" == "1" ]];
 then
-  echo " -> Will NOT logout from DockerHub"
-else
-  echo " -> Logging out from DockerHub"
-  docker logout
+  echo ""
+  read -r -p "Logout from DockerHub? ([y]/n)"
+  if [[ "$REPLY" == "n" ]];
+  then
+    echo " -> Will NOT logout from DockerHub"
+  else
+    echo " -> Logging out from DockerHub"
+    docker logout
+  fi
 fi
 
 echo ""
