@@ -18,10 +18,10 @@ x-pf-info:
       default: true
     WEBGUI_ATTEMPT_REPORT_COMPUTE:
       description: UI will attempt to compute missing pool/trend values
-      default: true        
-    WEBGUI_RETRIEVED_REALTIME_CAM_CONFIG_ON_INIT:
+      default: true
+    WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:
       description: Retrieve all realtime configs (for station zone information) on startup, else wait for an efficiency rule
-      default: false        
+      default: false
     WEBGUI_OBJ_REQ_BATCH_SIZE:
       description: The number of objects requested at one time when displaying a rule in the UI
       default: 20        
@@ -104,7 +104,7 @@ services:
       - "WEBGUI_APIGATEWAY=true"
       - "WEBGUI_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
       - "WEBGUI_ATTEMPT_REPORT_COMPUTE=${WEBGUI_ATTEMPT_REPORT_COMPUTE:-true}"
-      - "WEBGUI_RETRIEVED_REALTIME_CAM_CONFIG_ON_INIT=${WEBGUI_RETRIEVED_REALTIME_CAM_CONFIG_ON_INIT:-false}"
+      - "WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT=${WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:-false}"
       - "WEBGUI_OBJ_REQ_BATCH_SIZE=${WEBGUI_OBJ_REQ_BATCH_SIZE:-20}"
     volumes:
       - "webgui-data:/home/scv2/volume"

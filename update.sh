@@ -133,7 +133,7 @@ load_pf_compose_settings() {
 
     for setting in ${settings[@]}
     do
-        default=$(cat $compose_file | yq --arg setting $setting -r '.["x-pf-info"].settings[$setting].default // empty')
+        default=$(cat $compose_file | yq --arg setting $setting -r '.["x-pf-info"].settings[$setting].default')
         description=$(cat $compose_file | yq --arg setting $setting -r '.["x-pf-info"].settings[$setting].description // empty')
 
         if [[ -z $QUIET_MODE ]];
