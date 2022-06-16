@@ -41,7 +41,6 @@ services:
     container_name: ${PROJECT_PREFIX:-}mongo
     hostname: ${PROJECT_PREFIX:-}mongo
     image: mongo:4.2.3-bionic
-    pull_policy: never
     restart: always
     expose:
       - "27017"
@@ -56,7 +55,6 @@ services:
     container_name: ${PROJECT_PREFIX:-}dbserver
     hostname: ${PROJECT_PREFIX:-}dbserver
     image: pacefactory/dbserver:${DBSERVER_TAG:-latest}
-    pull_policy: never
     restart: always
     depends_on:
       - mongo
@@ -75,7 +73,6 @@ services:
   realtime:
     container_name: ${PROJECT_PREFIX:-}realtime
     image: pacefactory/realtime:${REALTIME_TAG:-latest}
-    pull_policy: never
     hostname: ${PROJECT_PREFIX:-}realtime
     restart: always
     stdin_open: true
@@ -93,7 +90,6 @@ services:
     container_name: ${PROJECT_PREFIX:-}webgui
     hostname: ${PROJECT_PREFIX:-}webgui
     image: pacefactory/safety-gui2-js:${WEBGUI_TAG:-latest}
-    pull_policy: never
     restart: always
     depends_on:
       - dbserver
@@ -114,7 +110,6 @@ services:
   service_gifwrapper:
     container_name: ${PROJECT_PREFIX:-}service_gifwrapper
     image: pacefactory/service-gifwrapper:${GIFWRAPPER_TAG:-latest}
-    pull_policy: never
     restart: always
     depends_on:
       - dbserver
@@ -128,7 +123,6 @@ services:
   service_dtreeserver:
     container_name: ${PROJECT_PREFIX:-}service_dtreeserver
     image: pacefactory/service-dtreeserver:${DTREESERVER_TAG:-latest}
-    pull_policy: never
     restart: always
     depends_on:
       - dbserver
@@ -145,7 +139,6 @@ services:
     container_name: ${PROJECT_PREFIX:-}apigateway
     hostname: ${PROJECT_PREFIX:-}apigateway
     image: pacefactory/apigateway
-    pull_policy: never
     restart: always
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
