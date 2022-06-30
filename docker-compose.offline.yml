@@ -10,10 +10,12 @@ x-pf-info:
     tool. This disabled the autodelete feature, so data persists in the dbserver.
 
 services:
+  webgui:
+    environment:
+      - "WEBGUI_FORCE_GHOSTING=false"
+      - "WEBGUI_LIVE_MODE_DEFAULT=false"
   dbserver:
     environment:
       - "DAYS_TO_KEEP=9999999"
       - "UPPER_DISK_USAGE_PCT=100"
       - "MAX_DISK_USAGE_PCT=100"
-      - "WEBGUI_FORCE_GHOSTING=false"
-      - "WEBGUI_LIVE_MODE_DEFAULT=false"
