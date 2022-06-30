@@ -16,3 +16,4 @@ services:
       - "UPPER_DISK_USAGE_PCT=100"
       - "MAX_DISK_USAGE_PCT=100"
       - "WEBGUI_FORCE_GHOSTING=false"
+      - "WEBGUI_LIVE_MODE_DEFAULT=false"
