@@ -1,10 +1,38 @@
 #!/bin/bash
 
 # Requirements
-
-hash jq 2>/dev/null || { printf >&2 "'jq' required, but not found.\nInstall via:\n  sudo apt install jq\nAborting.\n"; exit 1; }
-hash yq 2>/dev/null || { printf >&2 "'yq' required, but not found.\nInstall via:\n  python3 -m pip install yq\nAborting.\n"; exit 1; }
 hash docker compose 2>/dev/null || { printf >&2 "'docker compose' required, but not found.\nInstall via: https://docs.docker.com/compose/install/\nAborting.\n"; exit 1; }
+
+YQ_USE_DOCKER=0
+YQ_DOCKER_IMAGE="mikefarah/yq:latest"
+
+runYq() {
+  local expression=$1
+  local path=$2
+  local environmentSettings=$3
+
+  if [[ "${YQ_USE_DOCKER}" -eq "1" ]]; then
+    if [ -z "${environmentSettings}" ]; then      
+      docker run --interactive --rm ${YQ_DOCKER_IMAGE} "$expression" < "$path" 
+    else
+      docker run --interactive --rm --env "$environmentSettings" ${YQ_DOCKER_IMAGE} "$expression" < "$path" 
+    fi
+  else
+    if [ -z "${environmentSettings}" ]; then
+      yq "$expression" < "$path"
+    else
+      (eval "export $environmentSettings" && yq "$expression" < "$path")
+    fi
+  fi
+}
+
+if ! [ -x "$(command -v yqx)" ]; then
+  echo "Using ${YQ_DOCKER_IMAGE} for 'yq' commands, for faster parsing install 'yq' command, possibly via 'snap install yq'"
+  if [[ "$(docker images --quiet ${YQ_DOCKER_IMAGE} 2> /dev/null)" == "" ]]; then
+    docker pull ${YQ_DOCKER_IMAGE}
+  fi
+  YQ_USE_DOCKER=1
+fi
 
 declare -A SCV2_PROFILES=()
 POSITIONAL=()
@@ -129,12 +157,12 @@ rm -f .env.new
 load_pf_compose_settings() {
     local compose_file=$1
 
-    mapfile -t settings < <(cat $compose_file | yq -r '.["x-pf-info"].settings // empty | keys[]')
+    readarray settings < <(runYq '.["x-pf-info"].settings // {} | keys | .[]' $compose_file)
 
     for setting in ${settings[@]}
     do
-        default=$(cat $compose_file | yq --arg setting $setting -r '.["x-pf-info"].settings[$setting].default')
-        description=$(cat $compose_file | yq --arg setting $setting -r '.["x-pf-info"].settings[$setting].description // empty')
+        default=$(runYq '.["x-pf-info"].settings[strenv(setting)].default' $compose_file "setting=${setting}")
+        description=$(runYq '.["x-pf-info"].settings[strenv(setting)].description // ""' $compose_file "setting=${setting}")
 
         if [[ -z $QUIET_MODE ]];
         then 
@@ -170,10 +198,10 @@ do
     profile_id="${profile_compose_file#docker-compose.}"
     profile_id=${profile_id%.yml}
 
-    name=$(cat $profile_compose_file | yq -e -r '.["x-pf-info"].name // empty')
+    name=$(runYq '.["x-pf-info"].name // ""' $profile_compose_file)
     name="${name:-$profile_id}"
 
-    profile_prompt=$(cat $profile_compose_file | yq -e -r '.["x-pf-info"].prompt // empty')
+    profile_prompt=$(runYq '.["x-pf-info"].prompt // ""' $profile_compose_file)
     profile_prompt="${profile_prompt:-Enable $name?}"    
 
     if [[ -z $QUIET_MODE && "$profile_id" != "custom" ]] ;
@@ -198,7 +226,7 @@ do
                 break
                 ;;
               ?)
-                description=$(cat $profile_compose_file | yq -r '.["x-pf-info"].description // empty')
+                description=$(runYq '.["x-pf-info"].description // ""' $profile_compose_file)
                 description="${description:-No description found in '$profile_compose_file' at x-pf-info.description}"
                 echo ""
                 echo $description
