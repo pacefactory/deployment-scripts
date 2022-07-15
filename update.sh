@@ -26,7 +26,7 @@ runYq() {
   fi
 }
 
-if ! [ -x "$(command -v yqx)" ]; then
+if ! [ -x "$(command -v yq)" ]; then
   echo "Using ${YQ_DOCKER_IMAGE} for 'yq' commands, for faster parsing install 'yq' command, possibly via 'snap install yq'"
   if [[ "$(docker images --quiet ${YQ_DOCKER_IMAGE} 2> /dev/null)" == "" ]]; then
     docker pull ${YQ_DOCKER_IMAGE}
