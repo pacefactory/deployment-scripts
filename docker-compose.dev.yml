@@ -1,8 +1,0 @@
-version: "3.3"
-
-services:
-  dbserver:
-    environment:
-      - "DAYS_TO_KEEP=9999999"
-      - "UPPER_DISK_USAGE_PCT=100"
-      - "MAX_DISK_USAGE_PCT=100"

@@ -1,0 +1,32 @@
+version: "3.3"
+
+x-pf-info:
+  name: report processing profile
+  prompt: Enable the report processing profile?
+  description:
+    The report processing profile enables the processing of report data for
+    a deployment as a periodic service. This means a user need not view the
+    webgui to have report data processed and stored in the dbserver's uistore
+    tool. This disabled the autodelete feature, so data persists in the dbserver.
+    (service_processing)
+  settings:
+    PROCESSING_TAG:
+      default: "latest"
+    
+services:
+  service_processing:
+    container_name: ${PROJECT_PREFIX:-}service_processing
+    image: pacefactory/service-processing:${PROCESSING_TAG:-latest}
+    profiles: ["proc"]
+    restart: always
+    depends_on:
+      - dbserver
+      - service_dtreeserver
+      - webgui
+    environment:
+      - "DB_HOST=${PROJECT_PREFIX:-}dbserver"
+      - "CLASSIFIER_HOST=${PROJECT_PREFIX:-}service_dtreeserver"
+      - "ML_CLASSIFIER_HOST=${PROJECT_PREFIX:-}service_classifier"
+      - "UISERVER_HOST=${PROJECT_PREFIX:-}webgui"
+    networks:
+      - external_network
