@@ -4,3 +4,4 @@ install/
 .vscode
 .settings
 docker-compose.custom.yml
+credentials/*/credentials.ini
