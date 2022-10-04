@@ -42,6 +42,8 @@ services:
     hostname: ${PROJECT_PREFIX:-}mongo
     image: mongo:4.2.3-bionic
     restart: always
+    logging:
+      driver: local    
     expose:
       - "27017"
     volumes:
@@ -56,6 +58,8 @@ services:
     hostname: ${PROJECT_PREFIX:-}dbserver
     image: pacefactory/dbserver:${DBSERVER_TAG:-latest}
     restart: always
+    logging:
+      driver: local    
     depends_on:
       - mongo
     stdin_open: true
@@ -75,6 +79,8 @@ services:
     image: pacefactory/realtime:${REALTIME_TAG:-latest}
     hostname: ${PROJECT_PREFIX:-}realtime
     restart: always
+    logging:
+      driver: local    
     stdin_open: true
     tty: true
     environment:
@@ -91,6 +97,8 @@ services:
     hostname: ${PROJECT_PREFIX:-}webgui
     image: pacefactory/safety-gui2-js:${WEBGUI_TAG:-latest}
     restart: always
+    logging:
+      driver: local    
     depends_on:
       - dbserver
       - service_gifwrapper
@@ -111,6 +119,8 @@ services:
     container_name: ${PROJECT_PREFIX:-}service_gifwrapper
     image: pacefactory/service-gifwrapper:${GIFWRAPPER_TAG:-latest}
     restart: always
+    logging:
+      driver: local    
     depends_on:
       - dbserver
     environment:
@@ -124,6 +134,8 @@ services:
     container_name: ${PROJECT_PREFIX:-}service_dtreeserver
     image: pacefactory/service-dtreeserver:${DTREESERVER_TAG:-latest}
     restart: always
+    logging:
+      driver: local    
     depends_on:
       - dbserver
     environment:
@@ -140,6 +152,8 @@ services:
     hostname: ${PROJECT_PREFIX:-}apigateway
     image: pacefactory/apigateway
     restart: always
+    logging:
+      driver: local    
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
       - "DBSERVER_PORT=8050"

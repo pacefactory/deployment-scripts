@@ -19,6 +19,8 @@ services:
     image: pacefactory/service-processing:${PROCESSING_TAG:-latest}
     profiles: ["proc"]
     restart: always
+    logging:
+      driver: local
     depends_on:
       - dbserver
       - service_dtreeserver
