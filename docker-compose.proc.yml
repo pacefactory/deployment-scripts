@@ -17,7 +17,6 @@ services:
   service_processing:
     container_name: ${PROJECT_PREFIX:-}service_processing
     image: pacefactory/service-processing:${PROCESSING_TAG:-latest}
-    profiles: ["proc"]
     restart: always
     logging:
       driver: local

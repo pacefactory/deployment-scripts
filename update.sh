@@ -42,6 +42,7 @@ settingsfile=".settings"
 . "$settingsfile" 2>/dev/null || :
 
 SCV2_PROFILES[custom]="true"
+SCV2_PROFILES[base]="true"
 
 while [[ $# -gt 0 ]]
 do
@@ -180,9 +181,7 @@ load_pf_compose_settings() {
     done
 }
 
-load_pf_compose_settings "docker-compose.yml"
-
-override_str="-f docker-compose.yml"
+override_str=""
 profile_str=""
 
 if [[ -z $QUIET_MODE ]];
@@ -204,7 +203,7 @@ do
     profile_prompt=$(runYq '.["x-pf-info"].prompt // ""' $profile_compose_file)
     profile_prompt="${profile_prompt:-Enable $name?}"    
 
-    if [[ -z $QUIET_MODE && "$profile_id" != "custom" ]] ;
+    if [[ -z $QUIET_MODE && "$profile_id" != "custom" && "$profile_id" != "base" ]] ;
     then
         echo ""
         if [[ "${SCV2_PROFILES[$profile_id]}" == "true" ]];
@@ -285,6 +284,11 @@ then
   echo "override_str: $override_str"
 fi
 
+build_command="docker compose --project-name $PROJECT_NAME $ENV_FILE $profile_str $override_str convert --output docker-compose.yml"
+echo "Building docker-compose.yml"
+echo $build_command
+$build_command
+
 DOCKER_PULL="${DOCKER_PULL:-true}"
 
 yn_prompt "Pull from DockerHub" "DOCKER_PULL"
@@ -301,7 +305,7 @@ then
 
     NEEDS_LOGOUT=true
 
-    pull_command="docker compose --project-name $PROJECT_NAME $ENV_FILE $profile_str $override_str pull"
+    pull_command="docker compose --project-name $PROJECT_NAME pull"
     echo $pull_command
 
     if $pull_command;
@@ -316,7 +320,7 @@ fi
 
 if [[ "$PULL_SUCCESS" == "true" ]];
 then  
-  up_command="docker compose --project-name $PROJECT_NAME $ENV_FILE $profile_str $override_str up --detach --remove-orphans"
+  up_command="docker compose --project-name $PROJECT_NAME up --detach --remove-orphans"
 
   echo "Updating deployment..."
   echo ""

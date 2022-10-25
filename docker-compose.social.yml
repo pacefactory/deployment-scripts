@@ -16,7 +16,6 @@ services:
   social_web_app:
     container_name: ${PROJECT_PREFIX:-}social_web_app
     image: pacefactory/social_web_app:${SOCIAL_WEB_APP_TAG:-latest}
-    profiles: ["social"]
     hostname: ${PROJECT_PREFIX:-}social_web_app
     restart: always
     logging:
@@ -30,7 +29,6 @@ services:
   social_video_server:
     container_name: ${PROJECT_PREFIX:-}social_video_server
     image: pacefactory/social_video_server
-    profiles: ["social"]
     hostname: ${PROJECT_PREFIX:-}social_video_server
     restart: always
     logging:

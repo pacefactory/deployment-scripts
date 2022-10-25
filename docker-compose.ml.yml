@@ -25,7 +25,6 @@ services:
   service_classifier:
     container_name: ${PROJECT_PREFIX:-}service_classifier
     image: pacefactory/service-classifier:${CLASSIFIER_TAG:-latest}
-    profiles: ["ml"]
     restart: always
     logging:
       driver: local

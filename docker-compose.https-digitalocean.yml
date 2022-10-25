@@ -18,6 +18,8 @@ x-pf-info:
 
 services:
   certbot:
+    profiles:
+      - https-digitalocean
     container_name: ${PROJECT_PREFIX:-}certbot
     image: certbot/dns-digitalocean:latest
     command: 

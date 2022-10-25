@@ -18,6 +18,8 @@ x-pf-info:
 
 services:
   certbot:
+    profiles:
+      - https-godaddy
     container_name: ${PROJECT_PREFIX:-}certbot
     image: miigotu/certbot-dns-godaddy
     command: 

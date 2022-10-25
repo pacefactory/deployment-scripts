@@ -1,0 +1,51 @@
+version: "3.3"
+
+x-pf-info:
+  name: HTTPS (Manual)
+  prompt: Enable HTTPS (via manual DNS)
+  description:
+    Manually provision HTTPS certificate via letsencrypt. 
+  settings:
+    SERVER_NAME:
+      description: Final domain name will be SERVER_NAME
+      default: ""
+    LETSENCRYPT_EMAIL:
+      description: Email address to use for letsencrypt.com
+      default: ""
+    HTTPS_PORT:
+      default: 443
+
+services:
+  certbot:
+    container_name: ${PROJECT_PREFIX:-}certbot
+    image: certbot/certbot
+    profiles:
+      - https-manual
+    command: 
+      - "certonly"
+      - "--manual"
+      - --preferred-challenges"
+      - "dns"
+      - "--keep-until-expiring"
+      - "--expand"
+      - "--agree-tos"
+      - "--email"
+      - "${LETSENCRYPT_EMAIL}"    
+      - "-d"
+      - "${SERVER_NAME}"
+    logging:
+      driver: local    
+    volumes:
+      - certbot:/etc/letsencrypt/:rw      
+      
+  apigateway:
+    ports:
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - certbot:/etc/nginx/ssl/:ro      
+    environment:
+      - "SCV2_PROFILE_SSL=true"
+      - "SERVER_NAME=${SERVER_NAME}"
+
+volumes:
+  certbot:
