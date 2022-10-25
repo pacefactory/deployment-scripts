@@ -54,7 +54,7 @@ services:
       - social_web_app
     environment:
       - "SCV2_PROFILE_SOCIAL=true"
-      - "SOCIAL_VIDEO_SERVICE_HOST=${PROJECT_PREFIX:-}social_video_server:9999"
+      - "SOCIAL_VIDEO_SERVICE_HOST=${PROJECT_PREFIX:-}social_video_server"
       - "SOCIAL_VIDO_APP_HOST=${PROJECT_PREFIX:-}social_web_app"
 
 volumes:
