@@ -24,12 +24,13 @@ services:
     command: 
       - "certonly"
       - "--manual"
-      - --preferred-challenges"
+      - --preferred-challenges
       - "dns"
       - "--keep-until-expiring"
       - "--expand"
       - "--agree-tos"
-      - "--email"
+      - "--eff-email"
+      - "-m"
       - "${LETSENCRYPT_EMAIL}"    
       - "-d"
       - "${SERVER_NAME}"
