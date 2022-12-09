@@ -24,9 +24,6 @@ services:
     image: certbot/dns-digitalocean:latest
     command: 
       - "certonly"
-      - "--preferred-chain"
-      - "ISRG Root X1"
-      - "--force-renewal"
       - "--dns-digitalocean"
       - "--dns-digitalocean-credentials"
       - "/opt/digitalocean/credentials.ini"

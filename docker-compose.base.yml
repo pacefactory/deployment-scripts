@@ -66,6 +66,8 @@ services:
     tty: true
     environment:
       - "MONGO_HOST=${PROJECT_PREFIX:-}mongo"
+    ports:
+      - "${DBSERVER_PUBLIC_PORT:-8050}:8050"
     volumes:
       - "dbserver-data:/home/scv2/volume"
     networks:
@@ -83,6 +85,8 @@ services:
     tty: true
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+    ports:
+      - "${REALTIME_PUBLIC_PORT:-8181}:8181"
     volumes:
       - "realtime-data:/home/scv2/locations"
     networks:
@@ -121,6 +125,8 @@ services:
       - dbserver
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+    ports:
+      - "${GIFWRAPPER_PUBLIC_PORT:-7171}:7171"
     networks:
       - external_network
 
@@ -134,6 +140,8 @@ services:
       - dbserver
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+    ports:
+      - "${DTREESERVER_PUBLIC_PORT:-7272}:7272"
     volumes:
       - "service_dtreeserver-data:/home/scv2/volume"
     networks:
@@ -162,6 +170,8 @@ services:
       - service_dtreeserver
       - service_gifwrapper
       - webgui
+    ports:
+      - "${HTTP_PORT:-80}:80"
     networks:
       - external_network
 
