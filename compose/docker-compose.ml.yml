@@ -10,8 +10,6 @@ x-pf-info:
   settings:
     CLASSIFIER_TAG:
       default: "latest"
-    CLASSIFIER_PUBLIC_PORT:
-      default: "7373"    
 
 services:
   apigateway:
@@ -33,8 +31,7 @@ services:
     ipc: host
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
-    ports:
-      - "${CLASSIFIER_PUBLIC_PORT:-7373}:7373"
+
     volumes:
       - service_classifier-data:/home/scv2/volume
     networks:

@@ -13,7 +13,6 @@ services:
   relational_dbserver:
     container_name: ${PROJECT_PREFIX:-}relational_dbserver
     image: pacefactory/relational-dbserver
-    profiles: ["rdb"]
     hostname: ${PROJECT_PREFIX:-}relational_dbserver
     logging:
       driver: local

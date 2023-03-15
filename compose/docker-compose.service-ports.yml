@@ -1,0 +1,31 @@
+version: "3.3"
+
+x-pf-info:
+  name: Service Ports
+  prompt: Enable per-service ports for accessing realtime, dtree etc utility interface?
+  description:
+    These are not strictly necessesary, but make management easier. In a security
+    constrained environment open ports can be disabled.
+  settings:
+    DBSERVER_PUBLIC_PORT:
+      default: 8050      
+    REALTIME_PUBLIC_PORT:
+      default: 8181      
+    DTREESERVER_PUBLIC_PORT:
+      default: 7272  
+    GIFWRAPPER_PUBLIC_PORT:
+      default: 7171         
+      
+services:
+  dbserver:
+    ports:
+      - "${DBSERVER_PUBLIC_PORT:-8050}:8050"
+  realtime:
+    ports:
+      - "${REALTIME_PUBLIC_PORT:-8181}:8181"     
+  service_gifwrapper:
+    ports:
+      - "${GIFWRAPPER_PUBLIC_PORT:-7171}:7171"    
+  service_dtreeserver:
+    ports:
+      - "${DTREESERVER_PUBLIC_PORT:-7272}:7272"         

@@ -6,19 +6,15 @@ x-pf-info:
       default: ""
     DBSERVER_TAG:
       default: latest      
-    DBSERVER_PUBLIC_PORT:
-      default: 8050      
     REALTIME_TAG:
       default: latest      
-    REALTIME_PUBLIC_PORT:
-      default: 8181      
     WEBGUI_TAG:
       default: latest      
     WEBGUI_FORCE_GHOSTING:
-      default: true
+      default: false
     WEBGUI_ATTEMPT_REPORT_COMPUTE:
       description: UI will attempt to compute missing pool/trend values
-      default: true
+      default: false
     WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:
       description: Retrieve all realtime configs (for station zone information) on startup, else wait for an efficiency rule
       default: false
@@ -27,12 +23,8 @@ x-pf-info:
       default: 20        
     GIFWRAPPER_TAG:
       default: latest      
-    GIFWRAPPER_PUBLIC_PORT:
-      default: 7171      
     DTREESERVER_TAG:
       default: latest      
-    DTREESERVER_PUBLIC_PORT:
-      default: 7272      
     HTTP_PORT:
       default: 80      
 
@@ -66,8 +58,6 @@ services:
     tty: true
     environment:
       - "MONGO_HOST=${PROJECT_PREFIX:-}mongo"
-    ports:
-      - "${DBSERVER_PUBLIC_PORT:-8050}:8050"
     volumes:
       - "dbserver-data:/home/scv2/volume"
     networks:
@@ -85,8 +75,6 @@ services:
     tty: true
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
-    ports:
-      - "${REALTIME_PUBLIC_PORT:-8181}:8181"
     volumes:
       - "realtime-data:/home/scv2/locations"
     networks:
@@ -125,8 +113,6 @@ services:
       - dbserver
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
-    ports:
-      - "${GIFWRAPPER_PUBLIC_PORT:-7171}:7171"
     networks:
       - external_network
 
@@ -140,13 +126,11 @@ services:
       - dbserver
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
-    ports:
-      - "${DTREESERVER_PUBLIC_PORT:-7272}:7272"
     volumes:
       - "service_dtreeserver-data:/home/scv2/volume"
     networks:
       - external_network
-
+      
   apigateway:
     container_name: ${PROJECT_PREFIX:-}apigateway
     hostname: ${PROJECT_PREFIX:-}apigateway
