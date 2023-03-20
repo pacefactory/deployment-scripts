@@ -13,11 +13,13 @@ settingsfile=".settings"
 SCV2_PROFILES[base]="true"
 SCV2_PROFILES[proc]="true"
 SCV2_PROFILES[social]="true"
+SCV2_PROFILES[audit]="true"
 
 . "$settingsfile" 2>/dev/null || :
 
 SCV2_PROFILES[base]="true"
 SCV2_PROFILES[custom]="true"
+SCV2_PROFILES[noaudit]="false"
 
 while [[ $# -gt 0 ]]
 do
@@ -39,7 +41,7 @@ case $key in
     ;;
     --*)
     profile_id="${key#--}"
-    profile_compose_file="docker-compose.${profile_id}.yml"
+    profile_compose_file="compose/docker-compose.${profile_id}.yml"
     if [ -e $profile_compose_file ]; 
     then
         SCV2_PROFILES[$profile_id]=true
@@ -123,6 +125,11 @@ do
     profile_id="${profile_compose_file#compose/docker-compose.}"
     profile_id=${profile_id%.yml}
 
+    if [[ "$profile_id" == "noaudit" ]];
+    then
+        continue
+    fi    
+
     name=$(runYq '.["x-pf-info"].name // ""' $profile_compose_file)
     name="${name:-$profile_id}"
 
@@ -175,6 +182,15 @@ do
         echo " -> Will NOT enable $name"
     fi
 done
+
+# Enable noaudit profile if audit is disabled
+if [[ "${SCV2_PROFILES[audit]}" == "false" ]];
+then
+    profile_compose_file="compose/docker-compose.noaudit.yml"
+    override_str="$override_str -f $profile_compose_file"
+
+    load_pf_compose_settings $profile_compose_file
+fi
 
 if [[ -f ".env.new" ]];
 then
