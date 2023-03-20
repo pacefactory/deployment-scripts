@@ -1,0 +1,60 @@
+version: "3.3"
+
+x-pf-info:
+  name: HTTPS (Digital Ocean)
+  prompt: Enable HTTPS (via digitalocean DNS, pacefactory.dev domain)
+  description:
+    Provision HTTPS certificate via letsencrypt. 
+    You MUST have already updated ./credentials/digitalocean/credentials.ini with the appropriate API key.
+  settings:
+    SERVER_NAME:
+      description: Final domain name will be SERVER_NAME.pacefactory.dev
+      default: ""
+    LETSENCRYPT_EMAIL:
+      description: Email address to use for letsencrypt.com
+      default: ""
+    HTTPS_PORT:
+      default: 443
+
+services:
+  certbot:
+    profiles:
+      - https-digitalocean
+    container_name: ${PROJECT_PREFIX:-}certbot
+    image: certbot/dns-digitalocean:latest
+    command: 
+      - "certonly"
+      - "--preferred-chain"
+      - "ISRG Root X1"
+      - "--force-renewal"
+      - "--dns-digitalocean"
+      - "--dns-digitalocean-credentials"
+      - "/opt/digitalocean/credentials.ini"
+      - "--dns-digitalocean-propagation-seconds"
+      - "60"
+      - "--keep-until-expiring"
+      - "--non-interactive"
+      - "--expand"
+      - "--agree-tos"
+      - "--eff-email"      
+      - "-m"
+      - "${LETSENCRYPT_EMAIL}"    
+      - "-d"
+      - "${SERVER_NAME}.pacefactory.dev"
+    logging:
+      driver: local    
+    volumes:
+      - "./credentials/digitalocean:/opt/digitalocean/:ro"
+      - certbot:/etc/letsencrypt/:rw      
+      
+  apigateway:
+    ports:
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - certbot:/etc/nginx/ssl/:ro      
+    environment:
+      - "SCV2_PROFILE_SSL=true"
+      - "SERVER_NAME=${SERVER_NAME}.pacefactory.dev"
+
+volumes:
+  certbot:
