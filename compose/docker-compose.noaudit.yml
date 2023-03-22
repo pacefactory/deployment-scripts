@@ -1,0 +1,6 @@
+version: "3.3"
+
+services:
+  webgui:
+    volumes:
+      - "webgui-data:/home/scv2/volume"

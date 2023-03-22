@@ -2,38 +2,35 @@
 #%% Base setup
 
 # Start with ubuntu-python base
-FROM pacefactory/scv2_ubuntupython_base:1.0.3
+FROM pacefactory/scv2_python_base:3.9-alpine
 
 
 # -----------------------------------------------------------------------------
 #%% Install system dependencies
 
 # Update repo records & install open-cv compat. libraries
-RUN apt-get update && \
-    apt-get install --quiet --assume-yes \
-    libsm6 libxext6 libxrender-dev
+# RUN apk add --no-cache libsm6 libxext6 libxrender-dev
 
 
 # -----------------------------------------------------------------------------
 #%% Install python requirements
 
 # Install python requirements
+# 'apk' command based on https://github.com/scipy/scipy/issues/9481#issuecomment-565184118
 COPY requirements.txt /tmp/scv2/requirements.txt
-RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install -r /tmp/scv2/requirements.txt
+RUN apk --no-cache add lapack libstdc++ && apk add --no-cache --virtual .build-deps ninja g++ gcc gfortran musl-dev lapack-dev linux-headers && \
+    python3 -m pip install -vv -r /tmp/scv2/requirements.txt && \
+    apk del .build-deps && \
+    rm -rf /root/.cache
 
-# Remove deploy files
 RUN rm -rf /tmp/scv2
-
 
 # -----------------------------------------------------------------------------
 # To use manually:
 
 # From the root project directory:
-# docker build \
-#        -t pacefactory/scv2_opencv_base \
-#        -f ./scv2_base_images/opencv_base/build/docker/Dockerfile \
-#        ./scv2_base_images/opencv_base
+#
+# DOCKER_BUILDKIT=0 docker build --progress=plain -t pacefactory/scv2_opencv_base:3.9-alpine -f ./scv2_base_images/opencv_base/build/docker/Dockerfile ./scv2_base_images/opencv_base
 # 
 # To update versioning:
 # docker images
