@@ -1,1 +1,8 @@
 .env
+.env.backup
+install/
+.vscode
+.settings
+docker-compose.custom.yml
+docker-compose.yml
+credentials/*/credentials.ini

@@ -1,0 +1,59 @@
+version: "3.3"
+
+x-pf-info:
+  name: social profile
+  prompt: Enable the social profile?
+  description:
+    The social profile enables the video-based social media web app and video server
+    (social_web_app, social_video_server)"
+  settings:
+    SOCIAL_WEB_APP_TAG:
+      default: "latest"
+    SOCIAL_VIDEO_PUBLIC_PORT:
+      default: "9999"
+
+services:
+  social_web_app:
+    container_name: ${PROJECT_PREFIX:-}social_web_app
+    image: pacefactory/social_web_app:${SOCIAL_WEB_APP_TAG:-latest}
+    hostname: ${PROJECT_PREFIX:-}social_web_app
+    restart: always
+    logging:
+      driver: local    
+    environment:
+      - "REACT_APP_BACKEND_URL=/api/video"
+      - "REACT_APP_SCV2_URL=/scv2/"    
+    networks:
+      - external_network
+
+  social_video_server:
+    container_name: ${PROJECT_PREFIX:-}social_video_server
+    image: pacefactory/social_video_server
+    hostname: ${PROJECT_PREFIX:-}social_video_server
+    restart: always
+    logging:
+      driver: local    
+    ports:
+      - "${SOCIAL_VIDEO_PUBLIC_PORT:-9999}:9999"
+    volumes:
+      - "social_video_server-data:/home/scv2/volume"
+    networks:
+      - external_network
+
+  webgui:
+    environment:
+      - "WEBGUI_STATIC_PATH=/scv2/static/"
+      - "WEBGUI_BASE_PATH=/scv2"
+      - "WEBGUI_SOCIAL_WEB_APP_URL=/"
+      
+  apigateway:
+    depends_on:
+      - social_video_server
+      - social_web_app
+    environment:
+      - "SCV2_PROFILE_SOCIAL=true"
+      - "SOCIAL_VIDEO_SERVICE_HOST=${PROJECT_PREFIX:-}social_video_server:9999"
+      - "SOCIAL_VIDO_APP_HOST=${PROJECT_PREFIX:-}social_web_app"
+
+volumes:
+  social_video_server-data:

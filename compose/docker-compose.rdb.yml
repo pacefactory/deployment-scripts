@@ -1,0 +1,34 @@
+version: "3.3"
+
+x-pf-info:
+  name: relational dbserver profile
+  prompt: Enable the relational dbserver profile?
+  description:
+    The relational dbserver profile enables the relational_dbserver service,
+    which allows integrations between the webgui and a client's existing SQL database.
+    (relational_dbserver)
+    
+services:
+
+  relational_dbserver:
+    container_name: ${PROJECT_PREFIX:-}relational_dbserver
+    image: pacefactory/relational-dbserver
+    hostname: ${PROJECT_PREFIX:-}relational_dbserver
+    logging:
+      driver: local
+    restart: always
+    ports:
+      - "8282:8282"
+    volumes:
+      - "relational_dbserver-data:/home/scv2/volume"
+    networks:
+      - external_network
+
+  apigateway:
+    depends_on:
+      - relational_dbserver
+    environment:
+      - "SCV2_PROFILE_RDB=true"
+
+volumes:
+  relational_dbserver-data:

@@ -1,0 +1,50 @@
+version: "3.3"
+
+x-pf-info:
+  name: new audit mode
+  prompt: Enable the new audit mode profile?
+  settings:
+    AUDITGUI_TAG:
+      default: "latest"
+    
+services:
+  webgui:
+    depends_on:
+      - auditgui 
+    volumes:
+      - "empty-webgui-data:/home/scv2/volume"
+      
+  auditgui:
+    container_name: ${PROJECT_PREFIX:-}auditgui
+    hostname: ${PROJECT_PREFIX:-}auditgui
+    image: pacefactory/scv3_webgui:${AUDITGUI_TAG:-latest}
+    restart: always
+    logging:
+      driver: local    
+    depends_on:
+      - dbserver
+      - service_gifwrapper
+      - service_dtreeserver
+    environment:
+      - "WEBGUI_APIGATEWAY=true"
+      - "WEBGUI_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
+      - "WEBGUI_ATTEMPT_REPORT_COMPUTE=${WEBGUI_ATTEMPT_REPORT_COMPUTE:-true}"
+      - "WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT=${WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:-false}"
+      - "WEBGUI_OBJ_REQ_BATCH_SIZE=${WEBGUI_OBJ_REQ_BATCH_SIZE:-20}"
+      - "WEBGUI_STATIC_PATH=/scv3/static/"
+      - "WEBGUI_BASE_PATH=/scv3"      
+    volumes:
+      - "webgui-data:/home/scv2/volume"
+    networks:
+      - external_network
+
+  apigateway:
+    environment:
+      - "SCV2_PROFILE_AUDIT=true"
+      - "AUDITGUI_HOST=${PROJECT_PREFIX:-}auditgui"
+      - "AUDITGUI_PORT=80"
+    depends_on:
+      - auditgui
+      
+volumes:
+  empty-webgui-data:

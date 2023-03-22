@@ -1,0 +1,176 @@
+version: "3.3"
+
+x-pf-info:
+  settings:
+    PROJECT_PREFIX:
+      default: ""
+    DBSERVER_TAG:
+      default: latest      
+    REALTIME_TAG:
+      default: latest      
+    WEBGUI_TAG:
+      default: latest      
+    AUDITGUI_TAG:
+      default: latest      
+    WEBGUI_FORCE_GHOSTING:
+      default: false
+    WEBGUI_ATTEMPT_REPORT_COMPUTE:
+      description: UI will attempt to compute missing pool/trend values
+      default: false
+    WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:
+      description: Retrieve all realtime configs (for station zone information) on startup, else wait for an efficiency rule
+      default: false
+    WEBGUI_OBJ_REQ_BATCH_SIZE:
+      description: The number of objects requested at one time when displaying a rule in the UI
+      default: 20        
+    GIFWRAPPER_TAG:
+      default: latest      
+    DTREESERVER_TAG:
+      default: latest      
+    HTTP_PORT:
+      default: 80      
+
+services:
+  mongo:
+    container_name: ${PROJECT_PREFIX:-}mongo
+    hostname: ${PROJECT_PREFIX:-}mongo
+    image: mongo:4.2.3-bionic
+    restart: always
+    logging:
+      driver: local    
+    expose:
+      - "27017"
+    volumes:
+      # Old path for the volume, prior to using a proper docker volume
+      # - "~/scv2/volumes/mongo:/data/db"
+      - mongodata:/data/db
+    networks:
+      - internal_network
+
+  dbserver:
+    container_name: ${PROJECT_PREFIX:-}dbserver
+    hostname: ${PROJECT_PREFIX:-}dbserver
+    image: pacefactory/dbserver:${DBSERVER_TAG:-latest}
+    restart: always
+    logging:
+      driver: local    
+    depends_on:
+      - mongo
+    stdin_open: true
+    tty: true
+    environment:
+      - "MONGO_HOST=${PROJECT_PREFIX:-}mongo"
+    volumes:
+      - "dbserver-data:/home/scv2/volume"
+    networks:
+      - internal_network
+      - external_network
+
+  realtime:
+    container_name: ${PROJECT_PREFIX:-}realtime
+    image: pacefactory/realtime:${REALTIME_TAG:-latest}
+    hostname: ${PROJECT_PREFIX:-}realtime
+    restart: always
+    logging:
+      driver: local    
+    stdin_open: true
+    tty: true
+    environment:
+      - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+    volumes:
+      - "realtime-data:/home/scv2/locations"
+    networks:
+      - external_network
+
+
+
+  webgui:
+    container_name: ${PROJECT_PREFIX:-}webgui
+    hostname: ${PROJECT_PREFIX:-}webgui
+    image: pacefactory/safety-gui2-js:${WEBGUI_TAG:-latest}
+    restart: always
+    logging:
+      driver: local    
+    depends_on:
+      - dbserver
+      - service_gifwrapper
+      - service_dtreeserver
+    environment:
+      - "WEBGUI_STATIC_PATH=/static/"
+      - "WEBGUI_APIGATEWAY=true"
+      - "WEBGUI_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
+      - "WEBGUI_ATTEMPT_REPORT_COMPUTE=${WEBGUI_ATTEMPT_REPORT_COMPUTE:-true}"
+      - "WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT=${WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:-false}"
+      - "WEBGUI_OBJ_REQ_BATCH_SIZE=${WEBGUI_OBJ_REQ_BATCH_SIZE:-20}"
+    volumes:
+      - "empty-webgui-data:/home/scv2/volume"
+    networks:
+      - external_network
+
+  service_gifwrapper:
+    container_name: ${PROJECT_PREFIX:-}service_gifwrapper
+    image: pacefactory/service-gifwrapper:${GIFWRAPPER_TAG:-latest}
+    restart: always
+    logging:
+      driver: local    
+    depends_on:
+      - dbserver
+    environment:
+      - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+    networks:
+      - external_network
+
+  service_dtreeserver:
+    container_name: ${PROJECT_PREFIX:-}service_dtreeserver
+    image: pacefactory/service-dtreeserver:${DTREESERVER_TAG:-latest}
+    restart: always
+    logging:
+      driver: local    
+    depends_on:
+      - dbserver
+    environment:
+      - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+    volumes:
+      - "service_dtreeserver-data:/home/scv2/volume"
+    networks:
+      - external_network
+      
+  apigateway:
+    container_name: ${PROJECT_PREFIX:-}apigateway
+    hostname: ${PROJECT_PREFIX:-}apigateway
+    image: pacefactory/apigateway
+    restart: always
+    logging:
+      driver: local    
+    environment:
+      - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+      - "DBSERVER_PORT=8050"
+      - "DTREE_HOST=${PROJECT_PREFIX:-}service_dtreeserver"
+      - "DTREE_PORT=7272"
+      - "GIF_HOST=${PROJECT_PREFIX:-}service_gifwrapper"
+      - "GIF_PORT=7171"
+      - "REALTIME_HOST=${PROJECT_PREFIX:-}realtime"
+      - "REALTIME_PORT=8181"
+      - "WEBGUI_HOST=${PROJECT_PREFIX:-}webgui"
+      - "WEBGUI_PORT=80"
+    depends_on:
+      - dbserver
+      - service_dtreeserver
+      - service_gifwrapper
+      - webgui
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    networks:
+      - external_network
+
+volumes:
+  mongodata:
+  dbserver-data:
+  realtime-data:
+  service_dtreeserver-data:
+  webgui-data:
+  empty-webgui-data:
+
+networks:
+  internal_network:
+  external_network:
