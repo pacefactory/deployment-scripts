@@ -1,5 +1,6 @@
 #!/bin/bash
 
+settingsfile=".settings"
 . "$settingsfile" 2>/dev/null || :
 
 while [[ $# -gt 0 ]]
@@ -47,8 +48,6 @@ echo ""
 echo "This will update the Pacefactory SCV2 deployment running on this machine."
 echo ""
 fi
-
-echo "QUIET: $QUIET_MODE"
 
 source scripts/common/projectName.sh
 
