@@ -11,8 +11,14 @@ services:
   webgui:
     depends_on:
       - auditgui 
+    environment:
+      - "WEBGUI_SCV3_BASE_PATH=/scv3"  
     volumes:
-      - "empty-webgui-data:/home/scv2/volume"
+        - "empty-webgui-data:/home/scv2/volume"
+
+  social_web_app:
+    environment:
+      - "REACT_APP_SCV2_URL=/scv3/"          
       
   auditgui:
     container_name: ${PROJECT_PREFIX:-}auditgui
@@ -32,7 +38,8 @@ services:
       - "WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT=${WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:-false}"
       - "WEBGUI_OBJ_REQ_BATCH_SIZE=${WEBGUI_OBJ_REQ_BATCH_SIZE:-20}"
       - "WEBGUI_STATIC_PATH=/scv3/static/"
-      - "WEBGUI_BASE_PATH=/scv3"      
+      - "WEBGUI_BASE_PATH=/scv3"  
+      - "WEBGUI_SCV2_BASE_PATH=/scv2"  
     volumes:
       - "webgui-data:/home/scv2/volume"
     networks:
@@ -45,6 +52,6 @@ services:
       - "AUDITGUI_PORT=80"
     depends_on:
       - auditgui
-      
+            
 volumes:
   empty-webgui-data:
