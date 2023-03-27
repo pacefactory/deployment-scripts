@@ -8,3 +8,9 @@ services:
   social_web_app:
     environment:
       - "REACT_APP_SCV2_URL=/scv2/"      
+
+  service_processing:
+    environment:
+      - "UISERVER_HOST=${PROJECT_PREFIX:-}webgui"
+    depends_on:
+      - webgui

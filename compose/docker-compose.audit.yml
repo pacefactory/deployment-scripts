@@ -45,6 +45,12 @@ services:
     networks:
       - external_network
 
+  service_processing:
+    environment:
+      - "UISERVER_HOST=${PROJECT_PREFIX:-}auditgui"
+    depends_on:
+      - auditgui
+
   apigateway:
     environment:
       - "SCV2_PROFILE_AUDIT=true"
