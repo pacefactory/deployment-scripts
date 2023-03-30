@@ -31,6 +31,9 @@ x-pf-info:
       default: latest      
     HTTP_PORT:
       default: 80      
+    DEFAULT_WEBGUI:
+      description: Which version should be loaded by default? values, 'scv2' or 'scv3'
+      default: scv2
 
 services:
   mongo:
@@ -93,19 +96,49 @@ services:
       driver: local    
     depends_on:
       - dbserver
+      - auditgui
       - service_gifwrapper
       - service_dtreeserver
     environment:
-      - "WEBGUI_STATIC_PATH=/static/"
       - "WEBGUI_APIGATEWAY=true"
       - "WEBGUI_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
       - "WEBGUI_ATTEMPT_REPORT_COMPUTE=${WEBGUI_ATTEMPT_REPORT_COMPUTE:-true}"
       - "WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT=${WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:-false}"
       - "WEBGUI_OBJ_REQ_BATCH_SIZE=${WEBGUI_OBJ_REQ_BATCH_SIZE:-20}"
+      - "WEBGUI_STATIC_PATH=/scv2/static/"
+      - "WEBGUI_BASE_PATH=/scv2"
+      - "WEBGUI_SCV3_BASE_PATH=/scv3"        
+      - "WEBGUI_SOCIAL_WEB_APP_URL=/"      
     volumes:
       - "empty-webgui-data:/home/scv2/volume"
     networks:
       - external_network
+
+  auditgui:
+    container_name: ${PROJECT_PREFIX:-}auditgui
+    hostname: ${PROJECT_PREFIX:-}auditgui
+    image: pacefactory/scv3_webgui:${AUDITGUI_TAG:-latest}
+    restart: always
+    logging:
+      driver: local    
+    depends_on:
+      - dbserver
+      - service_gifwrapper
+      - service_dtreeserver
+    environment:
+      - "WEBGUI_APIGATEWAY=true"
+      - "WEBGUI_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
+      - "WEBGUI_ATTEMPT_REPORT_COMPUTE=${WEBGUI_ATTEMPT_REPORT_COMPUTE:-true}"
+      - "WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT=${WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:-false}"
+      - "WEBGUI_OBJ_REQ_BATCH_SIZE=${WEBGUI_OBJ_REQ_BATCH_SIZE:-20}"
+      - "WEBGUI_STATIC_PATH=/scv3/static/"
+      - "WEBGUI_BASE_PATH=/scv3"  
+      - "WEBGUI_SCV2_BASE_PATH=/scv2"
+      - "WEBGUI_SOCIAL_WEB_APP_URL=/"        
+    volumes:
+      - "webgui-data:/home/scv2/volume"
+    networks:
+      - external_network        
 
   service_gifwrapper:
     container_name: ${PROJECT_PREFIX:-}service_gifwrapper
@@ -143,11 +176,13 @@ services:
       driver: local
     depends_on:
       - dbserver
+      - auditgui
       - service_dtreeserver
     environment:
       - "DB_HOST=${PROJECT_PREFIX:-}dbserver"
       - "CLASSIFIER_HOST=${PROJECT_PREFIX:-}service_dtreeserver"
       - "ML_CLASSIFIER_HOST=${PROJECT_PREFIX:-}service_classifier"
+      - "UISERVER_HOST=${PROJECT_PREFIX:-}auditgui"
     networks:
       - external_network      
       
@@ -155,7 +190,6 @@ services:
     container_name: ${PROJECT_PREFIX:-}apigateway
     hostname: ${PROJECT_PREFIX:-}apigateway
     image: pacefactory/apigateway
-    restart: always
     logging:
       driver: local    
     environment:
@@ -169,10 +203,14 @@ services:
       - "REALTIME_PORT=8181"
       - "WEBGUI_HOST=${PROJECT_PREFIX:-}webgui"
       - "WEBGUI_PORT=80"
+      - "AUDITGUI_HOST=${PROJECT_PREFIX:-}auditgui"
+      - "AUDITGUI_PORT=80"
+      - "DEFAULT_WEBGUI=${DEFAULT_WEBGUI:-scv2}"
     depends_on:
       - dbserver
       - service_dtreeserver
       - service_gifwrapper
+      - auditgui
       - webgui
     ports:
       - "${HTTP_PORT:-80}:80"

@@ -22,6 +22,7 @@ services:
       driver: local    
     environment:
       - "REACT_APP_BACKEND_URL=/api/video"
+      - "REACT_APP_SCV2_URL=/${DEFAULT_WEBGUI:-scv2}/"               
     networks:
       - external_network
 
