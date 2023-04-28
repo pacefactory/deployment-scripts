@@ -14,15 +14,24 @@ x-pf-info:
       default: latest      
     WEBGUI_FORCE_GHOSTING:
       default: false
-    WEBGUI_ATTEMPT_REPORT_COMPUTE:
-      description: UI will attempt to compute missing pool/trend values
-      default: false
     WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:
       description: Retrieve all realtime configs (for station zone information) on startup, else wait for an efficiency rule
       default: false
     WEBGUI_OBJ_REQ_BATCH_SIZE:
       description: The number of objects requested at one time when displaying a rule in the UI
       default: 20        
+    WEBGUI_WORK_QUEUE_INSERTION_MODE:
+      description: Order in which subsequent work actions are inserted into queue
+      default: depth-first
+    WEBGUI_OBJECT_METADATA_DOWNSAMPLE_FACTOR:
+      description: Downsample factor to be used when retrieving ObjectMetadata
+      default: 0.1
+    WEBGUI_SPLIT_BATCH_MIN_DURATION_MS:
+      description: Min batch duration when splitting a large data request time range
+      default: 300000
+    WEBGUI_SPLIT_BATCH_TARGET_COUNT:
+      description: Desired number of batches to split a large data request time range into
+      default: 5
     GIFWRAPPER_TAG:
       default: latest      
     DTREESERVER_TAG:
@@ -102,9 +111,12 @@ services:
     environment:
       - "WEBGUI_APIGATEWAY=true"
       - "WEBGUI_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
-      - "WEBGUI_ATTEMPT_REPORT_COMPUTE=${WEBGUI_ATTEMPT_REPORT_COMPUTE:-true}"
       - "WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT=${WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:-false}"
       - "WEBGUI_OBJ_REQ_BATCH_SIZE=${WEBGUI_OBJ_REQ_BATCH_SIZE:-20}"
+      - "WEBGUI_WORK_QUEUE_INSERTION_MODE=${WEBGUI_WORK_QUEUE_INSERTION_MODE:-depth-first}"
+      - "WEBGUI_OBJECT_METADATA_DOWNSAMPLE_FACTOR=${WEBGUI_OBJECT_METADATA_DOWNSAMPLE_FACTOR:-0.1}"
+      - "WEBGUI_SPLIT_BATCH_MIN_DURATION_MS=${WEBGUI_SPLIT_BATCH_MIN_DURATION_MS:-300000}"
+      - "WEBGUI_SPLIT_BATCH_TARGET_COUNT=${WEBGUI_SPLIT_BATCH_TARGET_COUNT:-5}"
       - "WEBGUI_STATIC_PATH=/scv2/static/"
       - "WEBGUI_BASE_PATH=/scv2"
       - "WEBGUI_SCV3_BASE_PATH=/scv3"        
@@ -128,9 +140,12 @@ services:
     environment:
       - "WEBGUI_APIGATEWAY=true"
       - "WEBGUI_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
-      - "WEBGUI_ATTEMPT_REPORT_COMPUTE=${WEBGUI_ATTEMPT_REPORT_COMPUTE:-true}"
       - "WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT=${WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:-false}"
       - "WEBGUI_OBJ_REQ_BATCH_SIZE=${WEBGUI_OBJ_REQ_BATCH_SIZE:-20}"
+      - "WEBGUI_WORK_QUEUE_INSERTION_MODE=${WEBGUI_WORK_QUEUE_INSERTION_MODE:-depth-first}"
+      - "WEBGUI_OBJECT_METADATA_DOWNSAMPLE_FACTOR=${WEBGUI_OBJECT_METADATA_DOWNSAMPLE_FACTOR:-0.1}"
+      - "WEBGUI_SPLIT_BATCH_MIN_DURATION_MS=${WEBGUI_SPLIT_BATCH_MIN_DURATION_MS:-300000}"
+      - "WEBGUI_SPLIT_BATCH_TARGET_COUNT=${WEBGUI_SPLIT_BATCH_TARGET_COUNT:-5}"
       - "WEBGUI_STATIC_PATH=/scv3/static/"
       - "WEBGUI_BASE_PATH=/scv3"  
       - "WEBGUI_SCV2_BASE_PATH=/scv2"
