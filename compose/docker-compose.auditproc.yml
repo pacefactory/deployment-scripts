@@ -1,0 +1,24 @@
+version: "3.3"
+
+x-pf-info:
+  name: audit service processing
+  prompt: Enable the audit service processing?
+  settings:
+    AUDIT_PROCESSING_TAG:
+      default: "latest"
+
+services:
+  service_audit_processing:
+    container_name: ${PROJECT_PREFIX:-}service_audit_processing
+    image: pacefactory/service-audit-processing:${AUDIT_PROCESSING_TAG:-latest}
+    restart: always
+    logging:
+      driver: local
+    depends_on:
+      - dbserver
+      - auditgui
+    environment:
+      - "PF_DBSERVER_URL=http://${PROJECT_PREFIX:-}dbserver:${DBSERVER_PORT:-8050}"
+      - "PF_UISERVER_URL=http://${PROJECT_PREFIX:-}auditgui:80"
+    networks:
+      - external_network
