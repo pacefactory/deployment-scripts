@@ -19,10 +19,12 @@ services:
     hostname: ${PROJECT_PREFIX:-}social_web_app
     restart: always
     logging:
-      driver: local    
+      driver: local
     environment:
       - "SOCIAL_BACKEND_URL=/api/video"
-      - "SOCIAL_SCV2_URL=/${DEFAULT_WEBGUI:-scv2}/"               
+      - "SOCIAL_UISERVER_URL=/api/uiserver"
+      - "SOCIAL_DBSERVER_URL=/api/dbserver"
+      - "SOCIAL_SCV2_URL=/${DEFAULT_WEBGUI:-scv2}/"
     networks:
       - external_network
 
@@ -32,7 +34,7 @@ services:
     hostname: ${PROJECT_PREFIX:-}social_video_server
     restart: always
     logging:
-      driver: local    
+      driver: local
     ports:
       - "${SOCIAL_VIDEO_PUBLIC_PORT:-9999}:9999"
     volumes:
@@ -45,7 +47,7 @@ services:
       - "WEBGUI_STATIC_PATH=/scv2/static/"
       - "WEBGUI_BASE_PATH=/scv2"
       - "WEBGUI_SOCIAL_WEB_APP_URL=/"
-      
+
   apigateway:
     depends_on:
       - social_video_server
