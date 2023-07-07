@@ -35,6 +35,8 @@ services:
     restart: always
     logging:
       driver: local
+    environment:
+      - "UISERVER_URL=${PROJECT_PREFIX:-}auditgui:80"
     ports:
       - "${SOCIAL_VIDEO_PUBLIC_PORT:-9999}:9999"
     volumes:
