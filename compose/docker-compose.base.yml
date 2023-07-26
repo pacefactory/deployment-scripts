@@ -11,7 +11,9 @@ x-pf-info:
     WEBGUI_TAG:
       default: latest      
     AUDITGUI_TAG:
-      default: latest      
+      default: latest 
+    APIGATEWAY_TAG:
+      default: latest     
     WEBGUI_FORCE_GHOSTING:
       default: false
     WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:
@@ -204,7 +206,7 @@ services:
   apigateway:
     container_name: ${PROJECT_PREFIX:-}apigateway
     hostname: ${PROJECT_PREFIX:-}apigateway
-    image: pacefactory/apigateway
+    image: pacefactory/apigateway:${APIGATEWAY_TAG:-latest}
     restart: always
     logging:
       driver: local    

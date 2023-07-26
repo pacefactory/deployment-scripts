@@ -1,0 +1,37 @@
+version: "3.3"
+
+x-pf-info:
+  name: ML training
+  prompt: Enable ML training components
+  settings:
+    SEGSERVER_TAG:
+      default: "latest"
+
+services:
+  segserver:
+    container_name: ${PROJECT_PREFIX:-}segserver
+    image: pacefactory/segserver:${SEGSERVER_TAG:-latest}
+    restart: always
+    logging:
+      driver: local
+    ports:
+      - "${SEGSERVER_PUBLIC_PORT:-4444}:4444"        
+    depends_on:
+      - dbserver
+    environment:
+      - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+      - "STORAGE_FOLDER_PATH=/home/scv2/volume"
+    volumes:
+      - "segserver-data:/home/scv2/volume"
+    networks:
+      - external_network
+  apigateway:
+    depends_on:
+      - segserver
+    environment:
+      - "SCV2_PROFILE_MLTRAIN=true"
+      - "SEGSERVER_HOST=${PROJECT_PREFIX:-}segserver"
+      - "SEGSERVER_PORT=4444"
+
+volumes:
+  segserver-data:
