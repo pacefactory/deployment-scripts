@@ -25,6 +25,7 @@ services:
       - "SOCIAL_UISERVER_URL=/api/uiserver"
       - "SOCIAL_DBSERVER_URL=/api/dbserver"
       - "SOCIAL_SCV2_URL=/${DEFAULT_WEBGUI:-scv2}/"
+      - "SOCIAL_SCV3_URL=/scv3/"
     networks:
       - external_network
 
