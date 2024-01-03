@@ -1,9 +1,10 @@
-#!/bin/bash
+#!/bin/zsh
 
 # Requirements
 docker compose version 2>/dev/null || { printf >&2 "'docker compose' required, but not found.\nInstall via: https://docs.docker.com/compose/install/\nAborting.\n"; exit 1; }
 
-source scripts/common/runYq.sh
+# FIXME: Broken for zsh version
+# source scripts/common/runYq.sh
 
 declare -A SCV2_PROFILES=()
 POSITIONAL=()
@@ -86,25 +87,25 @@ rm -f .env.new
 load_pf_compose_settings() {
     local compose_file=$1
 
-    readarray settings < <(runYq '.["x-pf-info"].settings // {} | keys | .[]' $compose_file)
+    settings=(${(f)"$(yq '.["x-pf-info"].settings // {} | keys | .[]' "$compose_file")"})
 
     for setting in ${settings[@]}
     do
-        default=$(runYq '.["x-pf-info"].settings[strenv(setting)].default' $compose_file "setting=${setting}")
-        description=$(runYq '.["x-pf-info"].settings[strenv(setting)].description // ""' $compose_file "setting=${setting}")
+        default=$(setting=${setting} yq '.["x-pf-info"].settings[strenv(setting)].default' $compose_file)
+        description=$(setting=${setting} yq '.["x-pf-info"].settings[strenv(setting)].description // ""' $compose_file)
 
         if [[ -z $QUIET_MODE ]];
         then 
-            read -r -p "${setting} ${description} [${!setting:-$default}]: "
+            read -r "?${setting} ${description} [${(P)setting:-$default}]: "
             if [[ ! -z "$REPLY" ]];
             then
                 printf -v "${setting}" "%s" "${REPLY}"
             fi
         fi
 
-        if [[ ! -z "${!setting}" ]];
+        if [[ ! -z "${(P)setting}" ]];
         then    
-            echo "${setting}=${!setting}" >> .env.new
+            echo "${setting}=${(P)setting}" >> .env.new
         fi
     done
 }
@@ -130,11 +131,11 @@ do
         continue
     fi    
 
-    name=$(runYq '.["x-pf-info"].name // ""' $profile_compose_file)
+    name=$(yq '.["x-pf-info"].name // ""' $profile_compose_file)
     name="${name:-$profile_id}"
 
-    profile_prompt=$(runYq '.["x-pf-info"].prompt // ""' $profile_compose_file)
-    profile_prompt="${profile_prompt:-Enable $name?}"    
+    profile_prompt=$(yq '.["x-pf-info"].prompt // ""' $profile_compose_file)
+    profile_prompt="${profile_prompt:-Enable $name\?}"    
 
     if [[ -z $QUIET_MODE && "$profile_id" != "custom" && "$profile_id" != "base" ]] ;
     then
@@ -146,7 +147,7 @@ do
           prompt_options="(y/[n]/?)"
         fi
 
-        while read -r -p "$profile_prompt $prompt_options "
+        while read -r "?$profile_prompt $prompt_options "
         do
           case $REPLY in
               y|yes)
@@ -158,7 +159,7 @@ do
                 break
                 ;;
               ?)
-                description=$(runYq '.["x-pf-info"].description // ""' $profile_compose_file)
+                description=$(yq '.["x-pf-info"].description // ""' $profile_compose_file)
                 description="${description:-No description found in '$profile_compose_file' at x-pf-info.description}"
                 echo ""
                 echo $description
@@ -200,7 +201,7 @@ then
     if [[ "${env_diff}" != "" ]];
     then
       printf >&2 "New settings:\n${env_diff}\n"
-      read -r -p "Continue and write settings to '.env'? (y/[n])"
+      read -r "?Continue and write settings to '.env'? (y/[n])"
       if [[ "${REPLY}" != "y" ]];
       then
         printf >&2 "Aborting."
@@ -231,7 +232,7 @@ echo "Building docker-compose.yml..."
 echo ""
 echo $build_command
 
-$build_command > docker-compose.yml
+eval $build_command > docker-compose.yml
 
 save_state () {
   typeset -p "$@" >"$settingsfile"

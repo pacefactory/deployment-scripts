@@ -1,5 +1,3 @@
-#!/bin/bash
-
 YQ_USE_DOCKER=0
 YQ_DOCKER_IMAGE="mikefarah/yq:latest"
 

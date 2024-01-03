@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 settingsfile=".settings"
 . "$settingsfile" 2>/dev/null || :
@@ -87,7 +87,7 @@ then
     pull_command="docker compose --project-name $PROJECT_NAME pull"
     echo $pull_command
 
-    if $pull_command;
+    if eval $pull_command;
     then
         PULL_SUCCESS=true
     fi
@@ -105,7 +105,7 @@ then
   echo ""
   echo $up_command
 
-  $up_command
+  eval $up_command
 
   echo ""
   echo "Deployment complete; any errors will be noted above."

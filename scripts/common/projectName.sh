@@ -5,7 +5,7 @@ PROJECT_NAME=${PROJECT_NAME:-$CURRENT_PROJECT}
 
 if [[ -z $QUIET_MODE ]];
 then 
-  read -r -p "Confirm project name [${PROJECT_NAME}]: "
+  read -r "?Confirm project name [${PROJECT_NAME}]: "
   if [[ ! -z "$REPLY" ]];
   then
       PROJECT_NAME=$REPLY
