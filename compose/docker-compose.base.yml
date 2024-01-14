@@ -5,13 +5,13 @@ x-pf-info:
     PROJECT_PREFIX:
       default: ""
     DBSERVER_TAG:
-      default: latest      
+      default: latest
     REALTIME_TAG:
-      default: latest      
+      default: latest
     WEBGUI_TAG:
-      default: latest      
+      default: latest
     AUDITGUI_TAG:
-      default: latest      
+      default: latest
     WEBGUI_FORCE_GHOSTING:
       default: false
     WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:
@@ -19,7 +19,7 @@ x-pf-info:
       default: false
     WEBGUI_OBJ_REQ_BATCH_SIZE:
       description: The number of objects requested at one time when displaying a rule in the UI
-      default: 20        
+      default: 20
     WEBGUI_WORK_QUEUE_INSERTION_MODE:
       description: Order in which subsequent work actions are inserted into queue
       default: depth-first
@@ -33,13 +33,13 @@ x-pf-info:
       description: Desired number of batches to split a large data request time range into
       default: 5
     GIFWRAPPER_TAG:
-      default: latest      
+      default: latest
     DTREESERVER_TAG:
-      default: latest      
+      default: latest
     PROCESSING_TAG:
-      default: latest      
+      default: latest
     HTTP_PORT:
-      default: 80      
+      default: 80
     DEFAULT_WEBGUI:
       description: Which version should be loaded by default? values, 'scv2' or 'scv3'
       default: scv2
@@ -51,7 +51,7 @@ services:
     image: mongo:4.2.3-bionic
     restart: always
     logging:
-      driver: local    
+      driver: local
     expose:
       - "27017"
     volumes:
@@ -67,7 +67,7 @@ services:
     image: pacefactory/dbserver:${DBSERVER_TAG:-latest}
     restart: always
     logging:
-      driver: local    
+      driver: local
     depends_on:
       - mongo
     stdin_open: true
@@ -86,7 +86,7 @@ services:
     hostname: ${PROJECT_PREFIX:-}realtime
     restart: always
     logging:
-      driver: local    
+      driver: local
     stdin_open: true
     tty: true
     environment:
@@ -95,6 +95,13 @@ services:
       - "realtime-data:/home/scv2/locations"
     networks:
       - external_network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   webgui:
     container_name: ${PROJECT_PREFIX:-}webgui
@@ -102,7 +109,7 @@ services:
     image: pacefactory/safety-gui2-js:${WEBGUI_TAG:-latest}
     restart: always
     logging:
-      driver: local    
+      driver: local
     depends_on:
       - dbserver
       - auditgui
@@ -119,8 +126,8 @@ services:
       - "WEBGUI_SPLIT_BATCH_TARGET_COUNT=${WEBGUI_SPLIT_BATCH_TARGET_COUNT:-5}"
       - "WEBGUI_STATIC_PATH=/scv2/static/"
       - "WEBGUI_BASE_PATH=/scv2"
-      - "WEBGUI_SCV3_BASE_PATH=/scv3"        
-      - "WEBGUI_SOCIAL_WEB_APP_URL=/"      
+      - "WEBGUI_SCV3_BASE_PATH=/scv3"
+      - "WEBGUI_SOCIAL_WEB_APP_URL=/"
     volumes:
       - "empty-webgui-data:/home/scv2/volume"
     networks:
@@ -132,7 +139,7 @@ services:
     image: pacefactory/scv3_webgui:${AUDITGUI_TAG:-latest}
     restart: always
     logging:
-      driver: local    
+      driver: local
     depends_on:
       - dbserver
       - service_gifwrapper
@@ -147,20 +154,20 @@ services:
       - "WEBGUI_SPLIT_BATCH_MIN_DURATION_MS=${WEBGUI_SPLIT_BATCH_MIN_DURATION_MS:-300000}"
       - "WEBGUI_SPLIT_BATCH_TARGET_COUNT=${WEBGUI_SPLIT_BATCH_TARGET_COUNT:-5}"
       - "WEBGUI_STATIC_PATH=/scv3/static/"
-      - "WEBGUI_BASE_PATH=/scv3"  
+      - "WEBGUI_BASE_PATH=/scv3"
       - "WEBGUI_SCV2_BASE_PATH=/scv2"
-      - "WEBGUI_SOCIAL_WEB_APP_URL=/"        
+      - "WEBGUI_SOCIAL_WEB_APP_URL=/"
     volumes:
       - "webgui-data:/home/scv2/volume"
     networks:
-      - external_network        
+      - external_network
 
   service_gifwrapper:
     container_name: ${PROJECT_PREFIX:-}service_gifwrapper
     image: pacefactory/service-gifwrapper:${GIFWRAPPER_TAG:-latest}
     restart: always
     logging:
-      driver: local    
+      driver: local
     depends_on:
       - dbserver
     environment:
@@ -173,7 +180,7 @@ services:
     image: pacefactory/service-dtreeserver:${DTREESERVER_TAG:-latest}
     restart: always
     logging:
-      driver: local    
+      driver: local
     depends_on:
       - dbserver
     environment:
@@ -199,15 +206,15 @@ services:
       - "ML_CLASSIFIER_HOST=${PROJECT_PREFIX:-}service_classifier"
       - "UISERVER_HOST=${PROJECT_PREFIX:-}auditgui"
     networks:
-      - external_network      
-      
+      - external_network
+
   apigateway:
     container_name: ${PROJECT_PREFIX:-}apigateway
     hostname: ${PROJECT_PREFIX:-}apigateway
     image: pacefactory/apigateway
     restart: always
     logging:
-      driver: local    
+      driver: local
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
       - "DBSERVER_PORT=8050"
