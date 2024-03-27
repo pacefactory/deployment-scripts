@@ -13,7 +13,7 @@ x-pf-info:
     AUDITGUI_TAG:
       default: latest
     AUDIT_PROCESSING_TAG:
-      default: "latest"
+      default: latest
     WEBGUI_FORCE_GHOSTING:
       default: false
     WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:
@@ -97,6 +97,13 @@ services:
       - "realtime-data:/home/scv2/locations"
     networks:
       - external_network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   webgui:
     container_name: ${PROJECT_PREFIX:-}webgui
@@ -200,26 +207,6 @@ services:
       - "CLASSIFIER_HOST=${PROJECT_PREFIX:-}service_dtreeserver"
       - "ML_CLASSIFIER_HOST=${PROJECT_PREFIX:-}service_classifier"
       - "UISERVER_HOST=${PROJECT_PREFIX:-}auditgui"
-    networks:
-      - external_network
-
-  service_audit_processing:
-    container_name: ${PROJECT_PREFIX:-}service_audit_processing
-    image: pacefactory/service-audit-processing:${AUDIT_PROCESSING_TAG:-latest}
-    restart: always
-    logging:
-      driver: local
-    depends_on:
-      - dbserver
-      - auditgui
-    environment:
-      - "PF_DBSERVER_URL=http://${PROJECT_PREFIX:-}dbserver:${DBSERVER_PORT:-8050}"
-      - "PF_UISERVER_URL=http://${PROJECT_PREFIX:-}auditgui:80"
-      - "PF_HTTP_SERVER_PORT=3005"
-      - "PF_DEFAULT_REPORT_RANGE_HOURS=${PF_DEFAULT_REPORT_RANGE_HOURS:-168}"
-      - "PF_PROCESS_BLOCK_DURATION_MINUTES=${PF_PROCESS_BLOCK_DURATION_MINUTES:-15}"
-      - "PF_PROCESS_BLOCK_PREVIOUS_MINUTES=${PF_PROCESS_BLOCK_PREVIOUS_MINUTES:-5}"
-      - "PF_RUN_PERIOD_MINUTES=${PF_RUN_PERIOD_MINUTES:-7.5}"
     networks:
       - external_network
 
