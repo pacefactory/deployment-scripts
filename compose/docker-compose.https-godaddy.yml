@@ -3,8 +3,7 @@ version: "3.3"
 x-pf-info:
   name: HTTPS (GoDaddy)
   prompt: Enable HTTPS (via godaddy DNS, pacefactory.com domain)
-  description:
-    Provision HTTPS certificate via letsencrypt. 
+  description: Provision HTTPS certificate via letsencrypt.
     You MUST have already updated ./credentials/godaddy/credentials.ini with the appropriate secret and key.
   settings:
     SERVER_NAME:
@@ -12,7 +11,7 @@ x-pf-info:
       default: ""
     LETSENCRYPT_EMAIL:
       description: Email address to use for letsencrypt.com
-      default: ""      
+      default: ""
     HTTPS_PORT:
       default: 443
 
@@ -22,35 +21,36 @@ services:
       - https-godaddy
     container_name: ${PROJECT_PREFIX:-}certbot
     image: miigotu/certbot-dns-godaddy
-    command: 
+    command:
       - "certbot"
       - "certonly"
       - "--authenticator"
       - "dns-godaddy"
       - "--dns-godaddy-propagation-seconds"
-      - "900"      
+      - "900"
       - "--dns-godaddy-credentials"
       - "/opt/godaddy/credentials.ini"
       - "--keep-until-expiring"
       - "--non-interactive"
       - "--expand"
       - "--agree-tos"
-      - "--eff-email"      
+      - "--eff-email"
       - "-m"
       - "${LETSENCRYPT_EMAIL}"
       - "-d"
       - "${SERVER_NAME}.pacefactory.com"
     logging:
-      driver: local    
+      driver: local
     volumes:
-      - "./credentials/godaddy:/opt/godaddy/:ro"
-      - certbot:/etc/letsencrypt/:rw      
-      
+      # Not sure why, but after the `docker compose convert`, the relative path seems to be relative to the `compose/` folder
+      - "../credentials/godaddy:/opt/godaddy/:ro"
+      - certbot:/etc/letsencrypt/:rw
+
   apigateway:
     ports:
       - "${HTTPS_PORT:-443}:443"
     volumes:
-      - certbot:/etc/nginx/ssl/:ro      
+      - certbot:/etc/nginx/ssl/:ro
     environment:
       - "SCV2_PROFILE_SSL=true"
       - "SERVER_NAME=${SERVER_NAME}.pacefactory.com"

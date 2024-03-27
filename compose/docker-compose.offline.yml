@@ -19,3 +19,6 @@ services:
       - "DAYS_TO_KEEP=9999999"
       - "UPPER_DISK_USAGE_PCT=100"
       - "MAX_DISK_USAGE_PCT=100"
+  service_audit_processing:
+    environment:
+      - "PF_OFFLINE_MODE=true"

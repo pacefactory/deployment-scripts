@@ -3,8 +3,7 @@ version: "3.3"
 x-pf-info:
   name: HTTPS (Digital Ocean)
   prompt: Enable HTTPS (via digitalocean DNS, pacefactory.dev domain)
-  description:
-    Provision HTTPS certificate via letsencrypt. 
+  description: Provision HTTPS certificate via letsencrypt.
     You MUST have already updated ./credentials/digitalocean/credentials.ini with the appropriate API key.
   settings:
     SERVER_NAME:
@@ -22,7 +21,7 @@ services:
       - https-digitalocean
     container_name: ${PROJECT_PREFIX:-}certbot
     image: certbot/dns-digitalocean:latest
-    command: 
+    command:
       - "certonly"
       - "--preferred-chain"
       - "ISRG Root X1"
@@ -36,22 +35,23 @@ services:
       - "--non-interactive"
       - "--expand"
       - "--agree-tos"
-      - "--eff-email"      
+      - "--eff-email"
       - "-m"
-      - "${LETSENCRYPT_EMAIL}"    
+      - "${LETSENCRYPT_EMAIL}"
       - "-d"
       - "${SERVER_NAME}.pacefactory.dev"
     logging:
-      driver: local    
+      driver: local
     volumes:
-      - "./credentials/digitalocean:/opt/digitalocean/:ro"
-      - certbot:/etc/letsencrypt/:rw      
-      
+      # Not sure why, but after the `docker compose convert`, the relative path seems to be relative to the `compose/` folder
+      - "../credentials/digitalocean:/opt/digitalocean/:ro"
+      - certbot:/etc/letsencrypt/:rw
+
   apigateway:
     ports:
       - "${HTTPS_PORT:-443}:443"
     volumes:
-      - certbot:/etc/nginx/ssl/:ro      
+      - certbot:/etc/nginx/ssl/:ro
     environment:
       - "SCV2_PROFILE_SSL=true"
       - "SERVER_NAME=${SERVER_NAME}.pacefactory.dev"

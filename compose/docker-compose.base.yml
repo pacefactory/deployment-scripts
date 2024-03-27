@@ -12,6 +12,8 @@ x-pf-info:
       default: latest
     AUDITGUI_TAG:
       default: latest
+    AUDIT_PROCESSING_TAG:
+      default: latest
     WEBGUI_FORCE_GHOSTING:
       default: false
     WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:
@@ -229,12 +231,16 @@ services:
       - "AUDITGUI_HOST=${PROJECT_PREFIX:-}auditgui"
       - "AUDITGUI_PORT=80"
       - "DEFAULT_WEBGUI=${DEFAULT_WEBGUI:-scv2}"
+      - "SCV2_PROFILE_AUDITPROC=true"
+      - "AUDITPROC_HOST=${PROJECT_PREFIX:-}service_audit_processing"
+      - "AUDITPROC_PORT=3005"
     depends_on:
       - dbserver
       - service_dtreeserver
       - service_gifwrapper
       - auditgui
       - webgui
+      - service_audit_processing
     ports:
       - "${HTTP_PORT:-80}:80"
     networks:
