@@ -1,0 +1,44 @@
+version: "3.3"
+
+x-pf-info:
+  name: swift labeler profile
+  prompt: Enable the swift labeler profile?
+  description:
+    Swift labeler service supports quick annotation of objects to
+    train both a spaghetti classifier and tiny image classifier
+  settings:
+    SWIFT_TAG:
+      default: "latest"
+
+services:
+  apigateway:
+    depends_on:
+      - service_swift_labeler
+    environment:
+      - "SCV2_PROFILE_SWIFT=true"
+      - "SWIFT_HOST=${PROJECT_PREFIX:-}service_swift_labeler"
+      - "SWIFT_PORT=7474"
+
+  service_audit_processing:
+    depends_on:
+      - service_swift_labeler
+    environment:
+      - "PF_SWIFT_URL=http://${PROJECT_PREFIX:-}service_swift_labeler:${SWIFT_PORT:-7474}"
+
+  service_swift_labeler:
+    container_name: ${PROJECT_PREFIX:-}service_swift_labeler
+    image: pacefactory/swift-labeler:${SWIFT_TAG:-latest}
+    restart: always
+    logging:
+      driver: local
+    depends_on:
+      - dbserver
+    environment:
+      - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+    volumes:
+      - service_swift_labeler-data:/home/scv2/volume
+    networks:
+      - external_network
+
+volumes:
+  service_swift_labeler-data:
