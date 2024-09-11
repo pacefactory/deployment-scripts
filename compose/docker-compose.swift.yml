@@ -35,6 +35,8 @@ services:
       - dbserver
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+      - "APIGATEWAY=true"
+      - "BASE_PATH=api/swift/"
     volumes:
       - service_swift_labeler-data:/home/scv2/volume
     networks:
