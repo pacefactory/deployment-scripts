@@ -19,6 +19,8 @@ services:
       # TODO: Support project prefix as below
       - "SWIFT_HOST=swiftlabeler"
       - "SWIFT_PORT=7474"
+    volumes:
+      - service_swift_labeler-static:/www/static/swift-static:ro
 
   service_audit_processing:
     depends_on:
@@ -48,8 +50,10 @@ services:
       - "BASE_PATH=api/swift/"
     volumes:
       - service_swift_labeler-data:/home/scv2/volume
+      - service_swift_labeler-static:/home/scv2/static:rw
     networks:
       - external_network
 
 volumes:
   service_swift_labeler-data:
+  service_swift_labeler-static:
