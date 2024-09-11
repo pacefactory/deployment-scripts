@@ -35,6 +35,7 @@ services:
       - dbserver
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+      - "DEBUG=false"
       - "APIGATEWAY=true"
       - "BASE_PATH=api/swift/"
     volumes:
