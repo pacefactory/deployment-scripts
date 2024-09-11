@@ -16,17 +16,25 @@ services:
       - service_swift_labeler
     environment:
       - "SCV2_PROFILE_SWIFT=true"
-      - "SWIFT_HOST=${PROJECT_PREFIX:-}service_swift_labeler"
+      # TODO: Support project prefix as below
+      - "SWIFT_HOST=swiftlabeler"
       - "SWIFT_PORT=7474"
 
   service_audit_processing:
     depends_on:
       - service_swift_labeler
     environment:
-      - "PF_SWIFT_URL=http://${PROJECT_PREFIX:-}service_swift_labeler:${SWIFT_PORT:-7474}"
+    # TODO: Support project prefix as below
+      - "PF_SWIFT_URL=http://swiftlabeler:${SWIFT_PORT:-7474}"
+
+  # TODO: Will need to add environment for auditgui
 
   service_swift_labeler:
     container_name: ${PROJECT_PREFIX:-}service_swift_labeler
+    # Edge case: need to use RFC compliant hostname (i.e. no underscores), otherwise Django yells at us
+    # https://stackoverflow.com/questions/52997543/invalid-http-host-header-the-domain-name-provided-is-not-valid-requests-to-d
+    # TODO: Need to support project prefix somehow... which currently allows _ in the name
+    hostname: swiftlabeler
     image: pacefactory/swift-labeler:${SWIFT_TAG:-latest}
     restart: always
     logging:
