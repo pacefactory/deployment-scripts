@@ -45,6 +45,8 @@ x-pf-info:
     DEFAULT_WEBGUI:
       description: Which version should be loaded by default? values, 'scv2' or 'scv3'
       default: scv2
+    PF_MOSQUITTO_TAG:
+      default: latest
 
 services:
   mongo:
@@ -62,6 +64,20 @@ services:
       - mongodata:/data/db
     networks:
       - internal_network
+
+  pf_mosquitto:
+    container_name: ${PROJECT_PREFIX:-}pf_mosquitto
+    hostname: ${PROJECT_PREFIX:-}pf_mosquitto
+    image: pacefactory/pf_mosquitto:${PF_MOSQUITTO_TAG:-latest}
+    restart: always
+    logging:
+      driver: local
+    volumes:
+      - mosquitto-data:/mosquitto
+    ports:
+      - "1883:1883"
+    networks:
+      - external_network
 
   dbserver:
     container_name: ${PROJECT_PREFIX:-}dbserver
@@ -263,6 +279,7 @@ services:
 
 volumes:
   mongodata:
+  mosquitto-data:
   dbserver-data:
   realtime-data:
   service_dtreeserver-data:
