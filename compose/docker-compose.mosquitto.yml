@@ -8,6 +8,8 @@ x-pf-info:
   settings:
     PF_MOSQUITTO_TAG:
       default: latest
+    PF_MOSQUITTO_PUBLIC_PORT:
+      default: 1883
 
 services:
   pf_mosquitto:
@@ -20,7 +22,7 @@ services:
     volumes:
       - mosquitto-data:/mosquitto
     ports:
-      - "1883:1883"
+      - "${PF_MOSQUITTO_PUBLIC_PORT:-1883}:1883"
     networks:
       - external_network
 
