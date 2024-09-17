@@ -1,0 +1,31 @@
+version: "3.3"
+
+x-pf-info:
+  name: mosquitto profile
+  prompt: Enable the mosquitto profile?
+  description:
+    The mosquitto profile enables the mosquitto mqtt broker
+  settings:
+    PF_MOSQUITTO_TAG:
+      default: latest
+
+services:
+  pf_mosquitto:
+    container_name: ${PROJECT_PREFIX:-}pf_mosquitto
+    hostname: ${PROJECT_PREFIX:-}pf_mosquitto
+    image: pacefactory/pf_mosquitto:${PF_MOSQUITTO_TAG:-latest}
+    restart: always
+    logging:
+      driver: local
+    volumes:
+      - mosquitto-data:/mosquitto
+    ports:
+      - "1883:1883"
+    networks:
+      - external_network
+
+volumes:
+  mosquitto-data:
+
+networks:
+  external_network:
