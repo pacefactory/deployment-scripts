@@ -10,6 +10,8 @@ x-pf-info:
       default: latest
     PF_MOSQUITTO_PUBLIC_PORT:
       default: 1883
+    PF_MOSQUITTO_WEBSOCKETS_PORT:
+      default: 7575
 
 services:
   pf_mosquitto:
@@ -23,6 +25,7 @@ services:
       - mosquitto-data:/mosquitto
     ports:
       - "${PF_MOSQUITTO_PUBLIC_PORT:-1883}:1883"
+      - "${PF_MOSQUITTO_WEBSOCKETS_PORT:-7575}:7575"
     networks:
       - external_network
 
@@ -33,6 +36,7 @@ services:
       - "SCV2_PROFILE_PF_MOSQUITTO=true"
       - "PF_MOSQUITTO_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
       - "PF_MOSQUITTO_PORT=1883"
+      - "PF_MOSQUITTO_WEBSOCKETS_PORT=7575"
 
 volumes:
   mosquitto-data:
