@@ -3,8 +3,7 @@ version: "3.3"
 x-pf-info:
   name: mosquitto profile
   prompt: Enable the mosquitto profile?
-  description:
-    The mosquitto profile enables the mosquitto mqtt broker
+  description: The mosquitto profile enables the mosquitto mqtt broker
   settings:
     PF_MOSQUITTO_TAG:
       default: latest
@@ -37,6 +36,12 @@ services:
       - "PF_MOSQUITTO_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
       - "PF_MOSQUITTO_PORT=1883"
       - "PF_MOSQUITTO_WEBSOCKETS_PORT=7575"
+
+  service_audit_processing:
+    depends_on:
+      - pf_mosquitto
+    environment:
+      - "PF_MQTT_URL=http://${PROJECT_PREFIX:-}pf_mosquitto:${PF_MOSQUITTO_PUBLIC_PORT:-1883}"
 
 volumes:
   mosquitto-data:
