@@ -1,0 +1,37 @@
+version: "3.3"
+
+x-pf-info:
+  name: node-red profile
+  prompt: Enable the node-red profile?
+  description: The node-red profile enables the node-red service
+  settings:
+    NODERED_TAG:
+      default: 4.0.5-22
+    NODERED_PORT:
+      default: 1880
+
+services:
+  nodered:
+    container_name: ${PROJECT_PREFIX:-}nodered
+    hostname: ${PROJECT_PREFIX:-}nodered
+    image: nodered/node-red:${NODERED_TAG:-4.0.5-22}
+    restart: always
+    logging:
+      driver: local
+    volumes:
+      - nodered-data:/data
+    ports:
+      - "${NODERED_PORT:-1880}:1880"
+    networks:
+      - external_network
+
+  apigateway:
+    depends_on:
+      - nodered
+    environment:
+      - "SCV2_PROFILE_NODERED=true"
+      - "NODERED_HOST=${PROJECT_PREFIX:-}nodered"
+      - "NODERED_PORT=1880"
+
+volumes:
+  nodered-data:

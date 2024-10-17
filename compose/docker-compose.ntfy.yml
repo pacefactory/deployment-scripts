@@ -1,0 +1,41 @@
+version: "3.3"
+
+x-pf-info:
+  name: ntfy profile
+  prompt: Enable the ntfy profile?
+  description: The ntfy profile enables the ntfy push notification service
+  settings:
+    NTFY_TAG:
+      default: v2.11.0
+    NTFY_PUBLIC_PORT:
+      default: 333
+
+services:
+  ntfy:
+    container_name: ${PROJECT_PREFIX:-}ntfy
+    hostname: ${PROJECT_PREFIX:-}ntfy
+    image: binwiederhier/ntfy:${NTFY_TAG:-v2.11.0}
+    command:
+      - serve
+    restart: always
+    logging:
+      driver: local
+    volumes:
+      - ntfy-cache:/var/cache/ntfy
+      - ntfy-data:/etc/ntfy
+    ports:
+      - "${NTFY_PUBLIC_PORT:-333}:80"
+    networks:
+      - external_network
+
+  apigateway:
+    depends_on:
+      - ntfy
+    environment:
+      - "SCV2_PROFILE_NTFY=true"
+      - "NTFY_HOST=${PROJECT_PREFIX:-}ntfy"
+      - "NTFY_PORT=80"
+
+volumes:
+  ntfy-cache:
+  ntfy-data:
