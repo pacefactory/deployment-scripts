@@ -28,8 +28,8 @@ services:
       - expresso_server
     environment:
       - "SCV2_PROFILE_EXPRESSO=true"
-      - "PF_EXPRESSO_HOST=${PROJECT_PREFIX:-}expresso_server"
-      - "PF_EXPRESSO_PORT=8456"
+      - "EXPRESSO_HOST=${PROJECT_PREFIX:-}expresso_server"
+      - "EXPRESSO_PORT=8456"
 # TODO: Do we need a volume?
 # volumes:
 #   expresso-data:
