@@ -7,8 +7,6 @@ x-pf-info:
   settings:
     EXPRESSO_SERVER_TAG:
       default: latest
-    EXPRESSO_PUBLIC_PORT:
-      default: 8456
 
 services:
   expresso_server:
