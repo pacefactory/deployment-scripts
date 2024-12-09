@@ -1,0 +1,37 @@
+version: "3.3"
+
+x-pf-info:
+  name: Expresso profile
+  prompt: Enable the Expresso profile?
+  description: The Expresso profile expresso_server and UI for easier configuration
+  settings:
+    EXPRESSO_SERVER_TAG:
+      default: latest
+    EXPRESSO_PUBLIC_PORT:
+      default: 8456
+
+services:
+  expresso_server:
+    container_name: ${PROJECT_PREFIX:-}expresso_server
+    hostname: ${PROJECT_PREFIX:-}expresso_server
+    image: pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-latest}
+    restart: always
+    logging:
+      driver: local
+    # TODO: Do we need a volume?
+    # volumes:
+    #   - expresso-data:/home/scv2/volume
+    # Ports are conditionally enabled in the expresso-ports profile
+    networks:
+      - external_network
+
+  apigateway:
+    depends_on:
+      - expresso_server
+    environment:
+      - "SCV2_PROFILE_EXPRESSO=true"
+      - "PF_EXPRESSO_HOST=${PROJECT_PREFIX:-}expresso_server"
+      - "PF_EXPRESSO_PORT=8456"
+# TODO: Do we need a volume?
+# volumes:
+#   expresso-data:

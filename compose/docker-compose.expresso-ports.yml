@@ -1,0 +1,14 @@
+version: "3.3"
+
+x-pf-info:
+  name: Expresso ports
+  prompt: Enable direct ports for Expresso?
+  description: Should ports be opened for direct access to Expresso?
+  settings:
+    EXPRESSO_PUBLIC_PORT:
+      default: 8456
+
+services:
+  expresso_server:
+    ports:
+      - "${EXPRESSO_PUBLIC_PORT:-8456}:8456"
