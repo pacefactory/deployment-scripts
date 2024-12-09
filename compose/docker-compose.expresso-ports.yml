@@ -12,3 +12,6 @@ services:
   expresso_server:
     ports:
       - "${EXPRESSO_PUBLIC_PORT:-8456}:8456"
+    environment:
+      - "APIGATEWAY=false"
+      - "ROOT_PATH=/"

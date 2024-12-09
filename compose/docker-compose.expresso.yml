@@ -22,6 +22,9 @@ services:
     # Ports are conditionally enabled in the expresso-ports profile
     networks:
       - external_network
+    environment:
+      - "APIGATEWAY=true"
+      - "ROOT_PATH=/api/expresso"
 
   apigateway:
     depends_on:
