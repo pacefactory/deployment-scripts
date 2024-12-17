@@ -41,6 +41,8 @@ services:
     environment:
       - "APIGATEWAY=true"
       - "ROOT_PATH=/expresso"
+    depends_on:
+      - expresso_server
 
   apigateway:
     depends_on:
