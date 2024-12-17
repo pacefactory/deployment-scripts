@@ -7,6 +7,8 @@ x-pf-info:
   settings:
     EXPRESSO_SERVER_TAG:
       default: latest
+    EXPRESSO_UI_TAG:
+      default: latest
 
 services:
   expresso_server:
@@ -26,13 +28,30 @@ services:
       - "APIGATEWAY=true"
       - "ROOT_PATH=/api/expresso"
 
+  expresso_ui:
+    container_name: ${PROJECT_PREFIX:-}expresso_ui
+    hostname: ${PROJECT_PREFIX:-}expresso_ui
+    image: pacefactory/expresso_ui:${EXPRESSO_UI_TAG:-latest}
+    restart: always
+    logging:
+      driver: local
+    # Ports are conditionally enabled in the expresso-ports profile
+    networks:
+      - external_network
+    environment:
+      - "APIGATEWAY=true"
+      - "ROOT_PATH=/expresso"
+
   apigateway:
     depends_on:
       - expresso_server
+      - expresso_ui
     environment:
       - "SCV2_PROFILE_EXPRESSO=true"
-      - "EXPRESSO_HOST=${PROJECT_PREFIX:-}expresso_server"
-      - "EXPRESSO_PORT=8456"
+      - "EXPRESSO_SERVER_HOST=${PROJECT_PREFIX:-}expresso_server"
+      - "EXPRESSO_SERVER_PORT=8456"
+      - "EXPRESSO_UI_HOST=${PROJECT_PREFIX:-}expresso_ui"
+      - "EXPRESSO_UI_PORT=5173"
 # TODO: Do we need a volume?
 # volumes:
 #   expresso-data:
