@@ -26,6 +26,8 @@ services:
       - "SOCIAL_DBSERVER_URL=/api/dbserver"
       - "SOCIAL_SCV2_URL=/${DEFAULT_WEBGUI:-scv2}/"
       - "SOCIAL_SCV3_URL=/scv3/"
+      - "SOCIAL_GIF_URL=/api/gif"
+      - "SOCIAL_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
     networks:
       - external_network
 
