@@ -25,8 +25,8 @@ services:
     networks:
       - external_network
     environment:
-      - "APIGATEWAY=true"
-      - "ROOT_PATH=/api/expresso"
+      - "PF_APIGATEWAY=true"
+      - "PF_ROOT_PATH=/api/expresso"
 
   expresso_ui:
     container_name: ${PROJECT_PREFIX:-}expresso_ui
