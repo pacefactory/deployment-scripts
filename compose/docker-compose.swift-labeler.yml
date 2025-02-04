@@ -24,11 +24,16 @@ services:
       - external_network
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+      - "BASE_PATH=/swift/"
+      - "APIGATEWAY=true"
     volumes:
       - type: volume
         source: swift-labeler-data
         target: "/home/scv2/volume/data/projects" #"$DOCKER_VOLUME_PATH/data/projects"
-        volume: {}
+      - type: volume
+        source: swift-labeler-static
+        target: "/home/scv2/static"
+
 
   apigateway:
     depends_on:
@@ -37,7 +42,10 @@ services:
       - "SWIFT_LABELER_HOST=${PROJECT_PREFIX:-}swift-labeler"
       - "SWIFT_LABELER_PORT=7474"
       - "SCV2_PROFILE_SWIFT_LABELER=true"
+    volumes:
+    - swift-labeler-static:/www/static/swift-static:ro
 
 volumes:
   swift-labeler-data: {}
+  swift-labeler-static: {}
 
