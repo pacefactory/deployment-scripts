@@ -1,0 +1,51 @@
+version: "3.3"
+
+x-pf-info:
+  name: Swift Labeler
+  prompt: Enable Swift Labeler?
+  description: Should Swift Labeler be enabled?
+  settings:
+    SWIFT_LABELER_PUBLIC_PORT:
+      default: 7474
+
+services:
+  swift-labeler:
+    image: pacefactory/swift-labeler
+    ports:
+      - "${SWIFT_LABELER_PUBLIC_PORT:-7474}:7474"
+    restart: always
+    hostname: ${PROJECT_PREFIX:-}swift-labeler
+    container_name: ${PROJECT_PREFIX:-}swift-labeler
+    logging:
+      driver: local
+    depends_on:
+      - dbserver
+    networks:
+      - external_network
+    environment:
+      - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+      - "BASE_PATH=/swift/"
+      - "APIGATEWAY=true"
+    volumes:
+      - type: volume
+        source: swift-labeler-data
+        target: "/home/scv2/volume/data/projects" #"$DOCKER_VOLUME_PATH/data/projects"
+      - type: volume
+        source: swift-labeler-static
+        target: "/home/scv2/static"
+
+
+  apigateway:
+    depends_on:
+      - swift-labeler
+    environment:
+      - "SWIFT_LABELER_HOST=${PROJECT_PREFIX:-}swift-labeler"
+      - "SWIFT_LABELER_PORT=7474"
+      - "SCV2_PROFILE_SWIFT_LABELER=true"
+    volumes:
+    - swift-labeler-static:/www/static/swift-static:ro
+
+volumes:
+  swift-labeler-data: {}
+  swift-labeler-static: {}
+
