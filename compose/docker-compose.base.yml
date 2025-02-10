@@ -15,25 +15,11 @@ x-pf-info:
     AUDIT_PROCESSING_TAG:
       default: "latest"
     WEBGUI_FORCE_GHOSTING:
+      description: Force ghosting of all cameras
       default: false
-    WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:
-      description: Retrieve all realtime configs (for station zone information) on startup, else wait for an efficiency rule
-      default: false
-    WEBGUI_OBJ_REQ_BATCH_SIZE:
-      description: The number of objects requested at one time when displaying a rule in the UI
-      default: 20
-    WEBGUI_WORK_QUEUE_INSERTION_MODE:
-      description: Order in which subsequent work actions are inserted into queue
-      default: depth-first
-    WEBGUI_OBJECT_METADATA_DOWNSAMPLE_FACTOR:
-      description: Downsample factor to be used when retrieving ObjectMetadata
-      default: 0.1
-    WEBGUI_SPLIT_BATCH_MIN_DURATION_MS:
-      description: Min batch duration when splitting a large data request time range
-      default: 300000
-    WEBGUI_SPLIT_BATCH_TARGET_COUNT:
-      description: Desired number of batches to split a large data request time range into
-      default: 5
+    WEBGUI_UNGHOSTED_CAMERA_LIST:
+      description: List of cameras that should not be ghosted. Should be a comma separated list of camera names
+      default: ""
     GIFWRAPPER_TAG:
       default: latest
     DTREESERVER_TAG:
@@ -113,6 +99,7 @@ services:
     environment:
       - "WEBGUI_APIGATEWAY=true"
       - "WEBGUI_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
+      - "WEBGUI_UNGHOSTED_CAMERA_LIST=${WEBGUI_UNGHOSTED_CAMERA_LIST}"
       - "WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT=${WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:-false}"
       - "WEBGUI_OBJ_REQ_BATCH_SIZE=${WEBGUI_OBJ_REQ_BATCH_SIZE:-20}"
       - "WEBGUI_WORK_QUEUE_INSERTION_MODE=${WEBGUI_WORK_QUEUE_INSERTION_MODE:-depth-first}"
@@ -142,6 +129,7 @@ services:
     environment:
       - "WEBGUI_APIGATEWAY=true"
       - "WEBGUI_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
+      - "WEBGUI_UNGHOSTED_CAMERA_LIST=${WEBGUI_UNGHOSTED_CAMERA_LIST}"
       - "WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT=${WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:-false}"
       - "WEBGUI_OBJ_REQ_BATCH_SIZE=${WEBGUI_OBJ_REQ_BATCH_SIZE:-20}"
       - "WEBGUI_WORK_QUEUE_INSERTION_MODE=${WEBGUI_WORK_QUEUE_INSERTION_MODE:-depth-first}"
