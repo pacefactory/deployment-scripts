@@ -9,6 +9,8 @@ x-pf-info:
   settings:
     SOCIAL_WEB_APP_TAG:
       default: "latest"
+    SOCIAL_VIDEO_SERVER_TAG:
+      default: "latest"
     SOCIAL_VIDEO_PUBLIC_PORT:
       default: "9999"
 
@@ -33,7 +35,7 @@ services:
 
   social_video_server:
     container_name: ${PROJECT_PREFIX:-}social_video_server
-    image: pacefactory/social_video_server
+    image: pacefactory/social_video_server:${SOCIAL_VIDEO_SERVER_TAG:-latest}
     hostname: ${PROJECT_PREFIX:-}social_video_server
     restart: always
     logging:
