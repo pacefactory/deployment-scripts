@@ -26,6 +26,14 @@ BASE_VOLUMES=(
 for BASE_VOLUME in "${BASE_VOLUMES[@]}"
 do
   VOLUME_NAME="${PROJECT_NAME}_${BASE_VOLUME}"
-  echo "Migrating volume '$VOLUME_NAME' to user scv2"
-  docker run --rm -v $VOLUME_NAME:/data alpine chown -R $SCV2_USER_ID:$SCV2_USER_ID /data
+  echo "Migrating volume '$VOLUME_NAME' to user scv2 if needed"
+  
+  docker run --rm -v "$VOLUME_NAME":/data alpine sh -c "\
+    CURRENT_OWNER=\$(stat -c '%u:%g' /data 2>/dev/null || echo ''); \
+    if [ \"\$CURRENT_OWNER\" != \"${SCV2_USER_ID}:${SCV2_USER_ID}\" ]; then \
+      echo \"Current owner is \$CURRENT_OWNER. Changing to ${SCV2_USER_ID}:${SCV2_USER_ID}\"; \
+      chown -R ${SCV2_USER_ID}:${SCV2_USER_ID} /data; \
+    else \
+      echo \"Permissions already set to ${SCV2_USER_ID}:${SCV2_USER_ID}. Skipping.\"; \
+    fi"
 done
