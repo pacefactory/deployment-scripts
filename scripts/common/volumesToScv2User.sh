@@ -19,7 +19,6 @@ BASE_VOLUMES=(
   "webgui-data"
   "service_dtreeserver-data"
   "social_video_server-data"
-  "swift-labeler-data"
   "relational_dbserver-data"
 )
 
