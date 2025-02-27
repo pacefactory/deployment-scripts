@@ -7,18 +7,22 @@ x-pf-info:
     The relational dbserver profile enables the relational_dbserver service,
     which allows integrations between the webgui and a client's existing SQL database.
     (relational_dbserver)
-    
-services:
+  settings:
+    RDB_TAG:
+      default: "latest"
+    RDB_PUBLIC_PORT:
+      default: "8282"
 
+services:
   relational_dbserver:
     container_name: ${PROJECT_PREFIX:-}relational_dbserver
-    image: pacefactory/relational-dbserver
+    image: pacefactory/relational-dbserver:${RDB_TAG:-latest}
     hostname: ${PROJECT_PREFIX:-}relational_dbserver
     logging:
       driver: local
     restart: always
     ports:
-      - "8282:8282"
+      - "${RDB_PUBLIC_PORT:-8282}:8282"
     volumes:
       - "relational_dbserver-data:/home/scv2/volume"
     networks:
@@ -29,6 +33,8 @@ services:
       - relational_dbserver
     environment:
       - "SCV2_PROFILE_RDB=true"
+      - "RDB_HOST=${PROJECT_PREFIX:-}relational_dbserver"
+      - "RDB_PORT=8282"
 
 volumes:
   relational_dbserver-data:
