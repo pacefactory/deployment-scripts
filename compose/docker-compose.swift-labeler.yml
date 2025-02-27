@@ -5,12 +5,14 @@ x-pf-info:
   prompt: Enable Swift Labeler?
   description: Should Swift Labeler be enabled?
   settings:
+    SWIFT_LABELER_TAG:
+      default: "latest"
     SWIFT_LABELER_PUBLIC_PORT:
       default: 7474
 
 services:
   swift-labeler:
-    image: pacefactory/swift-labeler
+    image: pacefactory/swift-labeler:${SWIFT_LABELER_TAG:-latest}
     ports:
       - "${SWIFT_LABELER_PUBLIC_PORT:-7474}:7474"
     restart: always
@@ -34,7 +36,6 @@ services:
         source: swift-labeler-static
         target: "/home/scv2/static"
 
-
   apigateway:
     depends_on:
       - swift-labeler
@@ -43,9 +44,8 @@ services:
       - "SWIFT_LABELER_PORT=7474"
       - "SCV2_PROFILE_SWIFT_LABELER=true"
     volumes:
-    - swift-labeler-static:/www/static/swift-static:ro
+      - swift-labeler-static:/www/static/swift-static:ro
 
 volumes:
   swift-labeler-data: {}
   swift-labeler-static: {}
-
