@@ -1,10 +1,16 @@
 #!/bin/bash
 
-# Source the project name to PROJECT_NAME
-source scripts/common/projectName.sh
+SCV2_USER_ID=1234
 
-echo "Migrating volumes to non-root user for project '$PROJECT_NAME'"
+# Source the project name to PROJECT_NAME
+if [[ -z $PROJECT_NAME ]];
+then
+  source scripts/common/projectName.sh
+fi
+
+echo "Migrating volumes to user scv2 (${SCV2_USER_ID}:${SCV2_USER_ID}) for project '$PROJECT_NAME'"
 echo ""
+
 
 # List the base volume names here to migrate
 BASE_VOLUMES=(
@@ -20,7 +26,6 @@ BASE_VOLUMES=(
 for BASE_VOLUME in "${BASE_VOLUMES[@]}"
 do
   VOLUME_NAME="${PROJECT_NAME}_${BASE_VOLUME}"
-  echo "Migrating volume '$VOLUME_NAME' to non-root user"
-  docker run --rm -v $VOLUME_NAME:/data alpine chown -R 1234:1234 /data
-  echo ""
+  echo "Migrating volume '$VOLUME_NAME' to user scv2"
+  docker run --rm -v $VOLUME_NAME:/data alpine chown -R $SCV2_USER_ID:$SCV2_USER_ID /data
 done

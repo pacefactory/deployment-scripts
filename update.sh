@@ -99,6 +99,10 @@ fi
 
 if [[ "$PULL_SUCCESS" == "true" ]];
 then  
+  echo "Changing ownership of applicable volumes to user scv2..."
+  echo ""
+  source scripts/common/volumesToScv2User.sh
+
   up_command="docker compose --project-name $PROJECT_NAME up --detach --remove-orphans"
 
   echo "Updating deployment..."
