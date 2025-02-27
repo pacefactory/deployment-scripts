@@ -20,6 +20,7 @@ BASE_VOLUMES=(
   "service_dtreeserver-data"
   "social_video_server-data"
   "swift-labeler-data"
+  "relational_dbserver-data"
 )
 
 # For each base volume, append $PROJECT_NAME to the volume name, like `${PROJECT_NAME}_dbserver-data`
