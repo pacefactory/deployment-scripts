@@ -1,5 +1,3 @@
-version: "3.3"
-
 x-pf-info:
   name: OFFLINE MODE
   prompt: Enable OFFLINE MODE, only for when running videos using the "Offline Processing"?

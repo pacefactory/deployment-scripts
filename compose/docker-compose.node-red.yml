@@ -1,5 +1,3 @@
-version: "3.3"
-
 x-pf-info:
   name: node-red profile
   prompt: Enable the node-red profile?

@@ -1,5 +1,3 @@
-version: "3.3"
-
 x-pf-info:
   name: Expresso ports
   prompt: Enable direct ports for Expresso?

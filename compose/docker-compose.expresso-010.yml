@@ -1,5 +1,3 @@
-version: "3.3"
-
 x-pf-info:
   name: Expresso profile
   prompt: Enable the Expresso profile?

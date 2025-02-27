@@ -1,5 +1,3 @@
-version: "3.3"
-
 x-pf-info:
   name: ntfy profile
   prompt: Enable the ntfy profile?

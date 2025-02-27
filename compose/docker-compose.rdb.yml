@@ -1,5 +1,3 @@
-version: "3.3"
-
 x-pf-info:
   name: relational dbserver profile
   prompt: Enable the relational dbserver profile?
