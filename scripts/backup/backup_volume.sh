@@ -63,40 +63,40 @@ do
     if [[ "$REPLY" == "y" ]];
     then
       echo "  --> Will backup dbserver images!"
-      docker run --name ${name}_data -v ${volume}:/data ubuntu tar czvf /tmp/${name}.tar.gz data
+      docker run --name ${name}_data -v ${volume}:/data:ro ubuntu tar czvf /tmp/${name}.tar.gz data
     else
       echo "  --> Will NOT backup dbserver images!"
-      docker run --name ${name}_data -v ${volume}:/data ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czvf /tmp/dbserver.tar.gz -T -'
+      docker run --name ${name}_data -v ${volume}:/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czvf /tmp/dbserver.tar.gz -T -'
     fi
   else
-    docker run --name ${name}_data -v ${volume}:/data ubuntu tar czvf /tmp/${name}.tar.gz data
+    docker run --name ${name}_data -v ${volume}:/data:ro ubuntu tar czvf /tmp/${name}.tar.gz data
   fi
 
   docker cp ${name}_data:/tmp/${name}.tar.gz $output_folder_path/
   docker rm ${name}_data
 done
 
-# -------------------------------------------------------------------------
-# Create a single archive
-echo ""
-echo "Individual volume backups complete!"
-echo "Creating overall archive..."
+# # -------------------------------------------------------------------------
+# # Create a single archive
+# echo ""
+# echo "Individual volume backups complete!"
+# echo "Creating overall archive..."
 
-pushd .
-cd $output_folder_path
-tar -czvf ../$export_archive_name .
-popd
+# pushd .
+# cd $output_folder_path
+# tar -czvf ../$export_archive_name .
+# popd
 
-echo "Archive created @ '$output_archive_path'"
+# echo "Archive created @ '$output_archive_path'"
 
 
-# -------------------------------------------------------------------------
-# Prompt to remove the single volume archives
-read -p "Remove the single volume backups? ([Y]/n) " user_response
-case "$user_response" in
-  n|N ) echo "  --> Will leave single volume backups in place." ;;
-  * ) echo "  --> Will remove single volume archives." ; rm -r $output_folder_path ;;
-esac
+# # -------------------------------------------------------------------------
+# # Prompt to remove the single volume archives
+# read -p "Remove the single volume backups? ([Y]/n) " user_response
+# case "$user_response" in
+#   n|N ) echo "  --> Will leave single volume backups in place." ;;
+#   * ) echo "  --> Will remove single volume archives." ; rm -r $output_folder_path ;;
+# esac
 
 # -------------------------------------------------------------------------
 # Prompt to restart service if we shut it down
