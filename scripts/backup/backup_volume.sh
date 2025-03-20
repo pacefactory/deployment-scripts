@@ -63,13 +63,13 @@ do
     if [[ "$REPLY" == "y" ]];
     then
       echo "  --> Will backup dbserver images!"
-      docker run --name ${name}_data -v ${volume}:/data:ro ubuntu tar czvf /tmp/${name}.tar.gz data
+      docker run --name ${name}_data -v ${volume}:/data:ro ubuntu tar czf /tmp/${name}.tar.gz data
     else
       echo "  --> Will NOT backup dbserver images!"
-      docker run --name ${name}_data -v ${volume}:/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czvf /tmp/dbserver.tar.gz -T -'
+      docker run --name ${name}_data -v ${volume}:/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf /tmp/dbserver.tar.gz -T -'
     fi
   else
-    docker run --name ${name}_data -v ${volume}:/data:ro ubuntu tar czvf /tmp/${name}.tar.gz data
+    docker run --name ${name}_data -v ${volume}:/data:ro ubuntu tar czf /tmp/${name}.tar.gz data
   fi
 
   docker cp ${name}_data:/tmp/${name}.tar.gz $output_folder_path/
