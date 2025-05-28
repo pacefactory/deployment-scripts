@@ -13,6 +13,10 @@ x-pf-info:
       default: 7272
     GIFWRAPPER_PUBLIC_PORT:
       default: 7171
+    PF_MOSQUITTO_PUBLIC_PORT:
+      default: 1883
+    PF_MOSQUITTO_WS_PUBLIC_PORT:
+      default: 7575
 
 services:
   dbserver:
@@ -27,3 +31,7 @@ services:
   service_dtreeserver:
     ports:
       - "${DTREESERVER_PUBLIC_PORT:-7272}:7272"
+  pf_mosquitto:
+    ports:
+      - "${PF_MOSQUITTO_PUBLIC_PORT:-1883}:1883"
+      - "${PF_MOSQUITTO_WS_PUBLIC_PORT:-7575}:7575"
