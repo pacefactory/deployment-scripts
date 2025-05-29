@@ -50,11 +50,6 @@ services:
       - mongodata:/data/db
     networks:
       - internal_network
-    healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
   dbserver:
     container_name: ${PROJECT_PREFIX:-}dbserver
