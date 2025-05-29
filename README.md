@@ -48,7 +48,7 @@ Instructions for deployments (installations and updates) are as follows
 To install on a fresh machine, first ensure that the requisite programs are installed:
 
 - Docker >= 19.03.0
-- Docker-compose >= 3.8
+- Docker compose >= 2.16.0
 - Git >= 2.x.x
 - (optional) ffmpeg
 
