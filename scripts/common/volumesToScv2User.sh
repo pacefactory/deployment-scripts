@@ -20,6 +20,8 @@ BASE_VOLUMES=(
   "service_dtreeserver-data"
   "social_video_server-data"
   "relational_dbserver-data"
+  "mosquitto-data"
+  "data_interconnector-data"
 )
 
 # Pre-create volumes (without starting containers)
