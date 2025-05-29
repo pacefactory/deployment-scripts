@@ -26,6 +26,8 @@ x-pf-info:
       default: latest
     PF_MOSQUITTO_TAG:
       default: latest
+    DATA_INTERCONNECTOR_TAG:
+      default: latest
     HTTP_PORT:
       default: 80
     DEFAULT_WEBGUI:
@@ -80,6 +82,27 @@ services:
     networks:
       - external_network
 
+  data_interconnector:
+    container_name: ${PROJECT_PREFIX:-}data_interconnector
+    hostname: ${PROJECT_PREFIX:-}data_interconnector
+    image: pacefactory/data_interconnector:${DATA_INTERCONNECTOR_TAG:-latest}
+    restart: always
+    logging:
+      driver: local
+    depends_on:
+      - pf_mosquitto
+      - mongo
+    environment:
+      - "PF_MQTT_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
+      - "PF_MQTT_PORT=1883"
+      - "PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo"
+      - "PF_MONGO_PORT=27017"
+    volumes:
+      - data_interconnector-data:/home/scv2/volume
+    networks:
+      - external_network
+      - internal_network
+
   realtime:
     container_name: ${PROJECT_PREFIX:-}realtime
     image: pacefactory/realtime:${REALTIME_TAG:-latest}
@@ -89,6 +112,7 @@ services:
       driver: local
     depends_on:
       - pf_mosquitto
+      - data_interconnector
     stdin_open: true
     tty: true
     environment:
@@ -283,6 +307,7 @@ volumes:
   webgui-data:
   empty-webgui-data:
   mosquitto-data:
+  data_interconnector-data:
 
 networks:
   internal_network:
