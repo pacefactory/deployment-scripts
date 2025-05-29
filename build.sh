@@ -226,7 +226,7 @@ then
   echo "override_str: $override_str"
 fi
 
-build_command="docker compose --project-name $PROJECT_NAME $ENV_FILE $profile_str $override_str convert"
+build_command="docker compose --project-name $PROJECT_NAME $ENV_FILE $profile_str $override_str config"
 echo "Building docker-compose.yml..."
 echo ""
 echo $build_command
