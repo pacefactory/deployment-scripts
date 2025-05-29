@@ -105,8 +105,8 @@ services:
     volumes:
       - data_interconnector-data:/home/scv2/volume
     networks:
-      - external_network
       - internal_network
+      - external_network
 
   realtime:
     container_name: ${PROJECT_PREFIX:-}realtime
