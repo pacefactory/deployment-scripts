@@ -124,6 +124,7 @@ services:
       - "MQTT_BROKER_PORT=1883"
       - "MQTT_BROKER_USER=admin"
       - "MQTT_BROKER_PASSWORD=pfadminpw"
+      - "DBSERVER_DOCKER_VOLUME_DATA_PATH=/home/scv2/dbserver_volume"
     volumes:
       - "realtime-data:/home/scv2/locations"
       - "dbserver-data:/home/scv2/dbserver_volume"
