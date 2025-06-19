@@ -97,6 +97,9 @@ services:
       - "PF_MQTT_PORT=1883"
       - "PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo"
       - "PF_MONGO_PORT=27017"
+      - "PF_UISERVER_URL=http://${PROJECT_PREFIX:-}auditgui:80"
+      # TEMP: We disable uiserver use until we complete the implementation of downstream microbatch processing
+      - "PF_UISERVER_DISABLED=1"
     volumes:
       - data_interconnector-data:/home/scv2/volume
     networks:
