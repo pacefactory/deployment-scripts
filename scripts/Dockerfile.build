@@ -1,0 +1,33 @@
+FROM ubuntu:22.04
+
+# Install required packages
+RUN apt-get update && apt-get install -y \
+    docker.io \
+    wget \
+    bash \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Docker Compose v2
+RUN mkdir -p /usr/local/lib/docker/cli-plugins && \
+    curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose && \
+    chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+# Install yq
+RUN wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
+    && chmod +x /usr/local/bin/yq
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy scripts
+COPY scripts/ scripts/
+COPY compose/ compose/
+COPY build.sh .
+
+# Make build script executable
+RUN chmod +x build.sh
+
+# Default command
+CMD ["./build.sh"]
