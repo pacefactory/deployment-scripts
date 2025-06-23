@@ -1,6 +1,7 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Install required packages
+# The `rm -rf /var/lib/apt/lists/*` removes the package caches after installation to reduce the container size.
 RUN apt-get update && apt-get install -y \
     docker.io \
     wget \
@@ -9,12 +10,12 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Docker Compose v2
+# Install Docker Compose v2 as per https://docs.docker.com/compose/install/linux/#install-the-plugin-manually
 RUN mkdir -p /usr/local/lib/docker/cli-plugins && \
     curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose && \
     chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
-# Install yq
+# Install yq as per https://github.com/mikefarah/yq installation instructions
 RUN wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
     && chmod +x /usr/local/bin/yq
 
