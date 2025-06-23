@@ -8,9 +8,18 @@ if [[ "$(docker images -q pf-build 2> /dev/null)" == "" ]]; then
     docker build -f scripts/Dockerfile.build -t pf-build .
 fi
 
-# Run the build in container with Docker socket mounted  
+# Run the build in container with Docker socket mounted 
+
+# The --rm flag automatically removes the container after it exits.
+
+# -v "$(pwd)":/workspace -> Mount the current working directory into the container. maps pwd to /workspace in the 
+# container
+
+# -w /workspace -> Set the working directory inside the container to /workspace.
+
+# pf-build ./build.sh "$@" -> Run the build script in the docker container
+
 docker run --rm -it \
     -v "$(pwd)":/workspace \
-    -v /var/run/docker.sock:/var/run/docker.sock \
     -w /workspace \
     pf-build ./build.sh "$@"
