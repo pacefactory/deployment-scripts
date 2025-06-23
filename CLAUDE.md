@@ -42,4 +42,4 @@ This repository contains deployment scripts for containerized services using Doc
 
 ## Commands
 - **Build compose file**: `./build.sh` (Linux) or `./scripts/build-mac.sh` (macOS)
-- **Run services**: `docker compose up` (after build)
+- **Run or relaunch services**: `./update.sh`. The update script will ask the user if they want to run the build script too.
