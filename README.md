@@ -34,6 +34,12 @@ SOCIAL_WEB_APP_TAG=release-modatek-milton
 
 ## Start/update procedure
 
+Build on Mac OS:
+
+- Run the containerized build script, `./build-mac.sh`, to make the docker compose file.
+
+Update scripts:
+
 - Run the update script
   - On Mac/Linux systems (or within WSL on Windows), run `./update.sh`
   - On Windows (e.g. Powershell or similar), run `./update.ps1`
