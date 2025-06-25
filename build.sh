@@ -242,5 +242,9 @@ yn_prompt "Save settings" "SAVE_SETTINGS"
 if [[ "$SAVE_SETTINGS" != "n" ]];
 then
     echo " -> Saving settings to '$settingsfile'"
-    save_state SCV2_PROFILES PROJECT_NAME DOCKER_LOGOUT DOCKER_PULL
+    # Only save variables that are defined
+    vars_to_save="SCV2_PROFILES PROJECT_NAME"
+    [[ -n "${DOCKER_LOGOUT:-}" ]] && vars_to_save="$vars_to_save DOCKER_LOGOUT"
+    [[ -n "${DOCKER_PULL:-}" ]] && vars_to_save="$vars_to_save DOCKER_PULL"
+    save_state $vars_to_save
 fi
