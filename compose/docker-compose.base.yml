@@ -16,7 +16,7 @@ x-pf-info:
       default: "latest"
     WEBGUI_FORCE_GHOSTING:
       description: Force ghosting of all cameras
-      default: false
+      default: true
     WEBGUI_UNGHOSTED_CAMERA_LIST:
       description: List of cameras that should not be ghosted. Should be a comma separated list of camera names
       default: ""
