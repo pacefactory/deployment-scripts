@@ -2,6 +2,8 @@ x-pf-info:
   settings:
     PROJECT_PREFIX:
       default: ""
+    APIGATEWAY_TAG:
+      default: latest
     DBSERVER_TAG:
       default: latest
     REALTIME_TAG:
@@ -14,7 +16,7 @@ x-pf-info:
       default: "latest"
     WEBGUI_FORCE_GHOSTING:
       description: Force ghosting of all cameras
-      default: false
+      default: true
     WEBGUI_UNGHOSTED_CAMERA_LIST:
       description: List of cameras that should not be ghosted. Should be a comma separated list of camera names
       default: ""
@@ -30,9 +32,6 @@ x-pf-info:
       default: latest
     HTTP_PORT:
       default: 80
-    DEFAULT_WEBGUI:
-      description: Which version should be loaded by default? values, 'scv2' or 'scv3'
-      default: scv2
 
 services:
   mongo:
@@ -263,7 +262,7 @@ services:
   apigateway:
     container_name: ${PROJECT_PREFIX:-}apigateway
     hostname: ${PROJECT_PREFIX:-}apigateway
-    image: pacefactory/apigateway
+    image: pacefactory/apigateway:${APIGATEWAY_TAG:-latest}
     restart: always
     logging:
       driver: local
@@ -280,7 +279,7 @@ services:
       - "WEBGUI_PORT=80"
       - "AUDITGUI_HOST=${PROJECT_PREFIX:-}auditgui"
       - "AUDITGUI_PORT=80"
-      - "DEFAULT_WEBGUI=${DEFAULT_WEBGUI:-scv2}"
+      - "DEFAULT_WEBGUI=scv3"
       - "SCV2_PROFILE_AUDITPROC=true"
       - "AUDITPROC_HOST=${PROJECT_PREFIX:-}service_audit_processing"
       - "AUDITPROC_PORT=3005"
