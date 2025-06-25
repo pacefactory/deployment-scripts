@@ -2,6 +2,8 @@ x-pf-info:
   settings:
     PROJECT_PREFIX:
       default: ""
+    APIGATEWAY_TAG:
+      default: latest
     DBSERVER_TAG:
       default: latest
     REALTIME_TAG:
@@ -263,7 +265,7 @@ services:
   apigateway:
     container_name: ${PROJECT_PREFIX:-}apigateway
     hostname: ${PROJECT_PREFIX:-}apigateway
-    image: pacefactory/apigateway
+    image: pacefactory/apigateway:${APIGATEWAY_TAG:-latest}
     restart: always
     logging:
       driver: local
