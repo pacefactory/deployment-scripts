@@ -32,9 +32,6 @@ x-pf-info:
       default: latest
     HTTP_PORT:
       default: 80
-    DEFAULT_WEBGUI:
-      description: Which version should be loaded by default? values, 'scv2' or 'scv3'
-      default: scv2
 
 services:
   mongo:
@@ -282,7 +279,7 @@ services:
       - "WEBGUI_PORT=80"
       - "AUDITGUI_HOST=${PROJECT_PREFIX:-}auditgui"
       - "AUDITGUI_PORT=80"
-      - "DEFAULT_WEBGUI=${DEFAULT_WEBGUI:-scv2}"
+      - "DEFAULT_WEBGUI=scv3"
       - "SCV2_PROFILE_AUDITPROC=true"
       - "AUDITPROC_HOST=${PROJECT_PREFIX:-}service_audit_processing"
       - "AUDITPROC_PORT=3005"
