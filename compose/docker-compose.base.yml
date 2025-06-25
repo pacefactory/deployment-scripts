@@ -24,6 +24,10 @@ x-pf-info:
       default: latest
     PROCESSING_TAG:
       default: latest
+    PF_MOSQUITTO_TAG:
+      default: latest
+    DATA_INTERCONNECTOR_TAG:
+      default: latest
     HTTP_PORT:
       default: 80
     DEFAULT_WEBGUI:
@@ -66,6 +70,42 @@ services:
       - internal_network
       - external_network
 
+  pf_mosquitto:
+    container_name: ${PROJECT_PREFIX:-}pf_mosquitto
+    hostname: ${PROJECT_PREFIX:-}pf_mosquitto
+    image: pacefactory/pf_mosquitto:${PF_MOSQUITTO_TAG:-latest}
+    restart: always
+    logging:
+      driver: local
+    volumes:
+      - mosquitto-data:/mosquitto
+    networks:
+      - external_network
+
+  data_interconnector:
+    container_name: ${PROJECT_PREFIX:-}data_interconnector
+    hostname: ${PROJECT_PREFIX:-}data_interconnector
+    image: pacefactory/data_interconnector:${DATA_INTERCONNECTOR_TAG:-latest}
+    restart: always
+    logging:
+      driver: local
+    depends_on:
+      - pf_mosquitto
+      - mongo
+    environment:
+      - "PF_MQTT_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
+      - "PF_MQTT_PORT=1883"
+      - "PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo"
+      - "PF_MONGO_PORT=27017"
+      - "PF_UISERVER_URL=http://${PROJECT_PREFIX:-}auditgui:80"
+      # TEMP: We disable uiserver use until we complete the implementation of downstream microbatch processing
+      - "PF_UISERVER_DISABLED=1"
+    volumes:
+      - data_interconnector-data:/home/scv2/volume
+    networks:
+      - internal_network
+      - external_network
+
   realtime:
     container_name: ${PROJECT_PREFIX:-}realtime
     image: pacefactory/realtime:${REALTIME_TAG:-latest}
@@ -73,12 +113,19 @@ services:
     restart: always
     logging:
       driver: local
+    depends_on:
+      - pf_mosquitto
+      - data_interconnector
     stdin_open: true
     tty: true
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+      - "MQTT_BROKER_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
+      - "MQTT_BROKER_PORT=1883"
+      - "DBSERVER_DOCKER_VOLUME_DATA_PATH=/home/scv2/dbserver_volume"
     volumes:
       - "realtime-data:/home/scv2/locations"
+      - "dbserver-data:/home/scv2/dbserver_volume"
     networks:
       - external_network
 
@@ -199,15 +246,17 @@ services:
       - dbserver
       - auditgui
       - service_dtreeserver
+      - pf_mosquitto
     environment:
-      - "PF_DBSERVER_URL=http://${PROJECT_PREFIX:-}dbserver:${DBSERVER_PORT:-8050}"
+      - "PF_DBSERVER_URL=http://${PROJECT_PREFIX:-}dbserver:8050"
       - "PF_UISERVER_URL=http://${PROJECT_PREFIX:-}auditgui:80"
-      - "PF_DTREE_CLASSIFIER_URL=http://${PROJECT_PREFIX:-}service_dtreeserver:${DTREE_PORT:-7272}"
+      - "PF_DTREE_CLASSIFIER_URL=http://${PROJECT_PREFIX:-}service_dtreeserver:7272"
       - "PF_HTTP_SERVER_PORT=3005"
       - "PF_DEFAULT_REPORT_RANGE_HOURS=${PF_DEFAULT_REPORT_RANGE_HOURS:-168}"
       - "PF_PROCESS_BLOCK_DURATION_MINUTES=${PF_PROCESS_BLOCK_DURATION_MINUTES:-15}"
       - "PF_PROCESS_BLOCK_PREVIOUS_MINUTES=${PF_PROCESS_BLOCK_PREVIOUS_MINUTES:-5}"
       - "PF_RUN_PERIOD_MINUTES=${PF_RUN_PERIOD_MINUTES:-7.5}"
+      - "PF_MQTT_URL=http://${PROJECT_PREFIX:-}pf_mosquitto:1883"
     networks:
       - external_network
 
@@ -235,6 +284,10 @@ services:
       - "SCV2_PROFILE_AUDITPROC=true"
       - "AUDITPROC_HOST=${PROJECT_PREFIX:-}service_audit_processing"
       - "AUDITPROC_PORT=3005"
+      - "SCV2_PROFILE_PF_MOSQUITTO=true"
+      - "PF_MOSQUITTO_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
+      - "PF_MOSQUITTO_PORT=1883"
+      - "PF_MOSQUITTO_WEBSOCKETS_PORT=7575"
     depends_on:
       - dbserver
       - service_dtreeserver
@@ -242,6 +295,7 @@ services:
       - auditgui
       - webgui
       - service_audit_processing
+      - pf_mosquitto
     ports:
       - "${HTTP_PORT:-80}:80"
     networks:
@@ -254,6 +308,8 @@ volumes:
   service_dtreeserver-data:
   webgui-data:
   empty-webgui-data:
+  mosquitto-data:
+  data_interconnector-data:
 
 networks:
   internal_network:
