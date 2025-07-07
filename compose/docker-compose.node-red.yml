@@ -7,6 +7,8 @@ x-pf-info:
       default: 4.0.5-22
     NODERED_PORT:
       default: 1880
+    NODERED_SITE_NAME:
+      default: site-name
 
 services:
   nodered:
@@ -22,6 +24,8 @@ services:
       - "${NODERED_PORT:-1880}:1880"
     networks:
       - external_network
+    environment:
+      - SITE_NAME=${NODERED_SITE_NAME:-site-name}
 
   apigateway:
     depends_on:
