@@ -1,0 +1,22 @@
+x-pf-info:
+  name: HTTPS (manual, no certbot)
+  prompt: Enable HTTPS (via direct SSL)
+  description: Use existing HTTPS certificate. No provisioning via certbot.
+    You MUST have already updated ./credentials/ssl/live/${SERVER_NAME}/fullchain.pem and
+    ./credentials/ssl/live/${SERVER_NAME}/privkey.pem with certificate and key.
+  settings:
+    SERVER_NAME:
+      description: Final domain name will be SERVER_NAME
+      default: ""
+    HTTPS_PORT:
+      default: 443
+
+services:
+  apigateway:
+    ports:
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ../credentials/ssl:/etc/nginx/ssl/:ro
+    environment:
+      - "SCV2_PROFILE_SSL=true"
+      - "SERVER_NAME=${SERVER_NAME}"
