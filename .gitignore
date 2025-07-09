@@ -6,3 +6,5 @@ install/
 docker-compose.custom.yml
 docker-compose.yml
 credentials/*/credentials.ini
+credentials/*/fullchain.pem
+credentials/*/privkey.pem
