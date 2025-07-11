@@ -185,6 +185,16 @@ Profiles are used when running any `docker compose` command. To enable one or mo
 docker compose --profile <profile_name> <command>
 ```
 
+## Backup realtime, auditgui and rdb configs
+
+To easily backup configs from realtime, auditgui and rdb containers, you can run
+
+```bash
+./scripts/backup/backup_auditgui_realtime_rdb.sh
+```
+
+This will save backup tar files of each container's volumes in `~/scv2/backups`. The realtime backup only includes each camera's `/config` and `/resources` folder (excludes `/resources/backgrounds`)
+
 ## Linux (Ubuntu) Installation Notes
 
 ### Run `docker ...` without sudo (Non-root user access)
