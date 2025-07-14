@@ -122,7 +122,7 @@ services:
       - "REALTIME_APIGATEWAY=true"
       - "MQTT_BROKER_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
       - "MQTT_BROKER_PORT=1883"
-      - "DBSERVER_DOCKER_VOLUME_DATA_PATH=/home/scv2/dbserver_volume"
+      - "DBSERVER_DOCKER_VOLUME_DATA_PATH=/home/scv2/dbserver_volume/data"
     volumes:
       - "realtime-data:/home/scv2/locations"
       - "dbserver-data:/home/scv2/dbserver_volume"
