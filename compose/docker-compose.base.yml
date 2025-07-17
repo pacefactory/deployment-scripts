@@ -122,9 +122,10 @@ services:
     tty: true
     environment:
       - "PF_APIGATEWAY=true"
-      - "PF_DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
-      - "PF_MQTT_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
-      - "PF_UISERVER_HOST=${PROJECT_PREFIX:-}auditgui"
+      - "PF_DBSERVER_URL=http://${PROJECT_PREFIX:-}dbserver:8050"
+      - "PF_UISERVER_URL=http://${PROJECT_PREFIX:-}auditgui:80"
+      - "PF_DTREE_CLASSIFIER_URL=http://${PROJECT_PREFIX:-}service_dtreeserver:7272"
+      - "PF_MQTT_URL=http://${PROJECT_PREFIX:-}pf_mosquitto:1883"
     networks:
       - external_network
 
