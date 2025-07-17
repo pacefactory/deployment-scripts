@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Check the operating system
+if [[ "$(uname)" == "Darwin" ]]; then
+  # If it's macOS, execute the mac-specific script
+  echo "macOS detected. Running build-mac.sh..."
+  ./scripts/build-mac.sh
+  # Exit this script to prevent it from running further
+  exit $?
+fi
+
 # Requirements
 docker compose version 2>/dev/null || { printf >&2 "'docker compose' required, but not found.\nInstall via: https://docs.docker.com/compose/install/\nAborting.\n"; exit 1; }
 
