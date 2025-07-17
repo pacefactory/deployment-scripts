@@ -209,12 +209,21 @@ then
     if [[ "${env_diff}" != "" ]];
     then
       printf >&2 "New settings:\n${env_diff}\n"
-      read -r -p "Continue and write settings to '.env'? (y/[n])"
-      if [[ "${REPLY}" != "y" ]];
-      then
-        printf >&2 "Aborting."
-        exit 2
-      fi
+      while true; do
+        read -r -p "Continue and write settings to '.env'? (y/n): "
+        case "${REPLY,,}" in
+          y|yes)
+            break
+            ;;
+          n|no)
+            printf >&2 "Aborting."
+            exit 2
+            ;;
+          *)
+            echo "Please enter 'y' or 'n'."
+            ;;
+        esac
+      done
     fi
     
     mv -f .env .env.backup
@@ -246,9 +255,9 @@ save_state () {
   typeset -p "$@" >"$settingsfile"
 }
 
-yn_prompt "Save settings" "SAVE_SETTINGS"
+yn_prompt_strict "Save settings" "SAVE_SETTINGS"
 
-if [[ "$SAVE_SETTINGS" != "n" ]];
+if [[ "$SAVE_SETTINGS" == "true" ]];
 then
     echo " -> Saving settings to '$settingsfile'"
     # Only save variables that are defined
