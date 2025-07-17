@@ -30,6 +30,8 @@ x-pf-info:
       default: latest
     DATA_INTERCONNECTOR_TAG:
       default: latest
+    BATCH_RUNNER_TAG:
+      default: latest
     HTTP_PORT:
       default: 80
 
@@ -103,6 +105,27 @@ services:
       - data_interconnector-data:/home/scv2/volume
     networks:
       - internal_network
+      - external_network
+
+  batch_runner:
+    container_name: ${PROJECT_PREFIX:-}batch_runner
+    image: pacefactory/batch_runner:${BATCH_RUNNER_TAG:-latest}
+    hostname: ${PROJECT_PREFIX:-}batch_runner
+    restart: always
+    logging:
+      driver: local
+    depends_on:
+      - pf_mosquitto
+      - dbserver
+      - auditgui
+    stdin_open: true
+    tty: true
+    environment:
+      - "PF_APIGATEWAY=true"
+      - "PF_DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+      - "PF_MQTT_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
+      - "PF_UISERVER_HOST=${PROJECT_PREFIX:-}auditgui"
+    networks:
       - external_network
 
   realtime:
