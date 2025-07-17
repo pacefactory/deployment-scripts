@@ -286,7 +286,6 @@ services:
       - "AUDITPROC_PORT=3005"
       - "SCV2_PROFILE_PF_MOSQUITTO=true"
       - "PF_MOSQUITTO_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
-      - "PF_MOSQUITTO_PORT=1883"
       - "PF_MOSQUITTO_WEBSOCKETS_PORT=7575"
     depends_on:
       - dbserver
