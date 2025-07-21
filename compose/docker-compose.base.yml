@@ -121,6 +121,7 @@ services:
     stdin_open: true
     tty: true
     environment:
+      - "PF_HTTP_SERVER_PORT=3006"
       - "PF_APIGATEWAY=true"
       - "PF_DBSERVER_URL=http://${PROJECT_PREFIX:-}dbserver:8050"
       - "PF_UISERVER_URL=http://${PROJECT_PREFIX:-}auditgui:80"
@@ -312,6 +313,8 @@ services:
       - "PF_MOSQUITTO_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
       - "PF_MOSQUITTO_PORT=1883"
       - "PF_MOSQUITTO_WEBSOCKETS_PORT=7575"
+      - "BATCH_RUNNER_HOST=${PROJECT_PREFIX:-}batch_runner"
+      - "BATCH_RUNNER_PORT=3006"
     depends_on:
       - dbserver
       - service_dtreeserver
@@ -320,6 +323,7 @@ services:
       - webgui
       - service_audit_processing
       - pf_mosquitto
+      - batch_runner
     ports:
       - "${HTTP_PORT:-80}:80"
     networks:
