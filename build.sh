@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Check the operating system
+if [[ "$(uname)" == "Darwin" ]]; then
+  # If it's macOS, execute the mac-specific script
+  echo "macOS detected. Running build-mac.sh..."
+  ./scripts/build-mac.sh
+  # Exit this script to prevent it from running further
+  exit $?
+fi
+
 # Requirements
 docker compose version 2>/dev/null || { printf >&2 "'docker compose' required, but not found.\nInstall via: https://docs.docker.com/compose/install/\nAborting.\n"; exit 1; }
 
@@ -200,12 +209,21 @@ then
     if [[ "${env_diff}" != "" ]];
     then
       printf >&2 "New settings:\n${env_diff}\n"
-      read -r -p "Continue and write settings to '.env'? (y/[n])"
-      if [[ "${REPLY}" != "y" ]];
-      then
-        printf >&2 "Aborting."
-        exit 2
-      fi
+      while true; do
+        read -r -p "Continue and write settings to '.env'? (y/n): "
+        case "${REPLY,,}" in
+          y|yes)
+            break
+            ;;
+          n|no)
+            printf >&2 "Aborting."
+            exit 2
+            ;;
+          *)
+            echo "Please enter 'y' or 'n'."
+            ;;
+        esac
+      done
     fi
     
     mv -f .env .env.backup
@@ -237,9 +255,9 @@ save_state () {
   typeset -p "$@" >"$settingsfile"
 }
 
-yn_prompt "Save settings" "SAVE_SETTINGS"
+yn_prompt_strict "Save settings" "SAVE_SETTINGS"
 
-if [[ "$SAVE_SETTINGS" != "n" ]];
+if [[ "$SAVE_SETTINGS" == "true" ]];
 then
     echo " -> Saving settings to '$settingsfile'"
     # Only save variables that are defined

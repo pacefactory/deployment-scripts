@@ -24,3 +24,27 @@ yn_prompt() {
       fi
   fi
 }
+
+yn_prompt_strict() {
+  local prompt_text=$1
+  local var_name=$2
+
+  if [[ -z $QUIET_MODE ]]; then
+    while true; do
+      read -r -p "${prompt_text}? (y/n): " INPUT_VALUE
+      case "${INPUT_VALUE,,}" in
+        y|yes)
+          printf -v "$var_name" "%s" "true"
+          break
+          ;;
+        n|no)
+          printf -v "$var_name" "%s" "false"
+          break
+          ;;
+        *)
+          echo "Please enter 'y' or 'n'."
+          ;;
+      esac
+    done
+  fi
+}
