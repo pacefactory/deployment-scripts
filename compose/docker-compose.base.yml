@@ -22,8 +22,6 @@ x-pf-info:
       default: latest
     DTREESERVER_TAG:
       default: latest
-    PROCESSING_TAG:
-      default: latest
     PF_MOSQUITTO_TAG:
       default: latest
     DATA_INTERCONNECTOR_TAG:
