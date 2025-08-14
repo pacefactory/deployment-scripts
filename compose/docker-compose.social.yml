@@ -24,7 +24,6 @@ services:
       - "SOCIAL_BACKEND_URL=/api/video"
       - "SOCIAL_UISERVER_URL=/api/uiserver"
       - "SOCIAL_DBSERVER_URL=/api/dbserver"
-      - "SOCIAL_SCV2_URL=/${DEFAULT_WEBGUI:-scv2}/"
       - "SOCIAL_SCV3_URL=/scv3/"
       - "SOCIAL_GIF_URL=/api/gif"
       - "SOCIAL_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
@@ -46,12 +45,6 @@ services:
       - "social_video_server-data:/home/scv2/volume"
     networks:
       - external_network
-
-  webgui:
-    environment:
-      - "WEBGUI_STATIC_PATH=/scv2/static/"
-      - "WEBGUI_BASE_PATH=/scv2"
-      - "WEBGUI_SOCIAL_WEB_APP_URL=/"
 
   apigateway:
     depends_on:
