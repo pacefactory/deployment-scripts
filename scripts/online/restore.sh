@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "Script outdated. Do not use."
+exit 1
+
 # Requirements
 
 hash pv 2>/dev/null || { printf >&2 "'pv' required, but not found.\nInstall via: sudo apt install pv\nAborting.\n"; exit 1; }

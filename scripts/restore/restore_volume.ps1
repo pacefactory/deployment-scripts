@@ -10,6 +10,9 @@ function Get-FileName($initialDirectory)
     $OpenFileDialog.filename
 }
 
+Write-Output "Script outdated. Do not use."
+exit
+
 Write-Output ""
 Write-Output "This script will restore volumes from an archive backup created by backup_volume.sh"
 Write-Output "Ensure the docker-compose stack is OFFLINE before proceeding"

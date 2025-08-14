@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "Script outdated. Do not use."
+exit 1
+
 # -------------------------------------------------------------------------
 # Get script args
 POSITIONAL=()

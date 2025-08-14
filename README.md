@@ -59,9 +59,3 @@ To easily backup configs from realtime, auditgui and rdb containers, you can run
 ```
 
 This will save backup tar files of each container's volumes in `~/scv2/backups`. The realtime backup only includes each camera's `/config` and `/resources` folder (excludes `/resources/backgrounds`)
-
-# Notes
-
-There are a few oddities in the repo:
-
-1. Container `webgui` is referred to as `safety-gui2-js` on DockerHub (and, by extension, in the image name too)

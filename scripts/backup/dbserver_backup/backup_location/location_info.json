@@ -1,7 +1,0 @@
-{
-  "ctrlserver_port": 8181,
-  "dbserver_port": 8050,
-  "host": "localhost",
-  "ssh_password": null,
-  "ssh_username": null
-}

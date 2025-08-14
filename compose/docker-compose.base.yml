@@ -8,8 +8,6 @@ x-pf-info:
       default: latest
     REALTIME_TAG:
       default: latest
-    WEBGUI_TAG:
-      default: latest
     AUDITGUI_TAG:
       default: latest
     AUDIT_PROCESSING_TAG:
@@ -23,8 +21,6 @@ x-pf-info:
     GIFWRAPPER_TAG:
       default: latest
     DTREESERVER_TAG:
-      default: latest
-    PROCESSING_TAG:
       default: latest
     PF_MOSQUITTO_TAG:
       default: latest
@@ -129,37 +125,6 @@ services:
     networks:
       - external_network
 
-  webgui:
-    container_name: ${PROJECT_PREFIX:-}webgui
-    hostname: ${PROJECT_PREFIX:-}webgui
-    image: pacefactory/safety-gui2-js:${WEBGUI_TAG:-latest}
-    restart: always
-    logging:
-      driver: local
-    depends_on:
-      - dbserver
-      - auditgui
-      - service_gifwrapper
-      - service_dtreeserver
-    environment:
-      - "WEBGUI_APIGATEWAY=true"
-      - "WEBGUI_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
-      - "WEBGUI_UNGHOSTED_CAMERA_LIST=${WEBGUI_UNGHOSTED_CAMERA_LIST:-}"
-      - "WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT=${WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:-false}"
-      - "WEBGUI_OBJ_REQ_BATCH_SIZE=${WEBGUI_OBJ_REQ_BATCH_SIZE:-20}"
-      - "WEBGUI_WORK_QUEUE_INSERTION_MODE=${WEBGUI_WORK_QUEUE_INSERTION_MODE:-depth-first}"
-      - "WEBGUI_OBJECT_METADATA_DOWNSAMPLE_FACTOR=${WEBGUI_OBJECT_METADATA_DOWNSAMPLE_FACTOR:-0.1}"
-      - "WEBGUI_SPLIT_BATCH_MIN_DURATION_MS=${WEBGUI_SPLIT_BATCH_MIN_DURATION_MS:-300000}"
-      - "WEBGUI_SPLIT_BATCH_TARGET_COUNT=${WEBGUI_SPLIT_BATCH_TARGET_COUNT:-5}"
-      - "WEBGUI_STATIC_PATH=/scv2/static/"
-      - "WEBGUI_BASE_PATH=/scv2"
-      - "WEBGUI_SCV3_BASE_PATH=/scv3"
-      - "WEBGUI_SOCIAL_WEB_APP_URL=/"
-    volumes:
-      - "empty-webgui-data:/home/scv2/volume"
-    networks:
-      - external_network
-
   auditgui:
     container_name: ${PROJECT_PREFIX:-}auditgui
     hostname: ${PROJECT_PREFIX:-}auditgui
@@ -183,7 +148,6 @@ services:
       - "WEBGUI_SPLIT_BATCH_TARGET_COUNT=${WEBGUI_SPLIT_BATCH_TARGET_COUNT:-5}"
       - "WEBGUI_STATIC_PATH=/scv3/static/"
       - "WEBGUI_BASE_PATH=/scv3"
-      - "WEBGUI_SCV2_BASE_PATH=/scv2"
       - "WEBGUI_SOCIAL_WEB_APP_URL=/"
     volumes:
       - "webgui-data:/home/scv2/volume"
@@ -215,24 +179,6 @@ services:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
     volumes:
       - "service_dtreeserver-data:/home/scv2/volume"
-    networks:
-      - external_network
-
-  service_processing:
-    container_name: ${PROJECT_PREFIX:-}service_processing
-    image: pacefactory/service-processing:${PROCESSING_TAG:-latest}
-    restart: always
-    logging:
-      driver: local
-    depends_on:
-      - dbserver
-      - auditgui
-      - service_dtreeserver
-    environment:
-      - "DB_HOST=${PROJECT_PREFIX:-}dbserver"
-      - "CLASSIFIER_HOST=${PROJECT_PREFIX:-}service_dtreeserver"
-      - "ML_CLASSIFIER_HOST=${PROJECT_PREFIX:-}service_classifier"
-      - "UISERVER_HOST=${PROJECT_PREFIX:-}auditgui"
     networks:
       - external_network
 
@@ -276,12 +222,8 @@ services:
       - "GIF_PORT=7171"
       - "REALTIME_HOST=${PROJECT_PREFIX:-}realtime"
       - "REALTIME_PORT=8181"
-      - "WEBGUI_HOST=${PROJECT_PREFIX:-}webgui"
-      - "WEBGUI_PORT=80"
       - "AUDITGUI_HOST=${PROJECT_PREFIX:-}auditgui"
       - "AUDITGUI_PORT=80"
-      - "DEFAULT_WEBGUI=scv3"
-      - "SCV2_PROFILE_AUDITPROC=true"
       - "AUDITPROC_HOST=${PROJECT_PREFIX:-}service_audit_processing"
       - "AUDITPROC_PORT=3005"
       - "SCV2_PROFILE_PF_MOSQUITTO=true"
@@ -292,7 +234,6 @@ services:
       - service_dtreeserver
       - service_gifwrapper
       - auditgui
-      - webgui
       - service_audit_processing
       - pf_mosquitto
     ports:
@@ -306,7 +247,6 @@ volumes:
   realtime-data:
   service_dtreeserver-data:
   webgui-data:
-  empty-webgui-data:
   mosquitto-data:
   data_interconnector-data:
 
