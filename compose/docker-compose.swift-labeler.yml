@@ -50,6 +50,12 @@ services:
     environment:
       - "PF_SWIFT_URL=http://${PROJECT_PREFIX:-}swift-labeler:${SWIFT_PORT:-7474}/swift"
 
+  batch_runner:
+    depends_on:
+      - swift-labeler
+    environment:
+      - "PF_SWIFT_URL=http://${PROJECT_PREFIX:-}swift-labeler:${SWIFT_PORT:-7474}/swift"
+
 volumes:
   swift-labeler-data: {}
   swift-labeler-static: {}
