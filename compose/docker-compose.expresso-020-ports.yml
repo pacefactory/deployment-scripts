@@ -17,7 +17,7 @@ services:
       - "PF_ROOT_PATH=/"
 
   expresso_ui:
-    ports:
+    ports:  
       - "${EXPRESSO_UI_PUBLIC_PORT:-5173}:80"
     environment:
       - "PF_APIGATEWAY=false"
