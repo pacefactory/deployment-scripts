@@ -28,6 +28,8 @@ x-pf-info:
       default: latest
     BATCH_RUNNER_TAG:
       default: latest
+    BATCH_DISPATCHER_TAG:
+      default: latest
     HTTP_PORT:
       default: 80
 
@@ -125,6 +127,33 @@ services:
       - "PF_MQTT_URL=http://${PROJECT_PREFIX:-}pf_mosquitto:1883"
     networks:
       - external_network
+
+  batch_dispatcher:
+    container_name: ${PROJECT_PREFIX:-}batch_dispatcher
+    image: pacefactory/batch_dispatcher:${BATCH_DISPATCHER_TAG:-latest}
+    hostname: ${PROJECT_PREFIX:-}batch_dispatcher
+    restart: always
+    logging:
+      driver: local
+    depends_on:
+      - pf_mosquitto
+      - dbserver
+      - batch_runner
+      - auditgui
+    stdin_open: true
+    tty: true
+    environment:
+      - "PF_MQTT_HOST=http://${PROJECT_PREFIX:-}pf_mosquitto"
+      - "PF_MQTT_PORT=1883"
+      - "PF_UISERVER_URL=http://${PROJECT_PREFIX:-}auditgui:80"
+      - "PF_BATCH_RUNNER_URL=http://${PROJECT_PREFIX:-}batch_runner:3006"
+      - "PF_DBSERVER_URL=http://${PROJECT_PREFIX:-}dbserver:8050"
+      - "PF_MIN_BATCH_DURATION_MS=10000"
+      - "PF_MAX_BATCH_DELAY_MS=300000"
+      - "PF_BATCH_DISPATCH_DELAY_MS=2000"
+      - "PF_MAX_BATCH_LOOKBACK_PERIOD_MS=604800000"
+    networks:
+      - external_network    
 
   realtime:
     container_name: ${PROJECT_PREFIX:-}realtime
