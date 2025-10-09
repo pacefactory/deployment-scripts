@@ -63,6 +63,12 @@ services:
       - "AUTOZONE_API_HOST=${PROJECT_PREFIX:-}autozone_api"
       - "AUTOZONE_API_PORT=4545"
 
+  service_audit_processing:
+    depends_on:
+      - autozone_api
+    environment:
+      - "PF_AUTOZONE_URL=http://${PROJECT_PREFIX:-}autozone_api:4545"
+
 networks:
   autozone_network:
     driver: bridge
