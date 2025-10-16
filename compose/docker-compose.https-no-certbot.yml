@@ -4,6 +4,8 @@ x-pf-info:
   description: Use existing HTTPS certificate. No provisioning via certbot.
     You MUST have already updated ./credentials/ssl/live/${SERVER_NAME}/fullchain.pem and
     ./credentials/ssl/live/${SERVER_NAME}/privkey.pem with certificate and key.
+    If privkey.pem is encrypted, the password must be specified in
+    ./credentials/ssl/live/${SERVER_NAME}/privkey.pass on a single line.
   settings:
     SERVER_NAME:
       description: Final domain name will be SERVER_NAME
