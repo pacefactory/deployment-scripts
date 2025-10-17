@@ -60,7 +60,7 @@ services:
   redis:
     container_name: ${PROJECT_PREFIX:-}redis
     hostname: ${PROJECT_PREFIX:-}redis
-    image: redis
+    image: redis:8.2.1-alpine
     restart: always
     command: redis-server --save 60 1 --loglevel warning
     networks:
@@ -93,7 +93,7 @@ services:
   mongo_exp:
     container_name: ${PROJECT_PREFIX}mongo_exp
     hostname: ${PROJECT_PREFIX}mongo_exp
-    image: mongodb/mongodb-community-server:latest
+    image: mongodb/mongodb-community-server:8.2.1-ubi8
     restart: always
     networks: 
       - expresso_network
