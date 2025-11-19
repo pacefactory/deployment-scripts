@@ -27,7 +27,7 @@ services:
       - "PF_APIGATEWAY=true"
       - "PF_ROOT_PATH=/api/expresso"
       - "PF_REDIS_HOST=${PROJECT_PREFIX:-}redis"
-      - PF_MONGO_HOST=${PROJECT_PREFIX}mongo_exp
+      - PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo_exp
     depends_on:
       mongo:
         condition: service_started
@@ -81,7 +81,7 @@ services:
       - expresso_network
     environment:
       - "PF_REDIS_HOST=${PROJECT_PREFIX:-}redis"
-      - PF_MONGO_HOST=${PROJECT_PREFIX}mongo_exp
+      - PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo_exp
     depends_on:
       mongo_exp:
         condition: service_started
@@ -91,8 +91,8 @@ services:
         required: true
   
   mongo_exp:
-    container_name: ${PROJECT_PREFIX}mongo_exp
-    hostname: ${PROJECT_PREFIX}mongo_exp
+    container_name: ${PROJECT_PREFIX:-}mongo_exp
+    hostname: ${PROJECT_PREFIX:-}mongo_exp
     image: mongodb/mongodb-community-server:8.2.1-ubi8
     restart: always
     networks: 
