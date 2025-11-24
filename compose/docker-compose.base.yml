@@ -35,6 +35,11 @@ services:
     hostname: ${PROJECT_PREFIX:-}mongo
     image: mongo:4.2.3-bionic
     restart: always
+    # Increase open file handle limits (https://github.com/pacefactory/deployment-scripts/issues/94)
+    ulimits:
+      nofile:
+        soft: 64000
+        hard: 64000
     logging:
       driver: local
     expose:
