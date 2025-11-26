@@ -5,6 +5,9 @@ x-pf-info:
   settings:
     APE_TAG:
       default: latest
+    PUBLISH_DEBUG_MSGS:
+      description: Should APE publish debug messages over MQTT?
+      default: false
 
 services:
   alert_processing_engine:
@@ -25,6 +28,7 @@ services:
     environment:
       - "PF_MQTT_URL=mqtt://admin:pfadminpw@${PROJECT_PREFIX:-}pf_mosquitto:1883"
       - "PF_APE_CONFIG_DIR=/home/scv2/ape"
+      - "PF_APE_DEBUG_MQTT_MSGS=${PUBLISH_DEBUG_MSGS}"
 
 volumes:
   ape-data:
