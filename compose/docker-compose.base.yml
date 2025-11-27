@@ -199,6 +199,7 @@ services:
       - service_dtreeserver
       - pf_mosquitto
     environment:
+      - "PF_DEBUG=false"
       - "PF_DBSERVER_URL=http://${PROJECT_PREFIX:-}dbserver:8050"
       - "PF_UISERVER_URL=http://${PROJECT_PREFIX:-}auditgui:80"
       - "PF_DTREE_CLASSIFIER_URL=http://${PROJECT_PREFIX:-}service_dtreeserver:7272"
@@ -208,6 +209,8 @@ services:
       - "PF_PROCESS_BLOCK_PREVIOUS_MINUTES=${PF_PROCESS_BLOCK_PREVIOUS_MINUTES:-5}"
       - "PF_RUN_PERIOD_MINUTES=${PF_RUN_PERIOD_MINUTES:-7.5}"
       - "PF_MQTT_URL=http://${PROJECT_PREFIX:-}pf_mosquitto:1883"
+    volumes:
+      - "audit_processing-data:/home/scv2/volume"
     networks:
       - external_network
 
@@ -254,6 +257,7 @@ volumes:
   webgui-data:
   mosquitto-data:
   data_interconnector-data:
+  audit_processing-data:
 
 networks:
   internal_network:
