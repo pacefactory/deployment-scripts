@@ -27,7 +27,7 @@ services:
       - external_network
     environment:
       - "PF_MQTT_URL=mqtt://admin:pfadminpw@${PROJECT_PREFIX:-}pf_mosquitto:1883"
-      - "PF_DBSERVER_URL=${PROJECT_PREFIX:-}dbserver"
+      - "PF_DBSERVER_URL=http://${PROJECT_PREFIX:-}dbserver:8050"
       - "PF_APE_CONFIG_DIR=/home/scv2/ape"
       - "PF_APE_DEBUG_MQTT_MSGS=${PUBLISH_DEBUG_MSGS}"
 
