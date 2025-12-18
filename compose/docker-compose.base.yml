@@ -268,21 +268,21 @@ services:
       - "${HOME}/scv2/videos:/output_videos"
     entrypoint: ["python3", "/home/scv2/record_cli.py"]
 
-stitch_videos:
-  container_name: ${PROJECT_PREFIX:-}stitch_videos
-  image: pacefactory/realtime:${REALTIME_TAG:-latest}
-  restart: "no"
-  user: root
-  profiles:
-    - tools
-  logging:
-    driver: local
-  volumes:
-    # Mount the script
-    - "../stitch_cli.py:/home/scv2/stitch_cli.py"
-    # Mount the video storage
-    - "${HOME}/scv2/videos:/output_videos"
-  entrypoint: ["python3", "/home/scv2/stitch_cli.py"]
+  stitch_videos:
+    container_name: ${PROJECT_PREFIX:-}stitch_videos
+    image: pacefactory/realtime:${REALTIME_TAG:-latest}
+    restart: "no"
+    user: root
+    profiles:
+      - tools
+    logging:
+      driver: local
+    volumes:
+      # Mount the script
+      - "../stitch_cli.py:/home/scv2/stitch_cli.py"
+      # Mount the video storage
+      - "${HOME}/scv2/videos:/output_videos"
+    entrypoint: ["python3", "/home/scv2/stitch_cli.py"]
 
 volumes:
   mongodata:
