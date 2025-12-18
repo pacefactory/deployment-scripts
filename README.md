@@ -48,6 +48,58 @@ Flags
 - Pass `-q` to skip all user prompts.
 - Pass `--pull` to force-pull all latest images referenced in the compose file.
 
+# Tools
+
+## Record & Stitch Video
+
+### **1. Record Video**
+
+Records a raw RTSP stream from a specific camera to disk. This should be run as a **detached** container to avoid blocking your terminal during long recordings.
+
+**Command:**
+
+```bash
+docker compose run -d --rm record_video <camera_id> <duration>
+
+```
+
+**Arguments:**
+
+- `<camera_id>`: The specific camera ID (e.g., `cam_01`) as it is defined in the `realtime` container
+- `<duration>`: Recording length. Accepts seconds (`300`) or shorthand (`10m`, `1h`, `2.5d`).
+
+**Output:**
+
+- Videos are saved to: `~/scv2/videos/<YYYY-MM-DD>/<camera_id>/`
+- Files are automatically made writable by the host user.
+
+---
+
+### **2. Stitch Videos**
+
+Scans a specific date folder, stitches all video segments for every camera into single files, and **deletes the source directories** by default.
+
+**Command:**
+
+```bash
+docker compose run --rm stitch_videos <date_string> [options]
+
+```
+
+**Arguments:**
+
+- `<date_string>`: The date folder to process (e.g., `2025-12-18`). Can be an absolute path to a date folder, if it isn't located at `~/scv2/videos/<YYYY-MM-DD>/`
+- `--keep-source`: (Optional) If passed, the source directories and raw segments will **not** be deleted after stitching.
+
+**Output:**
+
+- Stitched files are saved to: `~/scv2/videos/<YYYY-MM-DD>/<camera_id>-<date>.mp4`
+- Files are automatically made writable by the host user.
+
+## Certbot
+
+TODO: Document me!
+
 # Advanced usage
 
 ## Backup realtime, auditgui and rdb configs
