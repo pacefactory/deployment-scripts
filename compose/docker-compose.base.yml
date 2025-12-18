@@ -273,6 +273,7 @@ services:
     image: pacefactory/realtime:${REALTIME_TAG:-latest}
     restart: "no"
     user: root
+    network_mode: "none"
     profiles:
       - tools
     logging:

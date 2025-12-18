@@ -7,6 +7,38 @@ from pathlib import Path
 INTERNAL_VIDEO_ROOT = Path("/output_videos")
 
 
+def chown_to_parent(target_path):
+    """
+    Changes ownership of the target_path (file or folder) to match
+    the owner of its parent directory.
+    """
+    try:
+        # 1. Get the path to the parent directory
+        path_obj = Path(target_path)
+        parent = path_obj.parent
+
+        # 2. Read the UID/GID of the parent folder (which is the mounted host folder)
+        stat_info = os.stat(parent)
+        parent_uid = stat_info.st_uid
+        parent_gid = stat_info.st_gid
+
+        # 3. Apply that UID/GID to the target
+        if path_obj.is_dir():
+            os.chown(path_obj, parent_uid, parent_gid)
+            for root, dirs, files in os.walk(path_obj):
+                for d in dirs:
+                    os.chown(os.path.join(root, d), parent_uid, parent_gid)
+                for f in files:
+                    os.chown(os.path.join(root, f), parent_uid, parent_gid)
+        else:
+            os.chown(path_obj, parent_uid, parent_gid)
+
+        print(f"Ownership fixed to match parent folder (UID {parent_uid})")
+
+    except Exception as e:
+        print(f"Warning: Could not change file ownership: {e}")
+
+
 def get_target_directory(user_arg):
     """
     Determines the directory to process based on user input.
@@ -90,6 +122,8 @@ def stitch_camera_videos(date_dir):
         try:
             subprocess.run(cmd, check=True)
             print("  [SUCCESS]")
+
+            chown_to_parent(output_path)
         except subprocess.CalledProcessError as e:
             print(f"  [FAILED] FFmpeg error: {e}")
 
