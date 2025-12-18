@@ -255,6 +255,10 @@ services:
     image: pacefactory/realtime:${REALTIME_TAG:-latest}
     # We don't restart always, this is a run-once task
     restart: "no"
+    # Adding profile to not create this container on `docker compose up -d`
+    profiles:
+      - tools
+    # User root so we don't have OS write permission issue
     user: root
     logging:
       driver: local
