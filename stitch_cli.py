@@ -125,7 +125,7 @@ def stitch_camera_videos(date_dir):
             subprocess.run(cmd, check=True)
             print("  [SUCCESS]")
 
-            make_writable_by_all(output_path)
+            make_writable_by_all(date_dir)
         except subprocess.CalledProcessError as e:
             print(f"  [FAILED] FFmpeg error: {e}")
 

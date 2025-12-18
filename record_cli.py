@@ -112,11 +112,12 @@ def run_recording(camera_id, duration_str):
     # 4. Setup Output Directory
     # Schema: ~/scv2/videos/<current_date>/<camera_id>/
     today_str = datetime.date.today().strftime("%Y-%m-%d")
-    output_dir = os.path.join(OUTPUT_ROOT, today_str, camera_id)
-    os.makedirs(output_dir, exist_ok=True)
+    date_output_dir = os.path.join(OUTPUT_ROOT, today_str)
+    cam_output_dir = os.path.join(OUTPUT_ROOT, today_str, camera_id)
+    os.makedirs(cam_output_dir, mode=0o777, exist_ok=True)
 
     file_prefix = f"{camera_id}-%Y-%m-%d_%H-%M-%S.mkv"
-    output_pattern = os.path.join(output_dir, file_prefix)
+    output_pattern = os.path.join(cam_output_dir, file_prefix)
 
     # 5. Build FFmpeg Command
     # Note: We run ffmpeg DIRECTLY here, not via docker run, because
@@ -161,7 +162,7 @@ def run_recording(camera_id, duration_str):
         print("\nRecording Complete.")
 
         # Change permissions of recorded files
-        make_writable_by_all(output_dir)
+        make_writable_by_all(date_output_dir)
     except subprocess.CalledProcessError:
         print("\nFFmpeg encountered an error.")
         sys.exit(1)
