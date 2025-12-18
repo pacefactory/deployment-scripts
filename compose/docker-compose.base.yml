@@ -255,6 +255,7 @@ services:
     image: pacefactory/realtime:${REALTIME_TAG:-latest}
     # We don't restart always, this is a run-once task
     restart: "no"
+    user: root
     logging:
       driver: local
     environment:
