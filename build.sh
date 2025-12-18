@@ -9,6 +9,9 @@ if [[ "$(uname)" == "Darwin" ]]; then
   exit $?
 fi
 
+# This fixes issues on host systems that have Kereberos used as an identity manager. We don't want credentials forwarded to containers.
+unset KRB5CCNAME
+
 # Requirements
 docker compose version 2>/dev/null || { printf >&2 "'docker compose' required, but not found.\nInstall via: https://docs.docker.com/compose/install/\nAborting.\n"; exit 1; }
 
