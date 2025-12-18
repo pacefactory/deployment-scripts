@@ -1,0 +1,41 @@
+x-pf-info:
+  name: Tools profile
+  prompt: Enable the tools profile?
+  description: Tools profile contains useful utilities that can be run on-demand with `docker compose run tool_name ...`
+
+services:
+  record_video:
+    container_name: ${PROJECT_PREFIX:-}record_video
+    image: pacefactory/realtime:${REALTIME_TAG:-latest}
+    restart: "no"
+    # Adding profile to not create this container on `docker compose up -d`
+    profiles:
+      - tools
+    user: root
+    logging:
+      driver: local
+    volumes:
+      # Access to the camera configs
+      - "realtime-data:/home/scv2/locations"
+      # Mount the CLI script
+      - "../record_cli.py:/home/scv2/record_cli.py"
+      # Mount the video storage
+      - "${HOME}/scv2/videos:/output_videos"
+    entrypoint: ["python3", "/home/scv2/record_cli.py"]
+
+  stitch_videos:
+    container_name: ${PROJECT_PREFIX:-}stitch_videos
+    image: pacefactory/realtime:${REALTIME_TAG:-latest}
+    restart: "no"
+    user: root
+    network_mode: "none"
+    profiles:
+      - tools
+    logging:
+      driver: local
+    volumes:
+      # Mount the script
+      - "../stitch_cli.py:/home/scv2/stitch_cli.py"
+      # Mount the video storage
+      - "${HOME}/scv2/videos:/output_videos"
+    entrypoint: ["python3", "/home/scv2/stitch_cli.py"]

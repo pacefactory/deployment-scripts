@@ -26,6 +26,7 @@ SCV2_PROFILES[base]="true"
 SCV2_PROFILES[proc]="true"
 SCV2_PROFILES[social]="true"
 SCV2_PROFILES[audit]="true"
+SCV2_PROFILES[tools]="true"
 
 . "$settingsfile" 2>/dev/null || :
 
