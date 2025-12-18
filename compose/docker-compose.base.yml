@@ -249,6 +249,30 @@ services:
     networks:
       - external_network
 
+  record_video:
+    container_name: ${PROJECT_PREFIX:-}record_video
+    # Use the same image as realtime to ensure python dependencies/paths exist
+    image: pacefactory/realtime:${REALTIME_TAG:-latest}
+    # We don't restart always, this is a run-once task
+    restart: "no"
+    logging:
+      driver: local
+    environment:
+      # Ensure python path includes where your libs are (assuming /app or /home/scv2)
+      - "PYTHONPATH=/home/scv2:/app"
+    volumes:
+      # Access to the camera configs
+      - "realtime-data:/home/scv2/locations"
+      # Mount the CLI script
+      - "./record_cli.py:/home/scv2/record_cli.py"
+      # Mount the output directory (Expanding ~ in compose can be finicky,
+      # using relative path or absolute path is safer. Assuming relative to project root here)
+      - "${HOME}/scv2/videos:/output_videos"
+    # Overwrite entrypoint to run our script
+    entrypoint: ["python3", "/home/scv2/record_cli.py"]
+    networks:
+      - external_network
+
 volumes:
   mongodata:
   dbserver-data:
