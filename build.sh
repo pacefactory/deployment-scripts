@@ -9,6 +9,9 @@ if [[ "$(uname)" == "Darwin" ]]; then
   exit $?
 fi
 
+# This fixes issues on host systems that have Kereberos used as an identity manager. We don't want credentials forwarded to containers.
+unset KRB5CCNAME
+
 # Requirements
 docker compose version 2>/dev/null || { printf >&2 "'docker compose' required, but not found.\nInstall via: https://docs.docker.com/compose/install/\nAborting.\n"; exit 1; }
 
@@ -23,12 +26,14 @@ SCV2_PROFILES[base]="true"
 SCV2_PROFILES[proc]="true"
 SCV2_PROFILES[social]="true"
 SCV2_PROFILES[audit]="true"
+SCV2_PROFILES[tools]="true"
 
 . "$settingsfile" 2>/dev/null || :
 
 SCV2_PROFILES[base]="true"
 SCV2_PROFILES[custom]="true"
 SCV2_PROFILES[noaudit]="false"
+SCV2_PROFILES[tools]="true"
 
 while [[ $# -gt 0 ]]
 do
@@ -145,7 +150,7 @@ do
     profile_prompt=$(runYq '.["x-pf-info"].prompt // ""' $profile_compose_file)
     profile_prompt="${profile_prompt:-Enable $name?}"    
 
-    if [[ -z $QUIET_MODE && "$profile_id" != "custom" && "$profile_id" != "base" ]] ;
+    if [[ -z $QUIET_MODE && "$profile_id" != "custom" && "$profile_id" != "base" && "$profile_id" != "tools" ]] ;
     then
         echo ""
         if [[ "${SCV2_PROFILES[$profile_id]}" == "true" ]];
