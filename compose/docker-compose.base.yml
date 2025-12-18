@@ -279,7 +279,7 @@ stitch_videos:
     driver: local
   volumes:
     # Mount the script
-    - "./stitch_cli.py:/home/scv2/stitch_cli.py"
+    - "../stitch_cli.py:/home/scv2/stitch_cli.py"
     # Mount the video storage
     - "${HOME}/scv2/videos:/output_videos"
   entrypoint: ["python3", "/home/scv2/stitch_cli.py"]
