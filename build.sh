@@ -33,6 +33,7 @@ SCV2_PROFILES[tools]="true"
 SCV2_PROFILES[base]="true"
 SCV2_PROFILES[custom]="true"
 SCV2_PROFILES[noaudit]="false"
+SCV2_PROFILES[tools]="true"
 
 while [[ $# -gt 0 ]]
 do
@@ -149,7 +150,7 @@ do
     profile_prompt=$(runYq '.["x-pf-info"].prompt // ""' $profile_compose_file)
     profile_prompt="${profile_prompt:-Enable $name?}"    
 
-    if [[ -z $QUIET_MODE && "$profile_id" != "custom" && "$profile_id" != "base" ]] ;
+    if [[ -z $QUIET_MODE && "$profile_id" != "custom" && "$profile_id" != "base" && "$profile_id" != "tools" ]] ;
     then
         echo ""
         if [[ "${SCV2_PROFILES[$profile_id]}" == "true" ]];
