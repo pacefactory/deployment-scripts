@@ -22,6 +22,8 @@ services:
       # Mount the video storage
       - "${HOME}/scv2/videos:/output_videos"
     entrypoint: ["python3", "/home/scv2/record_cli.py"]
+    healthcheck:
+      disable: true
 
   stitch_videos:
     container_name: ${PROJECT_PREFIX:-}stitch_videos
@@ -39,3 +41,5 @@ services:
       # Mount the video storage
       - "${HOME}/scv2/videos:/output_videos"
     entrypoint: ["python3", "/home/scv2/stitch_cli.py"]
+    healthcheck:
+      disable: true
