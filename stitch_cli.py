@@ -7,36 +7,38 @@ from pathlib import Path
 INTERNAL_VIDEO_ROOT = Path("/output_videos")
 
 
-def chown_to_parent(target_path):
+def make_writable_by_all(target_path):
     """
-    Changes ownership of the target_path (file or folder) to match
-    the owner of its parent directory.
+    Sets permissions to 777 for directories and 666 for files.
+    This ensures the host user can delete/edit them, even if owned by root.
     """
     try:
-        # 1. Get the path to the parent directory
         path_obj = Path(target_path)
-        parent = path_obj.parent
 
-        # 2. Read the UID/GID of the parent folder (which is the mounted host folder)
-        stat_info = os.stat(parent)
-        parent_uid = stat_info.st_uid
-        parent_gid = stat_info.st_gid
+        # Helper to set permissions safely
+        def set_perms(p):
+            if p.is_dir():
+                # 0o777 = rwxrwxrwx (Execute is required to open a folder)
+                os.chmod(p, 0o777)
+            else:
+                # 0o666 = rw-rw-rw- (Read/Write for everyone)
+                os.chmod(p, 0o666)
 
-        # 3. Apply that UID/GID to the target
+        # 1. Apply to the target itself
+        set_perms(path_obj)
+
+        # 2. If it's a directory, apply recursively to everything inside
         if path_obj.is_dir():
-            os.chown(path_obj, parent_uid, parent_gid)
             for root, dirs, files in os.walk(path_obj):
                 for d in dirs:
-                    os.chown(os.path.join(root, d), parent_uid, parent_gid)
+                    set_perms(Path(root) / d)
                 for f in files:
-                    os.chown(os.path.join(root, f), parent_uid, parent_gid)
-        else:
-            os.chown(path_obj, parent_uid, parent_gid)
+                    set_perms(Path(root) / f)
 
-        print(f"Ownership fixed to match parent folder (UID {parent_uid})")
+        print(f"Permissions set to world-writable for: {target_path}")
 
     except Exception as e:
-        print(f"Warning: Could not change file ownership: {e}")
+        print(f"Warning: Could not change permissions: {e}")
 
 
 def get_target_directory(user_arg):
@@ -123,7 +125,7 @@ def stitch_camera_videos(date_dir):
             subprocess.run(cmd, check=True)
             print("  [SUCCESS]")
 
-            chown_to_parent(output_path)
+            make_writable_by_all(output_path)
         except subprocess.CalledProcessError as e:
             print(f"  [FAILED] FFmpeg error: {e}")
 
