@@ -21,6 +21,10 @@ case $key in
     DEBUG=true
     shift # past argument
     ;;
+    -e|--edit|--quick-edit)
+    QUICK_EDIT=true
+    shift # past argument
+    ;;
     --logout)
     DOCKER_LOGOUT="$2"
     shift # past argument
@@ -30,7 +34,7 @@ case $key in
     DOCKER_PULL="$2"
     shift # past argument
     shift # past value
-    ;;    
+    ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -50,6 +54,31 @@ echo ""
 fi
 
 source scripts/common/projectName.sh
+
+# Quick edit mode - launch interactive tag editor
+if [[ "$QUICK_EDIT" == "true" ]];
+then
+  if [ ! -e .env ];
+  then
+    echo "No .env file found. Please run ./build.sh first."
+    exit 1
+  fi
+
+  ./scripts/edit-tags.sh
+
+  # After editing, ask if they want to continue with update
+  if [[ -z $QUIET_MODE ]];
+  then
+    echo ""
+    yn_prompt "Continue with deployment update" "CONTINUE_UPDATE"
+
+    if [[ "$CONTINUE_UPDATE" == "false" ]];
+    then
+      echo "Exiting without updating deployment."
+      exit 0
+    fi
+  fi
+fi
 
 # Check if docker-compose.yml exists
 RECONFIGURE=false
