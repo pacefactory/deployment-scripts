@@ -82,6 +82,7 @@ services:
     environment:
       - "PF_REDIS_HOST=${PROJECT_PREFIX:-}redis"
       - PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo_exp
+      - PF_TRACK_FRAME_BATCH_LIMIT=10 # Max number of frames that can be tracked in a single run.
     depends_on:
       mongo_exp:
         condition: service_started
