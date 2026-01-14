@@ -31,5 +31,29 @@ services:
       - "PF_APE_CONFIG_DIR=/home/scv2/ape"
       - "PF_APE_DEBUG_MQTT_MSGS=${PUBLISH_DEBUG_MSGS}"
 
+  ape_timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: ${PROJECT_PREFIX:-}ape_timescaledb
+    hostname: ${PROJECT_PREFIX:-}ape_timescaledb
+    restart: unless-stopped
+    logging:
+      driver: local
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_PASSWORD=pfadminpw
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=tsdb
+    volumes:
+      - ape_timescaledb-data:/var/lib/postgresql/data
+    networks:
+      - external_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 volumes:
   ape-data:
+  ape_timescaledb-data:
