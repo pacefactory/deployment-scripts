@@ -1,21 +1,9 @@
 #!/bin/bash
 
 # Interactive TUI for editing container tags in .env file
-# Provides ranger-like navigation for quick tag editing
+# Uses whiptail for proper terminal UI handling
 
 ENV_FILE=".env"
-TEMP_ENV_FILE=".env.temp"
-
-# Color codes
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-DIM='\033[2m'
-NC='\033[0m' # No Color
-REVERSE='\033[7m'
 
 # Check if .env file exists
 if [[ ! -f "$ENV_FILE" ]]; then
@@ -23,7 +11,14 @@ if [[ ! -f "$ENV_FILE" ]]; then
     exit 1
 fi
 
-# Function to read .env file into associative array
+# Check if whiptail is available
+if ! command -v whiptail &> /dev/null; then
+    echo "Error: whiptail is not installed."
+    echo "Install it with: brew install newt (macOS) or apt install whiptail (Linux)"
+    exit 1
+fi
+
+# Function to read .env file into arrays
 declare -A ENV_VARS
 declare -a ENV_KEYS
 
@@ -39,167 +34,68 @@ load_env_file() {
 
 # Function to save env file
 save_env_file() {
-    > "$TEMP_ENV_FILE"
+    local temp_file=".env.temp"
+    > "$temp_file"
     for key in "${ENV_KEYS[@]}"; do
-        echo "${key}=${ENV_VARS[$key]}" >> "$TEMP_ENV_FILE"
+        echo "${key}=${ENV_VARS[$key]}" >> "$temp_file"
     done
-    mv "$TEMP_ENV_FILE" "$ENV_FILE"
+    mv "$temp_file" "$ENV_FILE"
 }
 
-# Function to draw the interface
-draw_interface() {
-    local selected_idx=$1
-    local edit_mode=$2
-    local total=${#ENV_KEYS[@]}
-
-    clear
-    echo -e "${BOLD}${CYAN}┌─────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${BOLD}${CYAN}│${NC} ${BOLD}Container Tag Editor${NC}                                    ${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}├─────────────────────────────────────────────────────────────┤${NC}"
-    echo -e "${BOLD}${CYAN}│${NC} ${DIM}Navigate: ↑/↓ or j/k  Edit: Enter  Save: s  Quit: q${NC}   ${CYAN}│${NC}"
-    echo -e "${BOLD}${CYAN}└─────────────────────────────────────────────────────────────┘${NC}"
-    echo ""
-
-    # Calculate visible window
-    local window_size=15
-    local start_idx=0
-    local end_idx=$total
-
-    if [[ $total -gt $window_size ]]; then
-        start_idx=$((selected_idx - window_size / 2))
-        [[ $start_idx -lt 0 ]] && start_idx=0
-        end_idx=$((start_idx + window_size))
-        [[ $end_idx -gt $total ]] && end_idx=$total && start_idx=$((end_idx - window_size))
-        [[ $start_idx -lt 0 ]] && start_idx=0
-    fi
-
-    # Display items
-    for i in $(seq $start_idx $((end_idx - 1))); do
-        local key="${ENV_KEYS[$i]}"
-        local value="${ENV_VARS[$key]}"
-
-        if [[ $i -eq $selected_idx ]]; then
-            if [[ "$edit_mode" == "true" ]]; then
-                echo -e "${REVERSE}${GREEN}►${NC} ${REVERSE}${BOLD}${key}${NC}${REVERSE} = ${value} ${NC} ${YELLOW}[EDITING]${NC}"
-            else
-                echo -e "${REVERSE}${GREEN}►${NC} ${REVERSE}${BOLD}${key}${NC}${REVERSE} = ${value} ${NC}"
-            fi
-        else
-            echo -e "  ${BOLD}${key}${NC} ${DIM}=${NC} ${value}"
-        fi
-    done
-
-    # Show scroll indicator if needed
-    if [[ $total -gt $window_size ]]; then
-        echo ""
-        echo -e "${DIM}[Showing $((start_idx + 1))-${end_idx} of ${total}]${NC}"
-    fi
-
-    echo ""
-    if [[ "$edit_mode" == "true" ]]; then
-        echo -e "${YELLOW}Enter new value (or press Esc to cancel):${NC}"
-    fi
-}
-
-# Function to edit a value
-edit_value() {
-    local key="${ENV_KEYS[$1]}"
-    local current_value="${ENV_VARS[$key]}"
-
-    # Draw interface in edit mode
-    draw_interface $1 "true"
-
-    # Read input with current value pre-filled
-    read -e -i "$current_value" -p "> " new_value
-
-    # Update if changed
-    if [[ -n "$new_value" && "$new_value" != "$current_value" ]]; then
-        ENV_VARS["$key"]="$new_value"
-        echo -e "${GREEN}✓ Updated ${key} to ${new_value}${NC}"
-        sleep 0.5
-        return 0
-    fi
-
-    return 1
-}
-
-# Main interactive loop
+# Main loop
 main() {
     load_env_file
-
-    local selected_idx=0
-    local total=${#ENV_KEYS[@]}
     local modified=false
 
-    # Hide cursor
-    tput civis
-
-    # Trap to restore cursor on exit
-    trap 'tput cnorm; echo' EXIT
-
     while true; do
-        draw_interface $selected_idx "false"
+        # Build menu items
+        local menu_items=()
+        for key in "${ENV_KEYS[@]}"; do
+            menu_items+=("$key" "${ENV_VARS[$key]}")
+        done
 
-        # Read single key
-        read -rsn1 input
+        # Calculate height based on number of items
+        local menu_height=${#ENV_KEYS[@]}
+        [[ $menu_height -gt 15 ]] && menu_height=15
+        local total_height=$((menu_height + 8))
 
-        case "$input" in
-            $'\x1b')  # ESC or arrow key
-                read -rsn2 -t 0.1 input
-                case "$input" in
-                    '[A'|'[D')  # Up arrow
-                        ((selected_idx--))
-                        [[ $selected_idx -lt 0 ]] && selected_idx=$((total - 1))
-                        ;;
-                    '[B'|'[C')  # Down arrow
-                        ((selected_idx++))
-                        [[ $selected_idx -ge $total ]] && selected_idx=0
-                        ;;
-                esac
-                ;;
-            'k'|'K')  # Up (vim-style)
-                ((selected_idx--))
-                [[ $selected_idx -lt 0 ]] && selected_idx=$((total - 1))
-                ;;
-            'j'|'J')  # Down (vim-style)
-                ((selected_idx++))
-                [[ $selected_idx -ge $total ]] && selected_idx=0
-                ;;
-            '')  # Enter key
-                if edit_value $selected_idx; then
-                    modified=true
-                fi
-                ;;
-            's'|'S')  # Save
-                if [[ "$modified" == "true" ]]; then
+        # Show selection menu
+        local selected
+        selected=$(whiptail --title "Container Tag Editor" \
+            --menu "Select a variable to edit (ESC to exit):" \
+            $total_height 70 $menu_height \
+            "${menu_items[@]}" \
+            3>&1 1>&2 2>&3)
+
+        local exit_status=$?
+
+        # Check if user pressed Cancel/ESC
+        if [[ $exit_status -ne 0 ]]; then
+            if [[ "$modified" == "true" ]]; then
+                if whiptail --title "Unsaved Changes" \
+                    --yesno "You have unsaved changes. Save before exiting?" 8 50; then
                     save_env_file
-                    echo -e "${GREEN}✓ Saved changes to $ENV_FILE${NC}"
-                    sleep 1
-                    modified=false
-                else
-                    echo -e "${YELLOW}No changes to save${NC}"
-                    sleep 1
+                    whiptail --title "Saved" --msgbox "Changes saved to $ENV_FILE" 8 40
                 fi
-                ;;
-            'q'|'Q')  # Quit
-                if [[ "$modified" == "true" ]]; then
-                    draw_interface $selected_idx "false"
-                    echo -e "${YELLOW}You have unsaved changes!${NC}"
-                    read -p "Save before quitting? (y/n): " -n 1 -r
-                    echo
-                    if [[ $REPLY =~ ^[Yy]$ ]]; then
-                        save_env_file
-                        echo -e "${GREEN}✓ Saved changes${NC}"
-                    fi
-                fi
-                break
-                ;;
-        esac
-    done
+            fi
+            break
+        fi
 
-    # Restore cursor
-    tput cnorm
-    echo
+        # Get current value and prompt for new value
+        local current_value="${ENV_VARS[$selected]}"
+        local new_value
+        new_value=$(whiptail --title "Edit: $selected" \
+            --inputbox "Enter new value:" 10 60 "$current_value" \
+            3>&1 1>&2 2>&3)
+
+        local input_status=$?
+
+        # Update if changed and not cancelled
+        if [[ $input_status -eq 0 && "$new_value" != "$current_value" ]]; then
+            ENV_VARS["$selected"]="$new_value"
+            modified=true
+        fi
+    done
 }
 
 # Run main function

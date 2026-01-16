@@ -2,10 +2,8 @@
 
 # Check the operating system
 if [[ "$(uname)" == "Darwin" ]]; then
-  # If it's macOS, execute the mac-specific script
   echo "macOS detected. Running build-mac.sh..."
-  ./scripts/build-mac.sh
-  # Exit this script to prevent it from running further
+  ./scripts/build-mac.sh "$@"
   exit $?
 fi
 
@@ -15,7 +13,19 @@ unset KRB5CCNAME
 # Requirements
 docker compose version 2>/dev/null || { printf >&2 "'docker compose' required, but not found.\nInstall via: https://docs.docker.com/compose/install/\nAborting.\n"; exit 1; }
 
-source scripts/common/runYq.sh
+# Check if whiptail is available
+if ! command -v whiptail &> /dev/null; then
+    echo "Error: whiptail is not installed."
+    echo "Install it with: apt install whiptail (Linux)"
+    exit 1
+fi
+
+# Check if yq is available
+if ! command -v yq &> /dev/null; then
+    echo "Error: yq is not installed."
+    echo "Install it with: snap install yq (Linux)"
+    exit 1
+fi
 
 declare -A SCV2_PROFILES=()
 POSITIONAL=()
@@ -56,7 +66,7 @@ case $key in
     --*)
     profile_id="${key#--}"
     profile_compose_file="compose/docker-compose.${profile_id}.yml"
-    if [ -e $profile_compose_file ]; 
+    if [ -e $profile_compose_file ];
     then
         SCV2_PROFILES[$profile_id]=true
     else
@@ -97,43 +107,106 @@ fi
 source scripts/common/projectName.sh
 
 rm -f .env.new
+
+# Collect all settings from enabled profiles for whiptail editing
+declare -A ALL_SETTINGS
+declare -A ALL_DEFAULTS
+declare -A ALL_DESCRIPTIONS
+declare -a SETTINGS_ORDER
+
 load_pf_compose_settings() {
     local compose_file=$1
 
-    readarray settings < <(runYq '.["x-pf-info"].settings // {} | keys | .[]' $compose_file)
+    # Get all setting keys using yq
+    local settings_keys=$(yq '.["x-pf-info"].settings // {} | keys | .[]' "$compose_file" 2>/dev/null)
 
-    for setting in ${settings[@]}
-    do
-        default=$(runYq '.["x-pf-info"].settings[strenv(setting)].default' $compose_file "setting=${setting}")
-        description=$(runYq '.["x-pf-info"].settings[strenv(setting)].description // ""' $compose_file "setting=${setting}")
+    for setting in $settings_keys; do
+        local default=$(yq ".\"x-pf-info\".settings.\"${setting}\".default // \"\"" "$compose_file" 2>/dev/null)
+        local description=$(yq ".\"x-pf-info\".settings.\"${setting}\".description // \"\"" "$compose_file" 2>/dev/null)
 
-        if [[ -z $QUIET_MODE ]];
-        then 
-            read -r -p "${setting} ${description} [${!setting:-$default}]: "
-            if [[ ! -z "$REPLY" ]];
-            then
-                printf -v "${setting}" "%s" "${REPLY}"
-            fi
-        fi
+        # Use existing value if set, otherwise use default
+        local current_value="${!setting:-$default}"
 
-        if [[ ! -z "${!setting}" ]];
-        then    
-            echo "${setting}=${!setting}" >> .env.new
-        fi
+        ALL_SETTINGS["$setting"]="$current_value"
+        ALL_DEFAULTS["$setting"]="$default"
+        ALL_DESCRIPTIONS["$setting"]="$description"
+        SETTINGS_ORDER+=("$setting")
     done
 }
 
 override_str=""
 profile_str=""
 
+# Build list of available profiles for whiptail checklist
+declare -a PROFILE_LIST
+declare -A PROFILE_NAMES
+
+for profile_compose_file in compose/docker-compose.*.yml
+do
+    profile_id="${profile_compose_file#compose/docker-compose.}"
+    profile_id=${profile_id%.yml}
+
+    # Skip special profiles
+    if [[ "$profile_id" == "noaudit" || "$profile_id" == "custom" || "$profile_id" == "base" || "$profile_id" == "tools" ]];
+    then
+        continue
+    fi
+
+    name=$(yq '.["x-pf-info"].name // ""' "$profile_compose_file" 2>/dev/null)
+    name="${name:-$profile_id}"
+
+    PROFILE_LIST+=("$profile_id")
+    PROFILE_NAMES["$profile_id"]="$name"
+done
+
+# Show profile selection with whiptail checklist
 if [[ -z $QUIET_MODE ]];
-then 
-  echo "You will be prompted to enable optional services."
-  echo "For each prompt, you may enter 'y', 'n', or '?'"
-  echo "corresponding to yes, no, and help, respectively."
-  echo "If you are unsure of the importance of given service, select the '?' option."
+then
+    # Build checklist items
+    checklist_items=()
+    for profile_id in "${PROFILE_LIST[@]}"; do
+        name="${PROFILE_NAMES[$profile_id]}"
+        if [[ "${SCV2_PROFILES[$profile_id]}" == "true" ]]; then
+            checklist_items+=("$profile_id" "$name" "ON")
+        else
+            checklist_items+=("$profile_id" "$name" "OFF")
+        fi
+    done
+
+    # Calculate height
+    menu_height=${#PROFILE_LIST[@]}
+    [[ $menu_height -gt 15 ]] && menu_height=15
+    total_height=$((menu_height + 10))
+
+    # Show checklist
+    selected=$(whiptail --title "Profile Selection" \
+        --checklist "Select profiles to enable:\n(Space to toggle, Enter to confirm)" \
+        $total_height 70 $menu_height \
+        "${checklist_items[@]}" \
+        3>&1 1>&2 2>&3)
+
+    exit_status=$?
+
+    if [[ $exit_status -ne 0 ]]; then
+        echo "Configuration cancelled."
+        exit 0
+    fi
+
+    # Reset all optional profiles to false
+    for profile_id in "${PROFILE_LIST[@]}"; do
+        SCV2_PROFILES[$profile_id]=false
+    done
+
+    # Enable selected profiles
+    # whiptail returns quoted items like: "item1" "item2"
+    for profile_id in "${PROFILE_LIST[@]}"; do
+        if [[ "$selected" == *"\"$profile_id\""* ]]; then
+            SCV2_PROFILES[$profile_id]=true
+        fi
+    done
 fi
 
+# Process enabled profiles
 for profile_compose_file in compose/docker-compose.*.yml
 do
     profile_id="${profile_compose_file#compose/docker-compose.}"
@@ -142,57 +215,20 @@ do
     if [[ "$profile_id" == "noaudit" ]];
     then
         continue
-    fi    
-
-    name=$(runYq '.["x-pf-info"].name // ""' $profile_compose_file)
-    name="${name:-$profile_id}"
-
-    profile_prompt=$(runYq '.["x-pf-info"].prompt // ""' $profile_compose_file)
-    profile_prompt="${profile_prompt:-Enable $name?}"    
-
-    if [[ -z $QUIET_MODE && "$profile_id" != "custom" && "$profile_id" != "base" && "$profile_id" != "tools" ]] ;
-    then
-        echo ""
-        if [[ "${SCV2_PROFILES[$profile_id]}" == "true" ]];
-        then
-          prompt_options="([y]/n/?)"
-        else
-          prompt_options="(y/[n]/?)"
-        fi
-
-        while read -r -p "$profile_prompt $prompt_options "
-        do
-          case $REPLY in
-              y|yes)
-                SCV2_PROFILES[$profile_id]=true
-                break
-                ;;
-              n|no)
-                SCV2_PROFILES[$profile_id]=false
-                break
-                ;;
-              ?)
-                description=$(runYq '.["x-pf-info"].description // ""' $profile_compose_file)
-                description="${description:-No description found in '$profile_compose_file' at x-pf-info.description}"
-                echo ""
-                echo $description
-                ;;
-              *)
-                # keep existing value
-                break
-                ;;
-          esac        
-        done
     fi
 
+    name=$(yq '.["x-pf-info"].name // ""' "$profile_compose_file" 2>/dev/null)
+    name="${name:-$profile_id}"
+
     if [[ "${SCV2_PROFILES[$profile_id]}" == "true" ]];
-    then    
+    then
         profile_str="$profile_str --profile $profile_id"
         override_str="$override_str -f $profile_compose_file"
         echo " -> Will enable $name"
 
         load_pf_compose_settings $profile_compose_file
-    else
+    elif [[ "$profile_id" != "custom" && "$profile_id" != "base" && "$profile_id" != "tools" ]];
+    then
         echo " -> Will NOT enable $name"
     fi
 done
@@ -206,36 +242,102 @@ then
     load_pf_compose_settings $profile_compose_file
 fi
 
+# Show settings editor with whiptail if not in quiet mode
+if [[ -z $QUIET_MODE && ${#SETTINGS_ORDER[@]} -gt 0 ]];
+then
+    # Loop to allow editing settings
+    while true; do
+        # Build menu items for settings (deduplicated)
+        menu_items=()
+        declare -A seen_settings
+        for setting in "${SETTINGS_ORDER[@]}"; do
+            if [[ -z "${seen_settings[$setting]}" ]]; then
+                seen_settings[$setting]=1
+                menu_items+=("$setting" "${ALL_SETTINGS[$setting]}")
+            fi
+        done
+        unset seen_settings
+
+        # Calculate height
+        unique_count=$((${#menu_items[@]} / 2))
+        menu_height=$unique_count
+        [[ $menu_height -gt 15 ]] && menu_height=15
+        total_height=$((menu_height + 10))
+
+        # Show menu
+        selected=$(whiptail --title "Settings Configuration" \
+            --menu "Select a setting to edit (ESC when done):" \
+            $total_height 70 $menu_height \
+            "${menu_items[@]}" \
+            3>&1 1>&2 2>&3)
+
+        exit_status=$?
+
+        # Exit loop if cancelled/ESC
+        if [[ $exit_status -ne 0 ]]; then
+            break
+        fi
+
+        # Edit selected setting
+        current_value="${ALL_SETTINGS[$selected]}"
+        description="${ALL_DESCRIPTIONS[$selected]}"
+        default="${ALL_DEFAULTS[$selected]}"
+
+        prompt_text="Enter value for $selected"
+        [[ -n "$description" ]] && prompt_text="$description"
+        [[ -n "$default" ]] && prompt_text="$prompt_text\n(Default: $default)"
+
+        new_value=$(whiptail --title "Edit: $selected" \
+            --inputbox "$prompt_text" 12 70 "$current_value" \
+            3>&1 1>&2 2>&3)
+
+        input_status=$?
+
+        if [[ $input_status -eq 0 ]]; then
+            ALL_SETTINGS["$selected"]="$new_value"
+            printf -v "$selected" "%s" "$new_value"
+        fi
+    done
+fi
+
+# Write settings to .env.new
+declare -A WRITTEN_SETTINGS
+for setting in "${SETTINGS_ORDER[@]}"; do
+    if [[ -n "${WRITTEN_SETTINGS[$setting]}" ]]; then
+        continue
+    fi
+    WRITTEN_SETTINGS["$setting"]=1
+
+    value="${ALL_SETTINGS[$setting]}"
+    if [[ -n "$value" ]]; then
+        echo "${setting}=${value}" >> .env.new
+    fi
+done
+
 if [[ -f ".env.new" ]];
 then
   if [[ -f ".env" ]];
   then
-    env_diff=$(diff .env .env.new)
+    env_diff=$(diff .env .env.new 2>/dev/null || echo "new file")
     if [[ "${env_diff}" != "" ]];
     then
-      printf >&2 "New settings:\n${env_diff}\n"
-      while true; do
-        read -r -p "Continue and write settings to '.env'? (y/n): "
-        case "${REPLY,,}" in
-          y|yes)
-            break
-            ;;
-          n|no)
-            printf >&2 "Aborting."
-            exit 2
-            ;;
-          *)
-            echo "Please enter 'y' or 'n'."
-            ;;
-        esac
-      done
+      if whiptail --title "Confirm Settings" \
+          --yesno "Settings have changed. Save to .env?" 8 50;
+      then
+          mv -f .env .env.backup
+          mv .env.new .env
+          ENV_FILE="--env-file .env"
+      else
+          rm .env.new
+          echo "Settings not saved. Using existing .env"
+      fi
+    else
+      rm .env.new
     fi
-    
-    mv -f .env .env.backup
+  else
+    mv .env.new .env
+    ENV_FILE="--env-file .env"
   fi
-
-  mv .env.new .env
-  ENV_FILE="--env-file .env"
 fi
 
 if [[ -f .env ]];
@@ -260,12 +362,10 @@ save_state () {
   typeset -p "$@" >"$settingsfile"
 }
 
-yn_prompt_strict "Save settings" "SAVE_SETTINGS"
-
-if [[ "$SAVE_SETTINGS" == "true" ]];
+if whiptail --title "Save Settings" \
+    --yesno "Save profile selections for future runs?" 8 50;
 then
     echo " -> Saving settings to '$settingsfile'"
-    # Only save variables that are defined
     vars_to_save="SCV2_PROFILES PROJECT_NAME"
     [[ -n "${DOCKER_LOGOUT:-}" ]] && vars_to_save="$vars_to_save DOCKER_LOGOUT"
     [[ -n "${DOCKER_PULL:-}" ]] && vars_to_save="$vars_to_save DOCKER_PULL"
