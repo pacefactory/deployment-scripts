@@ -2,7 +2,7 @@ x-pf-info:
   name: Expresso CUDA
   prompt: Enable CUDA for Expresso?
   description: Should Expresso run with GPU support
-  requires: expresso-010
+  sub-profile: true
   settings:
     EXPRESSO_SERVER_TAG_DEFAULT_GPU:
       default: latest-gpu

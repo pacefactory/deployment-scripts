@@ -141,9 +141,6 @@ load_pf_compose_settings() {
     done
 }
 
-override_str=""
-profile_str=""
-
 # Prompt for any sub-profiles listed in the parent profile's "sub-profiles" array.
 # This reads the sub-profiles list once from the parent, then goes directly to those files.
 prompt_sub_profiles() {
@@ -212,6 +209,10 @@ prompt_sub_profiles() {
     done
 }
 
+override_str=""
+profile_str=""
+
+
 if [[ -z $QUIET_MODE ]];
 then
   echo "You will be prompted to enable optional services."
@@ -230,10 +231,10 @@ do
         continue
     fi
 
-    # If the compose_file includes a "requires" field, then we should skip it.
-    # Any compose script with a requires field is called directly after their parent.
-    requires=$(runYq '.["x-pf-info"].requires // ""' $profile_compose_file)
-    if [[ -n "$requires" ]]; then
+    # Skip sub-profiles - they are prompted directly after their parent via the sub-profiles array.
+    # Sub-profiles are skipped by adding the field `sub-profile=true` in the x-pf-info
+    is_sub_profile=$(runYq '.["x-pf-info"].sub-profile // false' $profile_compose_file)
+    if [[ "$is_sub_profile" == "true" ]]; then
         continue
     fi
 
