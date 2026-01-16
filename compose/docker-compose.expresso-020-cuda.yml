@@ -1,0 +1,23 @@
+x-pf-info:
+  name: Expresso CUDA
+  prompt: Enable CUDA for Expresso?
+  description: Should Expresso run with GPU support
+  settings:
+    EXPRESSO_SERVER_TAG:
+      default: latest-gpu
+
+services:
+  celery_worker:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
+                - utility
+                - compute
+                - video
+    environment:
+      - PF_PREFER_GPU=true
