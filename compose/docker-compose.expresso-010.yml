@@ -2,21 +2,23 @@ x-pf-info:
   name: Expresso profile
   prompt: Enable the Expresso profile?
   description: The Expresso profile expresso_server and UI for easier configuration
+  sub-profiles:
+    - expresso-020-cuda
   settings:
     EXPRESSO_SERVER_TAG:
       default: latest
+      default_var: EXPRESSO_SERVER_TAG_DEFAULT_GPU
     EXPRESSO_UI_TAG:
       default: latest
     PF_TRACK_FRAME_BATCH_LIMIT:
       description: Max number of frames tracked in a single run. Ram usage increases linearly with number of frames.
       default: 10
 
-
 services:
   expresso_server:
     container_name: ${PROJECT_PREFIX:-}expresso_server
     hostname: ${PROJECT_PREFIX:-}expresso_server
-    image: pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-latest}
+    image: pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-${EXPRESSO_SERVER_TAG_DEFAULT_GPU:-latest}}
     restart: always
     logging:
       driver: local
@@ -35,7 +37,7 @@ services:
       mongo:
         condition: service_started
         required: true
-      celery_worker: 
+      celery_worker:
         condition: service_started
         required: true
       redis:
@@ -72,8 +74,8 @@ services:
   celery_worker:
     container_name: ${PROJECT_PREFIX:-}celery_worker
     hostname: ${PROJECT_PREFIX:-}celery_worker
-    image: pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-latest}
-    entrypoint: ["/usr/local/bin/_entrypoint.sh", "./scripts/start_worker.sh"]
+    image: pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-${EXPRESSO_SERVER_TAG_DEFAULT_GPU:-latest}}
+    entrypoint: [ "./scripts/start_worker.sh" ]
     restart: always
     logging:
       driver: local
@@ -85,7 +87,7 @@ services:
     environment:
       - "PF_REDIS_HOST=${PROJECT_PREFIX:-}redis"
       - PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo_exp
-      - PF_TRACK_FRAME_BATCH_LIMIT=${PF_TRACK_FRAME_BATCH_LIMIT:-10} 
+      - PF_TRACK_FRAME_BATCH_LIMIT=${PF_TRACK_FRAME_BATCH_LIMIT:-10}
     depends_on:
       mongo_exp:
         condition: service_started
@@ -93,13 +95,13 @@ services:
       redis:
         condition: service_started
         required: true
-  
+
   mongo_exp:
     container_name: ${PROJECT_PREFIX:-}mongo_exp
     hostname: ${PROJECT_PREFIX:-}mongo_exp
     image: mongodb/mongodb-community-server:8.2.1-ubi8
     restart: always
-    networks: 
+    networks:
       - expresso_network
     volumes:
       - type: volume
@@ -121,6 +123,7 @@ services:
 volumes:
   expresso-data:
   mongodata_exp:
+
 
 networks:
   expresso_network:
