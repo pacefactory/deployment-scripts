@@ -165,38 +165,41 @@ prompt_sub_profiles() {
         local sub_name=$(runYq '.["x-pf-info"].name // ""' $sub_compose_file)
         sub_name="${sub_name:-$sub_id}"
 
-        local sub_prompt=$(runYq '.["x-pf-info"].prompt // ""' $sub_compose_file)
-        sub_prompt="${sub_prompt:-Enable $sub_name?}"
+        # Only prompt interactively if not in quiet mode
+        if [[ -z $QUIET_MODE ]]; then
+            local sub_prompt=$(runYq '.["x-pf-info"].prompt // ""' $sub_compose_file)
+            sub_prompt="${sub_prompt:-Enable $sub_name?}"
 
-        echo ""
-        if [[ "${SCV2_PROFILES[$sub_id]}" == "true" ]]; then
-            local prompt_options="([y]/n/?)"
-        else
-            local prompt_options="(y/[n]/?)"
+            echo ""
+            if [[ "${SCV2_PROFILES[$sub_id]}" == "true" ]]; then
+                local prompt_options="([y]/n/?)"
+            else
+                local prompt_options="(y/[n]/?)"
+            fi
+
+            while read -r -p "$sub_prompt $prompt_options "
+            do
+                case $REPLY in
+                    y|yes)
+                        SCV2_PROFILES[$sub_id]=true
+                        break
+                        ;;
+                    n|no)
+                        SCV2_PROFILES[$sub_id]=false
+                        break
+                        ;;
+                    ?)
+                        local description=$(runYq '.["x-pf-info"].description // ""' $sub_compose_file)
+                        description="${description:-No description found}"
+                        echo ""
+                        echo $description
+                        ;;
+                    *)
+                        break
+                        ;;
+                esac
+            done
         fi
-
-        while read -r -p "$sub_prompt $prompt_options "
-        do
-            case $REPLY in
-                y|yes)
-                    SCV2_PROFILES[$sub_id]=true
-                    break
-                    ;;
-                n|no)
-                    SCV2_PROFILES[$sub_id]=false
-                    break
-                    ;;
-                ?)
-                    local description=$(runYq '.["x-pf-info"].description // ""' $sub_compose_file)
-                    description="${description:-No description found}"
-                    echo ""
-                    echo $description
-                    ;;
-                *)
-                    break
-                    ;;
-            esac
-        done
 
         if [[ "${SCV2_PROFILES[$sub_id]}" == "true" ]]; then
             profile_str="$profile_str --profile $sub_id"
@@ -281,11 +284,9 @@ do
         override_str="$override_str -f $profile_compose_file"
         echo " -> Will enable $name"
 
-        # Prompt for sub-profiles before loading settings
+        # Process sub-profiles before loading settings
         # This allows sub-profiles to override default values
-        if [[ -z $QUIET_MODE ]]; then
-            prompt_sub_profiles $profile_id
-        fi
+        prompt_sub_profiles $profile_id
 
         load_pf_compose_settings $profile_compose_file
     else
