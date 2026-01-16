@@ -2,9 +2,12 @@ x-pf-info:
   name: Expresso profile
   prompt: Enable the Expresso profile?
   description: The Expresso profile expresso_server and UI for easier configuration
+  sub-profiles:
+    - expresso-020-cuda
   settings:
     EXPRESSO_SERVER_TAG:
       default: latest
+      default_var: EXPRESSO_SERVER_TAG_DEFAULT_GPU
     EXPRESSO_UI_TAG:
       default: latest
     PF_TRACK_FRAME_BATCH_LIMIT:
@@ -15,7 +18,7 @@ services:
   expresso_server:
     container_name: ${PROJECT_PREFIX:-}expresso_server
     hostname: ${PROJECT_PREFIX:-}expresso_server
-    image: pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-latest}
+    image: pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-${EXPRESSO_SERVER_TAG_DEFAULT_GPU:-latest}}
     restart: always
     logging:
       driver: local
@@ -71,7 +74,7 @@ services:
   celery_worker:
     container_name: ${PROJECT_PREFIX:-}celery_worker
     hostname: ${PROJECT_PREFIX:-}celery_worker
-    image: pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-latest}
+    image: pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-${EXPRESSO_SERVER_TAG_DEFAULT_GPU:-latest}}
     entrypoint: [ "./scripts/start_worker.sh" ]
     restart: always
     logging:
