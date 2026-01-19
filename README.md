@@ -22,6 +22,11 @@ Notes for deployment
 - Docker installed, with a recent version of docker compose. Docker 28.x.x + docker compose 2.35+ confirmed to work.
   - Check with `docker --version` and `docker compose version`
 
+## Optional Dependencies
+
+- `yq` is used for YAML parsing. `build.sh` can run without `yq` but is much faster if it is installed. Installation instructions are available in [YQ.md](YQ.md)
+- CUDA support requires the host system to have specific driver's installed. Instructions for setting up CUDA support are available at [realtime/CUDA.md](https://github.com/pacefactory/scv2_realtime/blob/main/CUDA.md)
+
 ## Build script
 
 Run the `build.sh` script to enable/disable compose profiles and set environment variables.
