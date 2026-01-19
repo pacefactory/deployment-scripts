@@ -28,7 +28,7 @@ echo ""
 
 # pf-build ./build.sh "$@" -> Run the build script in the docker container
 
-docker run --rm -it \
+docker run --rm -it --init \
     -v "$(pwd)":/workspace \
     -w /workspace \
     pf-build ./build.sh "$@"
