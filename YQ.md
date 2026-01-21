@@ -1,6 +1,14 @@
 # YQ
 
-## Installation
+## Ubuntu Install
+
+Easiest via snap:
+
+```bash
+sudo snap install yq
+```
+
+## Alternative Installation
 
 How to Install `yq` on systems with no access to snap (i.e. non-Ubuntu / network restricted) (requires that github.com is allowed)
 
