@@ -57,10 +57,14 @@ services:
     environment:
       - "PF_APIGATEWAY=true"
       - "PF_EXPRESSO_SERVER_PORT=8456"
+      - "PF_CONTROL_SERVER_URL="
     depends_on:
       expresso_server:
         condition: service_started
         required: true
+      realtime:
+        condition: service_started
+        required: false
 
   redis:
     container_name: ${PROJECT_PREFIX:-}redis
