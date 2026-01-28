@@ -237,9 +237,6 @@ services:
       - "SCV2_PROFILE_PF_MOSQUITTO=true"
       - "PF_MOSQUITTO_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
       - "PF_MOSQUITTO_WEBSOCKETS_PORT=7575"
-      - "APE_HOST=${PROJECT_PREFIX:-}alert_processing_engine"
-      - "APE_PORT=5380"
-      - "SCV2_PROFILE_APE=true"
     depends_on:
       - dbserver
       - service_dtreeserver

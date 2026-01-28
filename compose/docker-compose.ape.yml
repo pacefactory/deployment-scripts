@@ -35,5 +35,14 @@ services:
     ports:
       - "5380"
 
+  apigateway:
+    environment:
+      - "APE_HOST=${PROJECT_PREFIX:-}alert_processing_engine"
+      - "APE_PORT=5380"
+      - "SCV2_PROFILE_APE=true"
+    depends_on:
+      - alert_processing_engine
+
+
 volumes:
   ape-data:
