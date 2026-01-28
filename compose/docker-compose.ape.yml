@@ -33,7 +33,7 @@ services:
       - "PF_APE_ENABLE_HTTP_SERVER=true"
       - "PF_APE_HTTP_PORT=5380"
     ports:
-      - "${PF_APE_HTTP_PORT:-5380}"
+      - "5380"
 
 volumes:
   ape-data:
