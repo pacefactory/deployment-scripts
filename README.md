@@ -105,6 +105,39 @@ docker compose run --rm stitch_videos <date_string> [options]
 
 TODO: Document me!
 
+# Ghosting Configuration
+
+The platform supports tiered ghosting enforcement to control access to unghosted snapshot images.
+
+## Deployment Modes
+
+| Mode | `WEBGUI_FORCE_GHOSTING` | `DBSERVER_DISABLE_SNAPSHOT_IMAGES` | Description |
+|------|-------------------------|-------------------------------------|-------------|
+| **Hard** (default) | `true` | `true` | Maximum security. Webgui locked, dbserver snapshot image endpoints disabled. |
+| **Soft** | `true` | `false` | Webgui locked but `UNGHOSTED_CAMERA_LIST` works. DBServer endpoints available. |
+| **None** | `false` | `false` | Full user control over ghosting toggle. |
+
+## Environment Variables
+
+### WEBGUI_FORCE_GHOSTING
+- **Default:** `true`
+- Controls whether the ghosting toggle in the web UI is locked.
+
+### WEBGUI_UNGHOSTED_CAMERA_LIST
+- **Default:** `""` (empty)
+- Comma-separated list of camera names that can be displayed unghosted in the webgui.
+- Only effective when `WEBGUI_FORCE_GHOSTING=true` and `DBSERVER_DISABLE_SNAPSHOT_IMAGES=false` (soft mode).
+
+### DBSERVER_DISABLE_SNAPSHOT_IMAGES
+- **Default:** `true`
+- When `true`, snapshot image endpoints are not registered in dbserver (hard enforcement).
+- Gifwrapper automatically reads snapshots directly from the shared volume when this is enabled.
+
+## Migration Notes
+
+- **New deployments** default to hard enforcement (both variables `true`).
+- **Existing deployments** using `UNGHOSTED_CAMERA_LIST` should set `DBSERVER_DISABLE_SNAPSHOT_IMAGES=false` to maintain soft enforcement.
+
 # Advanced usage
 
 ## Backup realtime, auditgui and rdb configs
