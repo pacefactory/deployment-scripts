@@ -58,11 +58,15 @@ services:
       - "PF_APIGATEWAY=true"
       - "PF_EXPRESSO_SERVER_PORT=8456"
       - "PF_CONTROL_SERVER_URL="
+      - "PF_APE_URL=http://${PROJECT_PREFIX:-}alert_processing_engine"
     depends_on:
       expresso_server:
         condition: service_started
         required: true
       realtime:
+        condition: service_started
+        required: false
+      alert_processing_engine:
         condition: service_started
         required: false
 
