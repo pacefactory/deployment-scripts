@@ -30,6 +30,10 @@ services:
       - "PF_DBSERVER_URL=http://${PROJECT_PREFIX:-}dbserver:8050"
       - "PF_APE_CONFIG_DIR=/home/scv2/ape"
       - "PF_APE_DEBUG_MQTT_MSGS=${PUBLISH_DEBUG_MSGS}"
+      - "PF_APE_ENABLE_HTTP_SERVER=true"
+      - "PF_APE_HTTP_PORT=5380"
+    ports:
+      - "5380"
 
 volumes:
   ape-data:
