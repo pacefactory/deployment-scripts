@@ -18,6 +18,9 @@ x-pf-info:
     WEBGUI_UNGHOSTED_CAMERA_LIST:
       description: List of cameras that should not be ghosted. Should be a comma separated list of camera names
       default: ""
+    DBSERVER_DISABLE_SNAPSHOT_IMAGES:
+      description: Disable unghosted snapshot image endpoints in dbserver (hard ghosting enforcement)
+      default: true
     GIFWRAPPER_TAG:
       default: latest
     DTREESERVER_TAG:
@@ -64,6 +67,7 @@ services:
     tty: true
     environment:
       - "MONGO_HOST=${PROJECT_PREFIX:-}mongo"
+      - "DBSERVER_DISABLE_SNAPSHOT_IMAGES=${DBSERVER_DISABLE_SNAPSHOT_IMAGES:-true}"
     volumes:
       - "dbserver-data:/home/scv2/volume"
     networks:
@@ -169,6 +173,10 @@ services:
       - dbserver
     environment:
       - "DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver"
+      - "DBSERVER_DISABLE_SNAPSHOT_IMAGES=${DBSERVER_DISABLE_SNAPSHOT_IMAGES:-true}"
+      - "DBSERVER_VOLUME_DATA_PATH=/home/scv2/volume/data"
+    volumes:
+      - "dbserver-data:/home/scv2/volume:ro"
     networks:
       - external_network
 
