@@ -22,6 +22,11 @@ Notes for deployment
 - Docker installed, with a recent version of docker compose. Docker 28.x.x + docker compose 2.35+ confirmed to work.
   - Check with `docker --version` and `docker compose version`
 
+## Optional Dependencies
+
+- `yq` is used for YAML parsing. `build.sh` can run without `yq` but is much faster if it is installed. Installation instructions are available in [YQ.md](YQ.md)
+- CUDA support requires the host system to have specific driver's installed. Instructions for setting up CUDA support are available at [realtime/CUDA.md](https://github.com/pacefactory/scv2_realtime/blob/main/CUDA.md)
+
 ## Build script
 
 Run the `build.sh` script to enable/disable compose profiles and set environment variables.
@@ -100,6 +105,39 @@ docker compose run --rm stitch_videos <date_string> [options]
 
 TODO: Document me!
 
+# Ghosting Configuration
+
+The platform supports tiered ghosting enforcement to control access to unghosted snapshot images.
+
+## Deployment Modes
+
+| Mode | `WEBGUI_FORCE_GHOSTING` | `DBSERVER_DISABLE_SNAPSHOT_IMAGES` | Description |
+|------|-------------------------|-------------------------------------|-------------|
+| **Hard** (default) | `true` | `true` | Maximum security. Webgui locked, dbserver snapshot image endpoints disabled. |
+| **Soft** | `true` | `false` | Webgui locked but `UNGHOSTED_CAMERA_LIST` works. DBServer endpoints available. |
+| **None** | `false` | `false` | Full user control over ghosting toggle. |
+
+## Environment Variables
+
+### WEBGUI_FORCE_GHOSTING
+- **Default:** `true`
+- Controls whether the ghosting toggle in the web UI is locked.
+
+### WEBGUI_UNGHOSTED_CAMERA_LIST
+- **Default:** `""` (empty)
+- Comma-separated list of camera names that can be displayed unghosted in the webgui.
+- Only effective when `WEBGUI_FORCE_GHOSTING=true` and `DBSERVER_DISABLE_SNAPSHOT_IMAGES=false` (soft mode).
+
+### DBSERVER_DISABLE_SNAPSHOT_IMAGES
+- **Default:** `true`
+- When `true`, snapshot image endpoints are not registered in dbserver (hard enforcement).
+- Gifwrapper automatically reads snapshots directly from the shared volume when this is enabled.
+
+## Migration Notes
+
+- **New deployments** default to hard enforcement (both variables `true`).
+- **Existing deployments** using `UNGHOSTED_CAMERA_LIST` should set `DBSERVER_DISABLE_SNAPSHOT_IMAGES=false` to maintain soft enforcement.
+
 # Advanced usage
 
 ## Backup realtime, auditgui and rdb configs
@@ -111,3 +149,165 @@ To easily backup configs from realtime, auditgui and rdb containers, you can run
 ```
 
 This will save backup tar files of each container's volumes in `~/scv2/backups`. The realtime backup only includes each camera's `/config` and `/resources` folder (excludes `/resources/backgrounds`)
+
+
+## Compose Files
+
+### Profile System
+
+Profiles are defined in `compose/docker-compose.{profile}.yml` files. Each profile can define metadata in the `x-pf-info` section that controls how the build script interacts with it.
+
+#### Basic Profile Options
+
+```yaml
+x-pf-info:
+  name: My Profile                    # Display name shown in prompts
+  prompt: Enable My Profile?          # Custom prompt text
+  description: What this profile does # Shown when user enters '?' for help
+```
+
+#### Settings
+
+Profiles can define settings that will be prompted to the user. If the user enters a value, it will be written to `.ev.`. If the user does not provide a value, nothing will be written to `.env`
+
+```yaml
+x-pf-info:
+  settings:
+    MY_SETTING:
+      default: default_value          # Default value shown in prompt
+      description: What this setting does
+```
+
+#### Hidden Settings
+
+Hidden settings are not prompted to the user. Unlike normal settings, They are automatically set to their default value when the profile is enabled. This is useful for internal variables that affect the compose output:
+
+```yaml
+x-pf-info:
+  settings:
+    MY_HIDDEN_VAR:
+      default: some_value # The value that will be assigned to MY_HIDDEN_VAR in `.env`
+      hidden: true
+```
+
+#### Dynamic Defaults with `default_var`
+
+A setting can reference another variable for its default value using `default_var`. This allows sub-profiles to override defaults dynamically:
+
+```yaml
+x-pf-info:
+  settings:
+    MY_TAG:
+      default: latest                 # Fallback if default_var is not set
+      default_var: MY_TAG_OVERRIDE    # Use this variable's value as the default
+```
+
+When the user is prompted for `MY_TAG`, the prompt will show `[${MY_TAG_OVERRIDE}]` if that variable is set, otherwise `[latest]`.
+
+### Sub-Profiles
+
+Sub-profiles allow a parent profile connect optional profiles that are prompted immediately after the parent is enabled. This is useful for variations of a profile (e.g., enabling GPU support).
+
+#### Defining Sub-Profiles
+
+In the parent profile, list sub-profiles in the `sub-profiles` array:
+
+```yaml
+# docker-compose.myprofile.yml
+x-pf-info:
+  name: My Profile
+  sub-profiles:
+    - myprofile-variant
+  settings:
+    MY_TAG:
+      default: latest
+      default_var: MY_TAG_VARIANT
+```
+
+In the sub-profile, mark it with `sub-profile: true`:
+
+```yaml
+# docker-compose.myprofile-variant.yml
+x-pf-info:
+  name: My Profile Variant
+  prompt: Enable variant for My Profile?
+  sub-profile: true
+  settings:
+    MY_TAG_VARIANT:
+      default: variant-tag
+      hidden: true
+```
+
+The `sub-profile: true` flag tells the build script to skip this profile in the main loop (since it will be prompted via its parent's `sub-profiles` array).
+
+#### How It Works
+
+1. User enables the parent profile
+2. Build script immediately prompts for each sub-profile listed in `sub-profiles`
+3. If a sub-profile is enabled, its hidden settings are applied first
+4. Parent profile settings are then prompted with the overridden defaults
+
+### Example: Expresso with CUDA Support
+
+The Expresso profile demonstrates sub-profiles with dynamic defaults:
+
+**Parent profile (`docker-compose.expresso-010.yml`):**
+
+```yaml
+x-pf-info:
+  name: Expresso profile
+  prompt: Enable the Expresso profile?
+  sub-profiles:
+    - expresso-020-cuda
+  settings:
+    EXPRESSO_SERVER_TAG:
+      default: latest
+      default_var: EXPRESSO_SERVER_TAG_DEFAULT_GPU
+    EXPRESSO_UI_TAG:
+      default: latest
+
+services:
+  expresso_server:
+    image: pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-${EXPRESSO_SERVER_TAG_DEFAULT_GPU:-latest}}
+```
+
+**Sub-profile (`docker-compose.expresso-020-cuda.yml`):**
+
+```yaml
+x-pf-info:
+  name: Expresso CUDA
+  prompt: Enable CUDA for Expresso?
+  description: Should Expresso run with GPU support
+  sub-profile: true
+  settings:
+    EXPRESSO_SERVER_TAG_DEFAULT_GPU:
+      default: latest-gpu
+      hidden: true
+
+services:
+  celery_worker:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu, utility, compute, video]
+    environment:
+      - PF_PREFER_GPU=true
+```
+
+**User Experience:**
+
+```
+Enable the Expresso profile? ([y]/n/?) y
+ -> Will enable Expresso profile
+
+Enable CUDA for Expresso? (y/[n]/?) y
+ -> Will enable Expresso CUDA
+EXPRESSO_SERVER_TAG [latest-gpu]:     # Default is 'latest-gpu' because CUDA was enabled
+EXPRESSO_UI_TAG [latest]:
+```
+
+If the user had said "no" to CUDA, the prompt would show `EXPRESSO_SERVER_TAG [latest]:` instead.
+
