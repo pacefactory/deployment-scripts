@@ -40,7 +40,7 @@ services:
 
   service_audit_processing:
     environment:
-      - PF_RDB_URL=${PROJECT_PREFIX:-}relational_dbserver:8282
+      - PF_RDB_URL=http://${PROJECT_PREFIX:-}relational_dbserver:8282
 
 volumes:
   relational_dbserver-data:
