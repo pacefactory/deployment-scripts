@@ -34,5 +34,13 @@ services:
       - "RDB_HOST=${PROJECT_PREFIX:-}relational_dbserver"
       - "RDB_PORT=8282"
 
+  auditgui:
+    environment:
+      - WEBGUI_RDB_URL=/api/rdb
+
+  service_audit_processing:
+    environment:
+      - PF_RDB_URL=http://${PROJECT_PREFIX:-}relational_dbserver:8282
+
 volumes:
   relational_dbserver-data:
