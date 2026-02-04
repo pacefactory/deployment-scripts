@@ -67,6 +67,22 @@ services:
       timeout: 5s
       retries: 5
 
+  # Add environment variables to expresso_server for APE Events integration
+  expresso_server:
+    environment:
+      - "PF_RDB_URL=http://${PROJECT_PREFIX:-}relational_dbserver:8282"
+      - "PF_UISERVER_URL=http://${PROJECT_PREFIX:-}auditgui:80"
+      - "PF_APE_URL=http://${PROJECT_PREFIX:-}alert_processing_engine:5380"
+      - "PF_TIMESCALE_HOST=${PROJECT_PREFIX:-}ape_timescaledb"
+      - "PF_TIMESCALE_PORT=5432"
+      - "PF_TIMESCALE_DB=tsdb"
+      - "PF_TIMESCALE_USER=postgres"
+      - "PF_TIMESCALE_PASSWORD=pfadminpw"
+    depends_on:
+      ape_timescaledb:
+        condition: service_healthy
+        required: true
+
 volumes:
   ape-data:
   ape_timescaledb-data:
