@@ -83,6 +83,10 @@ services:
         condition: service_healthy
         required: true
 
+  data_interconnector:
+    environment:
+      - "PF_TIMESCALE_ENABLED=1"
+
 volumes:
   ape-data:
   ape_timescaledb-data:
