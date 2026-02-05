@@ -86,6 +86,11 @@ services:
   data_interconnector:
     environment:
       - "PF_TIMESCALE_ENABLED=1"
+      - "PF_TIMESCALE_HOST=${PROJECT_PREFIX:-}ape_timescaledb"
+      - "PF_TIMESCALE_PORT=5432"
+      - "PF_TIMESCALE_DB=tsdb"
+      - "PF_TIMESCALE_USER=postgres"
+      - "PF_TIMESCALE_PASSWORD=pfadminpw"
 
 volumes:
   ape-data:
