@@ -18,24 +18,31 @@ docker compose version 2>/dev/null || { printf >&2 "'docker compose' required, b
 source scripts/common/runYq.sh
 
 declare -A SCV2_PROFILES=()
+declare -A SCV2_SKIP_PROMPT_PROFILES=()
+declare -A FORCE_REQUIRED=()
+declare -A PROCESSED_PROFILES=()
 POSITIONAL=()
 
 settingsfile=".settings"
 
-SCV2_PROFILES[base]="true"
-SCV2_PROFILES[proc]="true"
+# Set all the profiles that should default to true here
 SCV2_PROFILES[social]="true"
 SCV2_PROFILES[audit]="true"
-SCV2_PROFILES[tools]="true"
 SCV2_PROFILES[rdb]="true"
+SCV2_PROFILES[expresso-010]="true"
+SCV2_PROFILES[node-red]="true"
 
+# Then allow the defaults to be overriden from settings file
 . "$settingsfile" 2>/dev/null || :
 
+# Then force re-enable the mandatory ones & skip prompting them.
 SCV2_PROFILES[base]="true"
 SCV2_PROFILES[custom]="true"
-SCV2_PROFILES[noaudit]="false"
 SCV2_PROFILES[tools]="true"
-SCV2_PROFILES[rdb]="true"
+SCV2_SKIP_PROMPT_PROFILES[base]="true"
+SCV2_SKIP_PROMPT_PROFILES[custom]="true"
+SCV2_SKIP_PROMPT_PROFILES[tools]="true"
+
 
 while [[ $# -gt 0 ]]
 do
@@ -211,6 +218,44 @@ prompt_sub_profiles() {
     done
 }
 
+# Force-enable any profiles listed in the "required-profiles" array of the given profile.
+# Required profiles are enabled without prompting the user.
+# If a required profile hasn't been processed yet, it will be force-enabled when reached in the main loop.
+# If it was already processed and skipped, it will be retroactively enabled here.
+process_required_profiles() {
+    local profile_id=$1
+    local profile_file="compose/docker-compose.${profile_id}.yml"
+
+    readarray -t required_ids < <(runYq '.["x-pf-info"].required-profiles // [] | .[]' "$profile_file")
+
+    for req_id in "${required_ids[@]}"; do
+        [[ -z "$req_id" ]] && continue
+        local req_compose_file="compose/docker-compose.${req_id}.yml"
+
+        if [[ ! -f "$req_compose_file" ]]; then
+            echo "Warning: required profile '$req_id' not found at '$req_compose_file'" >&2
+            continue
+        fi
+
+        FORCE_REQUIRED[$req_id]="$profile_id"
+        SCV2_PROFILES[$req_id]="true"
+        SCV2_SKIP_PROMPT_PROFILES[$req_id]="true"
+
+        # If the required profile was already processed in the main loop but not enabled,
+        # retroactively enable it now
+        if [[ "${PROCESSED_PROFILES[$req_id]}" == "true" && "$profile_str" != *"--profile $req_id"* ]]; then
+            local req_name=$(runYq '.["x-pf-info"].name // ""' "$req_compose_file")
+            req_name="${req_name:-$req_id}"
+            echo " -> Force-enabling $req_name (required by $profile_id)"
+            profile_str="$profile_str --profile $req_id"
+            override_str="$override_str -f $req_compose_file"
+            prompt_sub_profiles $req_id
+            load_pf_compose_settings $req_compose_file
+            process_required_profiles $req_id
+        fi
+    done
+}
+
 override_str=""
 profile_str=""
 
@@ -228,11 +273,6 @@ do
     profile_id="${profile_compose_file#compose/docker-compose.}"
     profile_id=${profile_id%.yml}
 
-    if [[ "$profile_id" == "noaudit" ]];
-    then
-        continue
-    fi
-
     # Skip sub-profiles - they are prompted directly after their parent via the sub-profiles array.
     # Sub-profiles are skipped by adding the field `sub-profile=true` in the x-pf-info
     is_sub_profile=$(runYq '.["x-pf-info"].sub-profile // false' $profile_compose_file)
@@ -246,7 +286,8 @@ do
     profile_prompt=$(runYq '.["x-pf-info"].prompt // ""' $profile_compose_file)
     profile_prompt="${profile_prompt:-Enable $name?}"    
 
-    if [[ -z $QUIET_MODE && "$profile_id" != "custom" && "$profile_id" != "base" && "$profile_id" != "tools" ]] ;
+    # Prompt only if NOT in quiet mode OR this is NOT a forced-on profile
+    if [[ -z $QUIET_MODE && "${SCV2_SKIP_PROMPT_PROFILES[$profile_id]}" != "true" ]] ;
     then
         echo ""
         if [[ "${SCV2_PROFILES[$profile_id]}" == "true" ]];
@@ -285,26 +326,26 @@ do
     then
         profile_str="$profile_str --profile $profile_id"
         override_str="$override_str -f $profile_compose_file"
-        echo " -> Will enable $name"
+        if [[ -n "${FORCE_REQUIRED[$profile_id]}" ]]; then
+            echo " -> Will enable $name (required by ${FORCE_REQUIRED[$profile_id]})"
+        else
+            echo " -> Will enable $name"
+        fi
 
         # Process sub-profiles before loading settings
         # This allows sub-profiles to override default values
         prompt_sub_profiles $profile_id
 
         load_pf_compose_settings $profile_compose_file
+
+        # Force-enable any profiles that this profile requires
+        process_required_profiles $profile_id
     else
         echo " -> Will NOT enable $name"
     fi
+
+    PROCESSED_PROFILES[$profile_id]="true"
 done
-
-# Enable noaudit profile if audit is disabled
-if [[ "${SCV2_PROFILES[audit]}" == "false" ]];
-then
-    profile_compose_file="compose/docker-compose.noaudit.yml"
-    override_str="$override_str -f $profile_compose_file"
-
-    load_pf_compose_settings $profile_compose_file
-fi
 
 if [[ -f ".env.new" ]];
 then

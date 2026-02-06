@@ -1,7 +1,13 @@
 x-pf-info:
+  name: Realtime CUDA
+  prompt: Enable CUDA for Realtime?
+  description:
+    Should Realtime run with GPU (CUDA) support?
+  sub-profile: true
   settings:
-    REALTIME_TAG:
+    REALTIME_TAG_DEFAULT_GPU:
       default: latest-gpu
+      hidden: true
 
 services:
   realtime:

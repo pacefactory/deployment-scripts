@@ -1,4 +1,6 @@
 x-pf-info:
+  sub-profiles:
+    - cuda
   settings:
     PROJECT_PREFIX:
       default: ""
@@ -8,6 +10,7 @@ x-pf-info:
       default: latest
     REALTIME_TAG:
       default: latest
+      default_var: REALTIME_TAG_DEFAULT_GPU
     AUDITGUI_TAG:
       default: latest
     AUDIT_PROCESSING_TAG:
@@ -112,7 +115,7 @@ services:
 
   realtime:
     container_name: ${PROJECT_PREFIX:-}realtime
-    image: pacefactory/realtime:${REALTIME_TAG:-latest}
+    image: pacefactory/realtime:${REALTIME_TAG:-${REALTIME_TAG_DEFAULT_GPU:-latest}}
     hostname: ${PROJECT_PREFIX:-}realtime
     restart: always
     logging:
