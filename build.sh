@@ -19,6 +19,8 @@ source scripts/common/runYq.sh
 
 declare -A SCV2_PROFILES=()
 declare -A SCV2_SKIP_PROMPT_PROFILES=()
+declare -A FORCE_REQUIRED=()
+declare -A PROCESSED_PROFILES=()
 POSITIONAL=()
 
 settingsfile=".settings"
@@ -216,6 +218,43 @@ prompt_sub_profiles() {
     done
 }
 
+# Force-enable any profiles listed in the "required-profiles" array of the given profile.
+# Required profiles are enabled without prompting the user.
+# If a required profile hasn't been processed yet, it will be force-enabled when reached in the main loop.
+# If it was already processed and skipped, it will be retroactively enabled here.
+process_required_profiles() {
+    local profile_id=$1
+    local profile_file="compose/docker-compose.${profile_id}.yml"
+
+    readarray -t required_ids < <(runYq '.["x-pf-info"].required-profiles // [] | .[]' "$profile_file")
+
+    for req_id in "${required_ids[@]}"; do
+        [[ -z "$req_id" ]] && continue
+        local req_compose_file="compose/docker-compose.${req_id}.yml"
+
+        if [[ ! -f "$req_compose_file" ]]; then
+            echo "Warning: required profile '$req_id' not found at '$req_compose_file'" >&2
+            continue
+        fi
+
+        FORCE_REQUIRED[$req_id]="$profile_id"
+        SCV2_PROFILES[$req_id]="true"
+        SCV2_SKIP_PROMPT_PROFILES[$req_id]="true"
+
+        # If the required profile was already processed in the main loop but not enabled,
+        # retroactively enable it now
+        if [[ "${PROCESSED_PROFILES[$req_id]}" == "true" && "$profile_str" != *"--profile $req_id"* ]]; then
+            local req_name=$(runYq '.["x-pf-info"].name // ""' "$req_compose_file")
+            req_name="${req_name:-$req_id}"
+            echo " -> Force-enabling $req_name (required by $profile_id)"
+            profile_str="$profile_str --profile $req_id"
+            override_str="$override_str -f $req_compose_file"
+            prompt_sub_profiles $req_id
+            load_pf_compose_settings $req_compose_file
+        fi
+    done
+}
+
 override_str=""
 profile_str=""
 
@@ -286,16 +325,25 @@ do
     then
         profile_str="$profile_str --profile $profile_id"
         override_str="$override_str -f $profile_compose_file"
-        echo " -> Will enable $name"
+        if [[ -n "${FORCE_REQUIRED[$profile_id]}" ]]; then
+            echo " -> Will enable $name (required by ${FORCE_REQUIRED[$profile_id]})"
+        else
+            echo " -> Will enable $name"
+        fi
 
         # Process sub-profiles before loading settings
         # This allows sub-profiles to override default values
         prompt_sub_profiles $profile_id
 
         load_pf_compose_settings $profile_compose_file
+
+        # Force-enable any profiles that this profile requires
+        process_required_profiles $profile_id
     else
         echo " -> Will NOT enable $name"
     fi
+
+    PROCESSED_PROFILES[$profile_id]="true"
 done
 
 if [[ -f ".env.new" ]];
