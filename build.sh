@@ -34,7 +34,6 @@ SCV2_PROFILES[expresso-010]="true"
 
 SCV2_PROFILES[base]="true"
 SCV2_PROFILES[custom]="true"
-SCV2_PROFILES[noaudit]="false"
 SCV2_PROFILES[tools]="true"
 SCV2_PROFILES[rdb]="true"
 SCV2_PROFILES[expresso-010]="true"
@@ -230,11 +229,6 @@ do
     profile_id="${profile_compose_file#compose/docker-compose.}"
     profile_id=${profile_id%.yml}
 
-    if [[ "$profile_id" == "noaudit" ]];
-    then
-        continue
-    fi
-
     # Skip sub-profiles - they are prompted directly after their parent via the sub-profiles array.
     # Sub-profiles are skipped by adding the field `sub-profile=true` in the x-pf-info
     is_sub_profile=$(runYq '.["x-pf-info"].sub-profile // false' $profile_compose_file)
@@ -298,15 +292,6 @@ do
         echo " -> Will NOT enable $name"
     fi
 done
-
-# Enable noaudit profile if audit is disabled
-if [[ "${SCV2_PROFILES[audit]}" == "false" ]];
-then
-    profile_compose_file="compose/docker-compose.noaudit.yml"
-    override_str="$override_str -f $profile_compose_file"
-
-    load_pf_compose_settings $profile_compose_file
-fi
 
 if [[ -f ".env.new" ]];
 then
