@@ -28,6 +28,7 @@ SCV2_PROFILES[social]="true"
 SCV2_PROFILES[audit]="true"
 SCV2_PROFILES[tools]="true"
 SCV2_PROFILES[rdb]="true"
+SCV2_PROFILES[expresso-010]="true"
 
 . "$settingsfile" 2>/dev/null || :
 
@@ -36,6 +37,7 @@ SCV2_PROFILES[custom]="true"
 SCV2_PROFILES[noaudit]="false"
 SCV2_PROFILES[tools]="true"
 SCV2_PROFILES[rdb]="true"
+SCV2_PROFILES[expresso-010]="true"
 
 while [[ $# -gt 0 ]]
 do
