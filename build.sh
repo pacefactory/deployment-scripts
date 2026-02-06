@@ -251,6 +251,7 @@ process_required_profiles() {
             override_str="$override_str -f $req_compose_file"
             prompt_sub_profiles $req_id
             load_pf_compose_settings $req_compose_file
+            process_required_profiles $req_id
         fi
     done
 }
