@@ -2,6 +2,8 @@ x-pf-info:
   name: APE profile
   prompt: Enable the Alert Processing Engine (APE) profile?
   description: The Alert Processing Engine produces realtime alerts from MQTT object data.
+  required-profiles:
+    - expresso-010
   settings:
     APE_TAG:
       default: latest
