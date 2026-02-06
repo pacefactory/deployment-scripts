@@ -18,25 +18,29 @@ docker compose version 2>/dev/null || { printf >&2 "'docker compose' required, b
 source scripts/common/runYq.sh
 
 declare -A SCV2_PROFILES=()
+declare -A SCV2_SKIP_PROMPT_PROFILES=()
 POSITIONAL=()
 
 settingsfile=".settings"
 
-SCV2_PROFILES[base]="true"
-SCV2_PROFILES[proc]="true"
+# Set all the profiles that should default to true here
 SCV2_PROFILES[social]="true"
 SCV2_PROFILES[audit]="true"
-SCV2_PROFILES[tools]="true"
 SCV2_PROFILES[rdb]="true"
 SCV2_PROFILES[expresso-010]="true"
+SCV2_PROFILES[node-red]="true"
 
+# Then allow the defaults to be overriden from settings file
 . "$settingsfile" 2>/dev/null || :
 
+# Then force re-enable the mandatory ones & skip prompting them.
 SCV2_PROFILES[base]="true"
 SCV2_PROFILES[custom]="true"
 SCV2_PROFILES[tools]="true"
-SCV2_PROFILES[rdb]="true"
-SCV2_PROFILES[expresso-010]="true"
+SCV2_SKIP_PROMPT_PROFILES[base]="true"
+SCV2_SKIP_PROMPT_PROFILES[custom]="true"
+SCV2_SKIP_PROMPT_PROFILES[tools]="true"
+
 
 while [[ $# -gt 0 ]]
 do
@@ -242,7 +246,8 @@ do
     profile_prompt=$(runYq '.["x-pf-info"].prompt // ""' $profile_compose_file)
     profile_prompt="${profile_prompt:-Enable $name?}"    
 
-    if [[ -z $QUIET_MODE && "$profile_id" != "custom" && "$profile_id" != "base" && "$profile_id" != "tools" ]] ;
+    # Prompt only if NOT in quiet mode OR this is NOT a forced-on profile
+    if [[ -z $QUIET_MODE && "${SCV2_SKIP_PROMPT_PROFILES[$profile_id]}" != "true" ]] ;
     then
         echo ""
         if [[ "${SCV2_PROFILES[$profile_id]}" == "true" ]];
