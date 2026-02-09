@@ -60,7 +60,7 @@ services:
       - "PF_EXPRESSO_SERVER_HOST="
       # The EXPRESSO_SERVER_URL overrides apigateway when connecting to the expresso server.
       # Overrides the PF_EXPRESSO_SERVER_PORT and PF_EXPRESSO_SERVER_HOST too.
-      - "PF_EXPRESSO_SERVER_URL=http://localhost:8456"
+      - "PF_EXPRESSO_SERVER_URL="
       - "PF_CONTROL_SERVER_URL="
       - "PF_APE_URL="
     depends_on:
