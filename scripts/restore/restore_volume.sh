@@ -1,135 +1,155 @@
 #!/bin/bash
 
-echo "Script outdated. Do not use."
-exit 1
-
 # -------------------------------------------------------------------------
-# Get script args
-POSITIONAL=()
-while [[ $# -gt 0 ]]
-do
-key="$1"
-
-case $key in
-    -f|--file)
-    archive_file="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    *)    # unknown option
-    POSITIONAL+=("$1") # save it in an array for later
-    shift # past argument
-    ;;
-esac
-done
-set -- "${POSITIONAL[@]}" # restore positional parameters
+## Input path (backup folder or archive)
+BACKUP_INPUT=$1
+PROJECT_NAME=$2
 
 echo ""
-echo "This script will restore volumes from an archive backup created by backup_volume.sh"
-echo "Ensure the docker-compose stack is OFFLINE before proceeding"
-
-# -------------------------------------------------------------------------
-# Prompt for software being offline
-echo ""
-echo "Is the software stack offline? (i.e. you ran 'docker-compose down' and there are no containers running on 'docker ps -a')"
-read -p "(y/[N]) " user_response
-case "$user_response" in
-  y|Y ) echo "  --> Confirmed containers offline; continuing..." ;;
-  * ) echo "  --> Container not offline! Exiting..."; exit ;;
-esac
-
-# -------------------------------------------------------------------------
-# Prompt to set archive_file path, if not already supplied
-if [ -z ${archive_file+x} ]; then
-  echo ""
-  read -e -p "Enter the archive file path: " archive_file
+if [[ -z "$BACKUP_INPUT" ]]; then
+  read -e -p "Enter the path to backup folder or archive: " BACKUP_INPUT
   # Replace tilde if given
-  archive_file="${archive_file/#~/$HOME}"
+  BACKUP_INPUT="${BACKUP_INPUT/#~/$HOME}"
 fi
 
-if [ -d restore_archive ]; then
-  echo ""
-  echo "WARNING: restore_archive directory already exists."
-  echo "This means a previous restoration may have failed."
-  echo "Exiting..."
+if [[ ! -e "$BACKUP_INPUT" ]]; then
+  echo "Error: '$BACKUP_INPUT' does not exist."
   exit 1
 fi
 
 # -------------------------------------------------------------------------
-# Extract main archive
-echo ""
-echo "Exracting archive..."
-unarchived_path="$(pwd)/restore_archive"
-mkdir $unarchived_path
-tar -xzvf $archive_file -C $unarchived_path
+## Handle archive vs. directory input
+if [[ -f "$BACKUP_INPUT" && "$BACKUP_INPUT" == *.tar.gz ]]; then
+  echo "Archive file detected, extracting..."
+  TEMP_DIR=$(mktemp -d)
+  tar -xzf "$BACKUP_INPUT" -C "$TEMP_DIR"
+
+  # Find the extracted directory (the backup folder inside the archive)
+  EXTRACTED_DIRS=("$TEMP_DIR"/*/)
+  if [[ ${#EXTRACTED_DIRS[@]} -eq 1 && -d "${EXTRACTED_DIRS[0]}" ]]; then
+    BACKUP_PATH="${EXTRACTED_DIRS[0]}"
+  else
+    # Files extracted flat into TEMP_DIR
+    BACKUP_PATH="$TEMP_DIR"
+  fi
+  CLEANUP_TEMP=true
+elif [[ -d "$BACKUP_INPUT" ]]; then
+  BACKUP_PATH="$(cd "$BACKUP_INPUT" && pwd)"
+  CLEANUP_TEMP=false
+else
+  echo "Error: '$BACKUP_INPUT' is not a directory or .tar.gz file."
+  exit 1
+fi
+
+echo "Backup path: $BACKUP_PATH"
 
 # -------------------------------------------------------------------------
-# Restore all volumes individually, if they exist
+## Project name
 echo ""
-echo "Restoring mongo volume"
-if [ -f restore_archive/mongo.tar.gz ]; then
-  docker run -v deployment-scripts_mongodata:/data --name mongo_data ubuntu /bin/bash
-  docker run --rm --volumes-from mongo_data --mount type=bind,src=$unarchived_path,dst=/backup ubuntu tar xzvf backup/mongo.tar.gz
-  docker rm mongo_data
-else
-  echo "Mongo backup not found, skipping"
-fi
+if [[ -z $PROJECT_NAME ]];
+then
+    DEFAULT_PROJECT=deployment-scripts
+    CURRENT_PROJECT=$(docker compose ls --all --quiet | head -1)
+    PROJECT_NAME=${CURRENT_PROJECT:-$DEFAULT_PROJECT}
 
-echo ""
-echo "Restoring dbserver volume"
-if [ -f restore_archive/dbserver.tar.gz ]; then
-  docker run -v deployment-scripts_dbserver-data:/data --name dbserver_data ubuntu /bin/bash
-  docker run --rm --volumes-from dbserver_data --mount type=bind,src=$unarchived_path,dst=/backup ubuntu tar xzvf ../backup/dbserver.tar.gz
-  docker rm dbserver_data
-else
-  echo "dbserver backup not found, skipping"
+    read -r -p "Confirm project name [$PROJECT_NAME]: "
+    if [[ ! -z "$REPLY" ]];
+    then
+        PROJECT_NAME=$REPLY
+    fi;
 fi
+echo "Project name: '$PROJECT_NAME'"
 
-echo ""
-echo "Restoring realtime volume"
-if [ -f restore_archive/realtime.tar.gz ]; then
-  docker run -v deployment-scripts_realtime-data:/data --name realtime_data ubuntu /bin/bash
-  docker run --rm --volumes-from realtime_data --mount type=bind,src=$unarchived_path,dst=/backup ubuntu tar xzvf backup/realtime.tar.gz
-  docker rm realtime_data
-else
-  echo "realtime backup not found, skipping"
-fi
+# -------------------------------------------------------------------------
+## Locate volumes.json
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VOLUMES_JSON="$SCRIPT_DIR/../backup/volumes.json"
 
-echo ""
-echo "Restoring service_dtreeserver volume"
-if [ -f restore_archive/service_dtreeserver.tar.gz ]; then
-  docker run -v deployment-scripts_service_dtreeserver-data:/data --name service_dtreeserver_data ubuntu /bin/bash
-  docker run --rm --volumes-from service_dtreeserver_data --mount type=bind,src=$unarchived_path,dst=/backup ubuntu tar xzvf backup/service_dtreeserver.tar.gz
-  docker rm service_dtreeserver_data
-else
-  echo "service_dtreeserver backup not found, skipping"
-fi
-
-echo ""
-echo "Restoring service_classifier volume"
-if [ -f restore_archive/service_classifier.tar.gz ]; then
-  docker run -v deployment-scripts_service_classifier-data:/data --name service_classifier_data ubuntu /bin/bash
-  docker run --rm --volumes-from service_classifier_data --mount type=bind,src=$unarchived_path,dst=/backup ubuntu tar xzvf backup/service_classifier.tar.gz
-  docker rm service_classifier_data
-else
-  echo "service_classifier backup not found, skipping"
-fi
-
-echo ""
-echo "Restoring social_video_server volume"
-if [ -f restore_archive/social_video_server.tar.gz ]; then
-  docker run -v deployment-scripts_social_video_server-data:/data --name social_video_server_data ubuntu /bin/bash
-  docker run --rm --volumes-from social_video_server_data --mount type=bind,src=$unarchived_path,dst=/backup ubuntu tar xzvf backup/social_video_server.tar.gz
-  docker rm social_video_server_data
-else
-  echo "social_video_server backup not found, skipping"
+if [[ ! -f "$VOLUMES_JSON" ]]; then
+  echo "Error: volumes.json not found at '$VOLUMES_JSON'"
+  exit 1
 fi
 
 # -------------------------------------------------------------------------
-# Clean up
+# Verify backup contents
 echo ""
-echo "Individual volume restoration complete!"
-echo "Cleaning up..."
-rm -r restore_archive
+echo "Checking backup contents in: $BACKUP_PATH"
+found_any=false
+for name in $(cat "$VOLUMES_JSON" | jq '.[].name' -r)
+do
+  if [[ -f "$BACKUP_PATH/${name}.tar.gz" ]]; then
+    echo "  Found: ${name}.tar.gz"
+    found_any=true
+  else
+    echo "  Missing: ${name}.tar.gz (will skip)"
+  fi
+done
 
+if [[ "$found_any" == "false" ]]; then
+  echo ""
+  echo "Error: No matching backup files found in '$BACKUP_PATH'."
+  echo "Expected files like: dbserver.tar.gz, mongo.tar.gz, etc."
+  exit 1
+fi
+
+# -------------------------------------------------------------------------
+# Ensure software being offline
+
+running_service=$(docker compose ls --filter name=$PROJECT_NAME --quiet)
+while [[ ! -z $running_service ]]
+do
+  echo "$PROJECT_NAME is running, stopping service..."
+  docker compose -p $PROJECT_NAME stop --timeout 600
+  service_shutdown=true
+
+  running_service=$(docker compose ls --filter name=$PROJECT_NAME --quiet)
+done
+
+# -------------------------------------------------------------------------
+# Restore all volumes individually
+
+echo ""
+for name in $(cat "$VOLUMES_JSON" | jq '.[].name' -r)
+do
+  if [[ ! -f "$BACKUP_PATH/${name}.tar.gz" ]]; then
+    echo "Skipping $name (no backup file found)"
+    continue
+  fi
+
+  echo "Restoring $name"
+  query=".[] | select(.name == \"${name}\")"
+  volume=${PROJECT_NAME}$(cat "$VOLUMES_JSON" | jq "$query | .volume_suffix" -r)
+
+  docker run --rm \
+    -v ${volume}:/data \
+    --mount type=bind,src="$BACKUP_PATH",dst=/backup,readonly \
+    ubuntu tar xzf /backup/${name}.tar.gz -C /
+
+  if [[ $? -eq 0 ]]; then
+    echo "  --> $name restored successfully"
+  else
+    echo "  --> ERROR: Failed to restore $name"
+  fi
+done
+
+# -------------------------------------------------------------------------
+# Clean up temp directory if we extracted an archive
+if [[ "$CLEANUP_TEMP" == "true" ]]; then
+  echo ""
+  echo "Cleaning up temporary extraction directory..."
+  rm -rf "$TEMP_DIR"
+fi
+
+# -------------------------------------------------------------------------
+# Prompt to restart service if we shut it down
+if [[ ! -z $service_shutdown ]];
+then
+  read -r -p "Start $PROJECT_NAME service? (y/[n]/?)"
+  if [[ "$REPLY" == "y" ]];
+  then
+    docker compose -p $PROJECT_NAME start
+  fi
+fi
+
+echo ""
 echo "Restore complete!"
