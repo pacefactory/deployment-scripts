@@ -76,28 +76,6 @@ do
   docker rm ${name}_data
 done
 
-# # -------------------------------------------------------------------------
-# # Create a single archive
-# echo ""
-# echo "Individual volume backups complete!"
-# echo "Creating overall archive..."
-
-# pushd .
-# cd $output_folder_path
-# tar -czvf ../$export_archive_name .
-# popd
-
-# echo "Archive created @ '$output_archive_path'"
-
-
-# # -------------------------------------------------------------------------
-# # Prompt to remove the single volume archives
-# read -p "Remove the single volume backups? ([Y]/n) " user_response
-# case "$user_response" in
-#   n|N ) echo "  --> Will leave single volume backups in place." ;;
-#   * ) echo "  --> Will remove single volume archives." ; rm -r $output_folder_path ;;
-# esac
-
 # -------------------------------------------------------------------------
 # Prompt to restart service if we shut it down
 if [[ ! -z $service_shutdown ]];

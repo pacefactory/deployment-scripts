@@ -14,5 +14,9 @@
   {
     "name": "auditgui",
     "volume_suffix": "_webgui-data"
+  },
+  {
+    "name": "social_video",
+    "volume_suffix": "_social_video_server-data"
   }
 ]
