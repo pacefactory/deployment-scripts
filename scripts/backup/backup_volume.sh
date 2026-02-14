@@ -3,6 +3,7 @@
 # -------------------------------------------------------------------------
 ## Project name
 PROJECT_NAME=$1
+BACKUPS_ROOT=$2
 
 echo ""
 if [[ -z $PROJECT_NAME ]];
@@ -24,7 +25,7 @@ echo "Project name: '$PROJECT_NAME'"
 export_name="volume_backup-$(date +"%Y-%m-%dT%H_%M_%S")"
 export_archive_name="$export_name.tar.gz"
 
-backups_path="$HOME/scv2_backups"
+backups_path="${BACKUPS_ROOT:-$HOME/scv2_backups}"
 output_folder_path="$backups_path/$export_name"
 output_archive_path="$backups_path/$export_archive_name"
 
@@ -63,17 +64,20 @@ do
     if [[ "$REPLY" == "y" ]];
     then
       echo "  --> Will backup dbserver images!"
-      docker run --name ${name}_data -v ${volume}:/data:ro ubuntu tar czf /tmp/${name}.tar.gz data
+      docker run --rm -v ${volume}:/data:ro ubuntu tar czf - data > "$output_folder_path/${name}.tar.gz"
     else
       echo "  --> Will NOT backup dbserver images!"
-      docker run --name ${name}_data -v ${volume}:/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf /tmp/dbserver.tar.gz -T -'
+      docker run --rm -v ${volume}:/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$output_folder_path/${name}.tar.gz"
     fi
   else
-    docker run --name ${name}_data -v ${volume}:/data:ro ubuntu tar czf /tmp/${name}.tar.gz data
+    docker run --rm -v ${volume}:/data:ro ubuntu tar czf - data > "$output_folder_path/${name}.tar.gz"
   fi
 
-  docker cp ${name}_data:/tmp/${name}.tar.gz $output_folder_path/
-  docker rm ${name}_data
+  if [[ $? -ne 0 ]]; then
+    echo "ERROR: Backup of $name failed!"
+    rm -f "$output_folder_path/${name}.tar.gz"
+    continue
+  fi
 done
 
 # -------------------------------------------------------------------------
