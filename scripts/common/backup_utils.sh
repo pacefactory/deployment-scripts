@@ -98,11 +98,17 @@ human_readable() {
 check_ssh_connectivity() {
   local remote="$1"
   echo "Checking SSH connectivity to $remote..."
-  if ssh -o ConnectTimeout=5 -o BatchMode=yes "$remote" "echo ok" &>/dev/null; then
+  echo "  (you may be prompted for a password)"
+  if ssh -o ConnectTimeout=10 "$remote" "echo ok"; then
     echo "  --> SSH connection OK"
+    echo ""
+    echo "  NOTE: If using password auth, you will be prompted for each volume."
+    echo "  To avoid repeated prompts, consider setting up SSH key-based auth:"
+    echo "    ssh-copy-id $remote"
     return 0
   else
     echo "  --> ERROR: Cannot connect to $remote via SSH"
+    echo "  Verify the hostname, username, and that the remote is reachable."
     return 1
   fi
 }
