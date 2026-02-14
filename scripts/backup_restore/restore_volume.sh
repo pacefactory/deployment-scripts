@@ -10,7 +10,6 @@ source "$SCRIPT_DIR/../common/backup_utils.sh"
 usage() {
   cat <<'USAGE'
 Usage: restore_volume.sh [OPTIONS]
-       restore_volume.sh [BACKUP_INPUT] [PROJECT_NAME]   (legacy positional args)
 
 Restore Docker volumes from backup.
 
@@ -23,7 +22,7 @@ Options:
   -h, --help              Show this help message
 
 Modes:
-  local   Restore from local folder or archive. (Default, original behavior)
+  local   Restore from local folder or archive. (Default)
   ssh     Pull backup files directly from remote server via SSH into volumes.
 
 Examples:
@@ -42,25 +41,17 @@ PROJECT_NAME=""
 REMOTE_SPEC=""
 REMOTE_PATH=""
 
-# Backward compat: detect old positional usage (first arg not starting with -)
-if [[ $# -ge 1 && "$1" != -* ]]; then
-  BACKUP_INPUT="$1"
-  # Replace tilde if given
-  BACKUP_INPUT="${BACKUP_INPUT/#~/$HOME}"
-  [[ $# -ge 2 && "$2" != -* ]] && PROJECT_NAME="$2"
-else
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      -i|--input)       BACKUP_INPUT="$2"; BACKUP_INPUT="${BACKUP_INPUT/#~/$HOME}"; shift 2 ;;
-      -n|--name)        PROJECT_NAME="$2"; shift 2 ;;
-      -m|--mode)        MODE="$2"; shift 2 ;;
-      -r|--remote)      REMOTE_SPEC="$2"; shift 2 ;;
-      -p|--remote-path) REMOTE_PATH="$2"; shift 2 ;;
-      -h|--help)        usage; exit 0 ;;
-      *) echo "Unknown option: $1"; usage; exit 1 ;;
-    esac
-  done
-fi
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -i|--input)       BACKUP_INPUT="$2"; BACKUP_INPUT="${BACKUP_INPUT/#~/$HOME}"; shift 2 ;;
+    -n|--name)        PROJECT_NAME="$2"; shift 2 ;;
+    -m|--mode)        MODE="$2"; shift 2 ;;
+    -r|--remote)      REMOTE_SPEC="$2"; shift 2 ;;
+    -p|--remote-path) REMOTE_PATH="$2"; shift 2 ;;
+    -h|--help)        usage; exit 0 ;;
+    *) echo "Unknown option: $1"; usage; exit 1 ;;
+  esac
+done
 
 # Validate mode
 case "$MODE" in

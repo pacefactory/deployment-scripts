@@ -5,17 +5,17 @@ set -o pipefail
 # MIGRATION WORKFLOWS
 #
 # Same network (zero local disk on old server):
-#   Old: ./scripts/backup/backup_volume.sh --mode ssh -r user@newserver
-#   New: ./scripts/restore/restore_volume.sh -i ~/scv2_backups/...
+#   Old: ./scripts/backup_restore/backup_volume.sh --mode ssh -r user@newserver
+#   New: ./scripts/backup_restore/restore_volume.sh -i ~/scv2_backups/...
 #
 # Same network (new server pulls, zero disk on new server):
-#   Old: ./scripts/backup/backup_volume.sh
-#   New: ./scripts/restore/restore_volume.sh --mode ssh -r user@oldserver -p /path/to/backup
+#   Old: ./scripts/backup_restore/backup_volume.sh
+#   New: ./scripts/backup_restore/restore_volume.sh --mode ssh -r user@oldserver -p /path/to/backup
 #
 # Not on same network:
-#   Old: ./scripts/backup/backup_volume.sh --mode sequential
+#   Old: ./scripts/backup_restore/backup_volume.sh --mode sequential
 #   (transfer each file via USB/cloud when prompted)
-#   New: ./scripts/restore/restore_volume.sh -i /path/where/files/were/placed
+#   New: ./scripts/backup_restore/restore_volume.sh -i /path/where/files/were/placed
 # =========================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -27,7 +27,6 @@ source "$SCRIPT_DIR/../common/backup_utils.sh"
 usage() {
   cat <<'USAGE'
 Usage: backup_volume.sh [OPTIONS]
-       backup_volume.sh [PROJECT_NAME] [BACKUPS_ROOT]   (legacy positional args)
 
 Backup Docker volumes to tar.gz archives.
 
@@ -42,7 +41,7 @@ Options:
   -h, --help              Show this help message
 
 Modes:
-  local        Back up all volumes to local folder. (Default, original behavior)
+  local        Back up all volumes to local folder. (Default)
   ssh          Stream each volume directly to remote via SSH. Zero local disk usage.
   sequential   Back up one volume at a time, prompt to transfer, delete before next.
 USAGE
@@ -59,25 +58,19 @@ CHECK_ONLY=""
 PROJECT_NAME=""
 BACKUPS_ROOT=""
 
-# Backward compat: detect old positional usage (first arg not starting with -)
-if [[ $# -ge 1 && "$1" != -* ]]; then
-  PROJECT_NAME="$1"
-  [[ $# -ge 2 && "$2" != -* ]] && BACKUPS_ROOT="$2"
-else
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      -n|--name)        PROJECT_NAME="$2"; shift 2 ;;
-      -o|--output)      BACKUPS_ROOT="$2"; shift 2 ;;
-      -m|--mode)        MODE="$2"; shift 2 ;;
-      -r|--remote)      REMOTE_SPEC="$2"; shift 2 ;;
-      -p|--remote-path) REMOTE_PATH="$2"; shift 2 ;;
-      --no-images)      SKIP_IMAGES=true; shift ;;
-      --check-only)     CHECK_ONLY=true; shift ;;
-      -h|--help)        usage; exit 0 ;;
-      *) echo "Unknown option: $1"; usage; exit 1 ;;
-    esac
-  done
-fi
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -n|--name)        PROJECT_NAME="$2"; shift 2 ;;
+    -o|--output)      BACKUPS_ROOT="$2"; shift 2 ;;
+    -m|--mode)        MODE="$2"; shift 2 ;;
+    -r|--remote)      REMOTE_SPEC="$2"; shift 2 ;;
+    -p|--remote-path) REMOTE_PATH="$2"; shift 2 ;;
+    --no-images)      SKIP_IMAGES=true; shift ;;
+    --check-only)     CHECK_ONLY=true; shift ;;
+    -h|--help)        usage; exit 0 ;;
+    *) echo "Unknown option: $1"; usage; exit 1 ;;
+  esac
+done
 
 # Validate mode
 case "$MODE" in

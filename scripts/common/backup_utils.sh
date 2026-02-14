@@ -6,7 +6,7 @@
 
 # Locate volumes.json relative to this file
 _UTILS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VOLUMES_JSON="$_UTILS_DIR/../backup/volumes.json"
+VOLUMES_JSON="$_UTILS_DIR/../backup_restore/volumes.json"
 
 # Source prompts if not already loaded
 if ! declare -f yn_prompt &>/dev/null; then
