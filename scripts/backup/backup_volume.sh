@@ -3,6 +3,7 @@
 # -------------------------------------------------------------------------
 ## Project name
 PROJECT_NAME=$1
+BACKUPS_ROOT=$2
 
 echo ""
 if [[ -z $PROJECT_NAME ]];
@@ -24,7 +25,7 @@ echo "Project name: '$PROJECT_NAME'"
 export_name="volume_backup-$(date +"%Y-%m-%dT%H_%M_%S")"
 export_archive_name="$export_name.tar.gz"
 
-backups_path="$HOME/scv2_backups"
+backups_path="${BACKUPS_ROOT:-$HOME/scv2_backups}"
 output_folder_path="$backups_path/$export_name"
 output_archive_path="$backups_path/$export_archive_name"
 
