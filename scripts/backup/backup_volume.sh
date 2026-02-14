@@ -63,17 +63,20 @@ do
     if [[ "$REPLY" == "y" ]];
     then
       echo "  --> Will backup dbserver images!"
-      docker run --name ${name}_data -v ${volume}:/data:ro ubuntu tar czf /tmp/${name}.tar.gz data
+      docker run --rm -v ${volume}:/data:ro ubuntu tar czf - data > "$output_folder_path/${name}.tar.gz"
     else
       echo "  --> Will NOT backup dbserver images!"
-      docker run --name ${name}_data -v ${volume}:/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf /tmp/dbserver.tar.gz -T -'
+      docker run --rm -v ${volume}:/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$output_folder_path/${name}.tar.gz"
     fi
   else
-    docker run --name ${name}_data -v ${volume}:/data:ro ubuntu tar czf /tmp/${name}.tar.gz data
+    docker run --rm -v ${volume}:/data:ro ubuntu tar czf - data > "$output_folder_path/${name}.tar.gz"
   fi
 
-  docker cp ${name}_data:/tmp/${name}.tar.gz $output_folder_path/
-  docker rm ${name}_data
+  if [[ $? -ne 0 ]]; then
+    echo "ERROR: Backup of $name failed!"
+    rm -f "$output_folder_path/${name}.tar.gz"
+    continue
+  fi
 done
 
 # -------------------------------------------------------------------------
