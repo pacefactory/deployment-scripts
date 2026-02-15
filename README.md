@@ -154,9 +154,10 @@ All backup/restore scripts are located in `scripts/backup_restore/`. The volume 
 |--------|-------------|
 | `-n, --name NAME` | Project name (default: auto-detect) |
 | `-o, --output DIR` | Local backup output directory (default: `~/scv2_backups`) |
-| `-m, --mode MODE` | Backup mode: `local`, `ssh`, `sequential` |
-| `-r, --remote USER@HOST` | Remote destination for `ssh`/`sequential` mode |
+| `-m, --mode MODE` | Backup mode: `local`, `ssh`, `sequential`, `direct` |
+| `-r, --remote USER@HOST` | Remote destination for `ssh`/`sequential`/`direct` mode |
 | `-p, --remote-path PATH` | Remote path (default: `~/scv2_backups/<timestamp>`) |
+| `--remote-name NAME` | Project name on the remote server (for `direct` mode; defaults to local project name) |
 | `--no-images` | Skip `.jpg` files from dbserver (non-interactive) |
 | `--check-only` | Run disk space pre-flight check and exit |
 | `-h, --help` | Show help |
@@ -166,6 +167,7 @@ All backup/restore scripts are located in `scripts/backup_restore/`. The volume 
 - **`local`** (default) -- Back up all volumes to a local folder. Runs a disk space pre-flight check and warns if space is tight.
 - **`ssh`** -- Stream each volume directly to a remote server via SSH. Uses **zero local disk space**. Requires the old and new servers to be on the same network.
 - **`sequential`** -- Back up one volume at a time, prompt to transfer it, then delete the local copy before backing up the next. Max disk usage = the single largest compressed volume. Works in any network situation.
+- **`direct`** -- Stream volumes directly from old server Docker volumes into new server Docker volumes via SSH. Uses **zero disk space on both servers** (no intermediate `.tar.gz` files). Run from the old server; requires SSH access to the new server with Docker installed. Supports `--remote-name` if project names differ across servers.
 
 ### Restore
 
@@ -218,6 +220,18 @@ This prints a table of volume sizes vs. available disk space and recommends `--m
 # On new server: pull directly from old server
 ./scripts/backup_restore/restore_volume.sh --mode ssh -r user@oldserver -p /path/to/backup
 ```
+
+**Same network (zero disk on both servers, direct volume-to-volume):**
+
+```bash
+# On old server: stream directly into Docker volumes on new server
+./scripts/backup_restore/backup_volume.sh --mode direct -r user@newserver
+
+# If the project name differs on the new server:
+./scripts/backup_restore/backup_volume.sh --mode direct -r user@newserver --remote-name newproject
+```
+
+No restore step needed -- data goes directly into Docker volumes on the new server.
 
 **Servers not on the same network:**
 

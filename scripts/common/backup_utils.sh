@@ -29,6 +29,27 @@ ensure_docker_image() {
 }
 
 # -------------------------------------------------------------------------
+# ensure_remote_docker_image REMOTE_SPEC IMAGE
+#   Pulls a Docker image on the remote server if not already available.
+#   Must be called before any piped commands that run docker on the remote,
+#   otherwise a pull during a pipe will stall and cause broken pipe errors.
+# -------------------------------------------------------------------------
+ensure_remote_docker_image() {
+  local remote="$1"
+  local image="$2"
+  echo "Checking Docker image '$image' on remote ($remote)..."
+  if ssh "$remote" "docker image inspect '$image' &>/dev/null"; then
+    echo "  --> Image '$image' already available on remote"
+  else
+    echo "  --> Pulling '$image' on remote..."
+    if ! ssh "$remote" "docker pull '$image'"; then
+      echo "  --> ERROR: Failed to pull '$image' on remote"
+      return 1
+    fi
+  fi
+}
+
+# -------------------------------------------------------------------------
 # stop_services PROJECT_NAME
 #   Stops docker compose services if running. Sets service_shutdown=true.
 # -------------------------------------------------------------------------
@@ -45,6 +66,24 @@ stop_services() {
 }
 
 # -------------------------------------------------------------------------
+# stop_remote_services REMOTE_SPEC PROJECT_NAME
+#   Stops docker compose services on a remote server via SSH.
+#   Sets remote_service_shutdown=true if services were stopped.
+#   Does not fail if no services are running.
+# -------------------------------------------------------------------------
+stop_remote_services() {
+  local remote="$1"
+  local project="$2"
+  local running_service
+  running_service=$(ssh "$remote" "docker compose ls --filter name='$project' --quiet" 2>/dev/null)
+  if [[ -n "$running_service" ]]; then
+    echo "Remote project '$project' is running on $remote, stopping..."
+    ssh "$remote" "docker compose -p '$project' stop --timeout 600"
+    remote_service_shutdown=true
+  fi
+}
+
+# -------------------------------------------------------------------------
 # prompt_restart_services PROJECT_NAME
 #   Prompts to restart services if they were shut down.
 # -------------------------------------------------------------------------
@@ -54,6 +93,21 @@ prompt_restart_services() {
     read -r -p "Start $project service? (y/[n])? "
     if [[ "$REPLY" == "y" ]]; then
       docker compose -p "$project" start
+    fi
+  fi
+}
+
+# -------------------------------------------------------------------------
+# prompt_restart_remote_services REMOTE_SPEC PROJECT_NAME
+#   Prompts to restart services on a remote server if they were shut down.
+# -------------------------------------------------------------------------
+prompt_restart_remote_services() {
+  local remote="$1"
+  local project="$2"
+  if [[ -n "$remote_service_shutdown" ]]; then
+    read -r -p "Start remote $project service on $remote? (y/[n])? "
+    if [[ "$REPLY" == "y" ]]; then
+      ssh "$remote" "docker compose -p '$project' start"
     fi
   fi
 }

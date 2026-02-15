@@ -12,6 +12,10 @@ set -o pipefail
 #   Old: ./scripts/backup_restore/backup_volume.sh
 #   New: ./scripts/backup_restore/restore_volume.sh --mode ssh -r user@oldserver -p /path/to/backup
 #
+# Direct transfer (zero disk on BOTH servers, single command):
+#   Old: ./scripts/backup_restore/backup_volume.sh --mode direct -r user@newserver
+#   (optionally: --remote-name NEWPROJECT if project names differ)
+#
 # Not on same network:
 #   Old: ./scripts/backup_restore/backup_volume.sh --mode sequential
 #   (transfer each file via USB/cloud when prompted)
@@ -33,9 +37,10 @@ Backup Docker volumes to tar.gz archives.
 Options:
   -n, --name NAME         Project name (default: auto-detect)
   -o, --output DIR        Local backup output directory (default: ~/scv2_backups)
-  -m, --mode MODE         Backup mode: local (default), ssh, sequential
-  -r, --remote USER@HOST  Remote destination for ssh/sequential mode
+  -m, --mode MODE         Backup mode: local (default), ssh, sequential, direct
+  -r, --remote USER@HOST  Remote destination for ssh/sequential/direct mode
   -p, --remote-path PATH  Remote path for ssh mode (default: ~/scv2_backups/<timestamp>)
+      --remote-name NAME  Project name on remote server (for direct mode; default: local name)
       --no-images         Skip .jpg files from dbserver (non-interactive)
       --check-only        Run disk space pre-flight check and exit
   -h, --help              Show this help message
@@ -44,6 +49,8 @@ Modes:
   local        Back up all volumes to local folder. (Default)
   ssh          Stream each volume directly to remote via SSH. Zero local disk usage.
   sequential   Back up one volume at a time, prompt to transfer, delete before next.
+  direct       Stream volumes directly into Docker volumes on remote via SSH.
+               Zero disk on both servers. Run from the OLD server.
 USAGE
 }
 
@@ -56,6 +63,7 @@ REMOTE_PATH=""
 SKIP_IMAGES=""
 CHECK_ONLY=""
 PROJECT_NAME=""
+REMOTE_PROJECT=""
 BACKUPS_ROOT=""
 
 while [[ $# -gt 0 ]]; do
@@ -65,6 +73,7 @@ while [[ $# -gt 0 ]]; do
     -m|--mode)        MODE="$2"; shift 2 ;;
     -r|--remote)      REMOTE_SPEC="$2"; shift 2 ;;
     -p|--remote-path) REMOTE_PATH="$2"; shift 2 ;;
+    --remote-name)    REMOTE_PROJECT="$2"; shift 2 ;;
     --no-images)      SKIP_IMAGES=true; shift ;;
     --check-only)     CHECK_ONLY=true; shift ;;
     -h|--help)        usage; exit 0 ;;
@@ -74,12 +83,17 @@ done
 
 # Validate mode
 case "$MODE" in
-  local|ssh|sequential) ;;
-  *) echo "Error: Unknown mode '$MODE'. Use: local, ssh, sequential"; exit 1 ;;
+  local|ssh|sequential|direct) ;;
+  *) echo "Error: Unknown mode '$MODE'. Use: local, ssh, sequential, direct"; exit 1 ;;
 esac
 
 if [[ "$MODE" == "ssh" && -z "$REMOTE_SPEC" ]]; then
   echo "Error: --remote is required for ssh mode"
+  exit 1
+fi
+
+if [[ "$MODE" == "direct" && -z "$REMOTE_SPEC" ]]; then
+  echo "Error: --remote is required for direct mode"
   exit 1
 fi
 
@@ -88,6 +102,11 @@ fi
 # -------------------------------------------------------------------------
 echo ""
 prompt_project_name
+
+# For direct mode, default remote project name to local project name
+if [[ "$MODE" == "direct" && -z "$REMOTE_PROJECT" ]]; then
+  REMOTE_PROJECT="$PROJECT_NAME"
+fi
 
 # -------------------------------------------------------------------------
 # Pathing
@@ -376,9 +395,86 @@ elif [[ "$MODE" == "sequential" ]]; then
   echo ""
   echo "Sequential backup complete."
 
+# =========================================================================
+# MODE: direct (stream directly into remote Docker volumes, zero disk both)
+# =========================================================================
+elif [[ "$MODE" == "direct" ]]; then
+
+  check_ssh_connectivity "$REMOTE_SPEC" || exit 1
+
+  echo ""
+  echo "Direct transfer mode: streaming volumes into Docker volumes on $REMOTE_SPEC"
+  echo "  Local project:  $PROJECT_NAME"
+  echo "  Remote project: $REMOTE_PROJECT"
+
+  # Pre-pull ubuntu on remote so piped docker run won't stall
+  ensure_remote_docker_image "$REMOTE_SPEC" "ubuntu" || exit 1
+
+  # Stop remote services (OK if not running)
+  stop_remote_services "$REMOTE_SPEC" "$REMOTE_PROJECT"
+
+  backed_up_any=false
+  for name in $(jq '.[].name' -r "$VOLUMES_JSON"); do
+    local_volume=$(get_volume_name "$PROJECT_NAME" "$name")
+
+    if ! volume_exists "$local_volume"; then
+      echo "Skipping $name (local volume '$local_volume' does not exist)"
+      continue
+    fi
+
+    # Resolve remote volume name (same suffix, potentially different project prefix)
+    remote_volume=$(get_volume_name "$REMOTE_PROJECT" "$name")
+
+    echo "Transferring $name: $local_volume --> ${REMOTE_SPEC} $remote_volume"
+    backed_up_any=true
+
+    if [[ "$name" == "dbserver" ]]; then
+      if [[ "$SKIP_IMAGES" == "true" ]]; then
+        echo "  --> Excluding dbserver images (--no-images)"
+        docker run --rm -v "${local_volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
+          | ssh "$REMOTE_SPEC" "docker run --rm -i -v '${remote_volume}':/data ubuntu tar xzf - -C /"
+      else
+        read -p "Backup images from dbserver? (y/[N])"
+        if [[ "$REPLY" == "y" ]]; then
+          echo "  --> Will transfer dbserver images!"
+          docker run --rm -v "${local_volume}":/data:ro ubuntu tar czf - data \
+            | ssh "$REMOTE_SPEC" "docker run --rm -i -v '${remote_volume}':/data ubuntu tar xzf - -C /"
+        else
+          echo "  --> Will NOT transfer dbserver images!"
+          docker run --rm -v "${local_volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
+            | ssh "$REMOTE_SPEC" "docker run --rm -i -v '${remote_volume}':/data ubuntu tar xzf - -C /"
+        fi
+      fi
+    else
+      docker run --rm -v "${local_volume}":/data:ro ubuntu tar czf - data \
+        | ssh "$REMOTE_SPEC" "docker run --rm -i -v '${remote_volume}':/data ubuntu tar xzf - -C /"
+    fi
+
+    if [[ $? -ne 0 ]]; then
+      echo "ERROR: Direct transfer of $name failed!"
+      continue
+    fi
+
+    echo "  --> $name transferred successfully"
+  done
+
+  if [[ "$backed_up_any" == "false" ]]; then
+    echo ""
+    echo "ERROR: No volumes were available to transfer."
+    exit 1
+  fi
+
+  echo ""
+  echo "Direct transfer complete."
+
 fi
 
 # -------------------------------------------------------------------------
 # Prompt to restart service if we shut it down
 # -------------------------------------------------------------------------
 prompt_restart_services "$PROJECT_NAME"
+
+# For direct mode, also prompt to restart remote services
+if [[ "$MODE" == "direct" ]]; then
+  prompt_restart_remote_services "$REMOTE_SPEC" "$REMOTE_PROJECT"
+fi
