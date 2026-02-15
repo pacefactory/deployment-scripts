@@ -137,7 +137,7 @@ fi
 stop_services "$PROJECT_NAME"
 
 # =========================================================================
-# MODE: local (original behavior)
+# MODE: local
 # =========================================================================
 if [[ "$MODE" == "local" ]]; then
 
@@ -145,9 +145,17 @@ if [[ "$MODE" == "local" ]]; then
   echo "Creating directory $output_folder_path"
   mkdir -p "$output_folder_path"
 
+  backed_up_any=false
   for name in $(jq '.[].name' -r "$VOLUMES_JSON"); do
-    echo "Backing up $name"
     volume=$(get_volume_name "$PROJECT_NAME" "$name")
+
+    if ! volume_exists "$volume"; then
+      echo "Skipping $name (volume '$volume' does not exist)"
+      continue
+    fi
+
+    echo "Backing up $name"
+    backed_up_any=true
 
     if [[ "$name" == "dbserver" ]]; then
       if [[ "$SKIP_IMAGES" == "true" ]]; then
@@ -174,6 +182,12 @@ if [[ "$MODE" == "local" ]]; then
     fi
   done
 
+  if [[ "$backed_up_any" == "false" ]]; then
+    echo ""
+    echo "ERROR: No volumes were available to back up."
+    exit 1
+  fi
+
   echo ""
   echo "Backup complete: $output_folder_path"
 
@@ -191,9 +205,17 @@ elif [[ "$MODE" == "ssh" ]]; then
   # Copy volumes.json to remote for reference during restore
   scp -q "$VOLUMES_JSON" "${REMOTE_SPEC}:${REMOTE_PATH}/volumes.json"
 
+  backed_up_any=false
   for name in $(jq '.[].name' -r "$VOLUMES_JSON"); do
-    echo "Streaming $name to ${REMOTE_SPEC}:${REMOTE_PATH}/${name}.tar.gz"
     volume=$(get_volume_name "$PROJECT_NAME" "$name")
+
+    if ! volume_exists "$volume"; then
+      echo "Skipping $name (volume '$volume' does not exist)"
+      continue
+    fi
+
+    echo "Streaming $name to ${REMOTE_SPEC}:${REMOTE_PATH}/${name}.tar.gz"
+    backed_up_any=true
 
     if [[ "$name" == "dbserver" ]]; then
       if [[ "$SKIP_IMAGES" == "true" ]]; then
@@ -227,6 +249,12 @@ elif [[ "$MODE" == "ssh" ]]; then
     echo "  --> $name streamed successfully"
   done
 
+  if [[ "$backed_up_any" == "false" ]]; then
+    echo ""
+    echo "ERROR: No volumes were available to back up."
+    exit 1
+  fi
+
   echo ""
   echo "SSH backup complete: ${REMOTE_SPEC}:${REMOTE_PATH}"
 
@@ -239,12 +267,20 @@ elif [[ "$MODE" == "sequential" ]]; then
   echo "Creating directory $output_folder_path"
   mkdir -p "$output_folder_path"
 
+  backed_up_any=false
   for name in $(jq '.[].name' -r "$VOLUMES_JSON"); do
     volume=$(get_volume_name "$PROJECT_NAME" "$name")
     local_file="$output_folder_path/${name}.tar.gz"
 
+    if ! volume_exists "$volume"; then
+      echo ""
+      echo "Skipping $name (volume '$volume' does not exist)"
+      continue
+    fi
+
     echo ""
     echo "=== Backing up: $name ==="
+    backed_up_any=true
 
     # Per-volume disk space check
     vol_size=$(get_volume_size_bytes "$volume")
@@ -322,6 +358,12 @@ elif [[ "$MODE" == "sequential" ]]; then
     scp -q "$VOLUMES_JSON" "${REMOTE_SPEC}:${remote_dest}/volumes.json"
   else
     cp "$VOLUMES_JSON" "$output_folder_path/volumes.json" 2>/dev/null
+  fi
+
+  if [[ "$backed_up_any" == "false" ]]; then
+    echo ""
+    echo "ERROR: No volumes were available to back up."
+    exit 1
   fi
 
   echo ""

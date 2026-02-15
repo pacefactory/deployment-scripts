@@ -55,6 +55,15 @@ get_volume_name() {
 }
 
 # -------------------------------------------------------------------------
+# volume_exists VOLUME_NAME
+#   Returns 0 if the Docker volume exists, 1 otherwise.
+# -------------------------------------------------------------------------
+volume_exists() {
+  local volume="$1"
+  docker volume inspect "$volume" &>/dev/null
+}
+
+# -------------------------------------------------------------------------
 # get_volume_size_bytes VOLUME_NAME
 #   Returns raw byte count of a Docker volume's contents.
 # -------------------------------------------------------------------------
