@@ -14,6 +14,21 @@ if ! declare -f yn_prompt &>/dev/null; then
 fi
 
 # -------------------------------------------------------------------------
+# ensure_docker_image IMAGE
+#   Pulls a Docker image if not already available locally.
+#   Must be called before any piped docker run commands, otherwise a
+#   pull during a pipe (e.g. docker run ... | ssh ...) will stall the
+#   receiving end and cause broken pipe / connection reset errors.
+# -------------------------------------------------------------------------
+ensure_docker_image() {
+  local image="$1"
+  if ! docker image inspect "$image" &>/dev/null; then
+    echo "Pulling Docker image '$image'..."
+    docker pull "$image"
+  fi
+}
+
+# -------------------------------------------------------------------------
 # stop_services PROJECT_NAME
 #   Stops docker compose services if running. Sets service_shutdown=true.
 # -------------------------------------------------------------------------

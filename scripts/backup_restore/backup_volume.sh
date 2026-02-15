@@ -136,6 +136,13 @@ fi
 # -------------------------------------------------------------------------
 stop_services "$PROJECT_NAME"
 
+# -------------------------------------------------------------------------
+# Pre-pull the Docker image so it's cached before any piped commands.
+# Without this, a pull during 'docker run ... | ssh ...' would stall
+# the SSH side (no data flowing) and cause broken pipe errors.
+# -------------------------------------------------------------------------
+ensure_docker_image "ubuntu"
+
 # =========================================================================
 # MODE: local
 # =========================================================================
