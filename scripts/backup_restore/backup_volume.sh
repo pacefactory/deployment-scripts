@@ -186,19 +186,19 @@ if [[ "$MODE" == "local" ]]; then
     if [[ "$name" == "dbserver" ]]; then
       if [[ "$SKIP_IMAGES" == "true" ]]; then
         echo "  --> Will NOT backup dbserver images (--no-images)"
-        docker run --rm -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$output_folder_path/${name}.tar.gz"
+        docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$output_folder_path/${name}.tar.gz"
       else
         read -p "Backup images from dbserver? (y/[N])"
         if [[ "$REPLY" == "y" ]]; then
           echo "  --> Will backup dbserver images!"
-          docker run --rm -v "${volume}":/data:ro ubuntu tar czf - data > "$output_folder_path/${name}.tar.gz"
+          docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu tar czf - data > "$output_folder_path/${name}.tar.gz"
         else
           echo "  --> Will NOT backup dbserver images!"
-          docker run --rm -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$output_folder_path/${name}.tar.gz"
+          docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$output_folder_path/${name}.tar.gz"
         fi
       fi
     else
-      docker run --rm -v "${volume}":/data:ro ubuntu tar czf - data > "$output_folder_path/${name}.tar.gz"
+      docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu tar czf - data > "$output_folder_path/${name}.tar.gz"
     fi
 
     if [[ $? -ne 0 ]]; then
@@ -246,22 +246,22 @@ elif [[ "$MODE" == "ssh" ]]; then
     if [[ "$name" == "dbserver" ]]; then
       if [[ "$SKIP_IMAGES" == "true" ]]; then
         echo "  --> Excluding dbserver images (--no-images)"
-        docker run --rm -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
+        docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
           | ssh "$REMOTE_SPEC" "cat > ${REMOTE_PATH}/${name}.tar.gz"
       else
         read -p "Backup images from dbserver? (y/[N])"
         if [[ "$REPLY" == "y" ]]; then
           echo "  --> Will backup dbserver images!"
-          docker run --rm -v "${volume}":/data:ro ubuntu tar czf - data \
+          docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu tar czf - data \
             | ssh "$REMOTE_SPEC" "cat > ${REMOTE_PATH}/${name}.tar.gz"
         else
           echo "  --> Will NOT backup dbserver images!"
-          docker run --rm -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
+          docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
             | ssh "$REMOTE_SPEC" "cat > ${REMOTE_PATH}/${name}.tar.gz"
         fi
       fi
     else
-      docker run --rm -v "${volume}":/data:ro ubuntu tar czf - data \
+      docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu tar czf - data \
         | ssh "$REMOTE_SPEC" "cat > ${REMOTE_PATH}/${name}.tar.gz"
     fi
 
@@ -329,19 +329,19 @@ elif [[ "$MODE" == "sequential" ]]; then
     if [[ "$name" == "dbserver" ]]; then
       if [[ "$SKIP_IMAGES" == "true" ]]; then
         echo "  --> Excluding dbserver images (--no-images)"
-        docker run --rm -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$local_file"
+        docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$local_file"
       else
         read -p "Backup images from dbserver? (y/[N])"
         if [[ "$REPLY" == "y" ]]; then
           echo "  --> Will backup dbserver images!"
-          docker run --rm -v "${volume}":/data:ro ubuntu tar czf - data > "$local_file"
+          docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu tar czf - data > "$local_file"
         else
           echo "  --> Will NOT backup dbserver images!"
-          docker run --rm -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$local_file"
+          docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$local_file"
         fi
       fi
     else
-      docker run --rm -v "${volume}":/data:ro ubuntu tar czf - data > "$local_file"
+      docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu tar czf - data > "$local_file"
     fi
 
     if [[ $? -ne 0 ]]; then
@@ -431,22 +431,22 @@ elif [[ "$MODE" == "direct" ]]; then
     if [[ "$name" == "dbserver" ]]; then
       if [[ "$SKIP_IMAGES" == "true" ]]; then
         echo "  --> Excluding dbserver images (--no-images)"
-        docker run --rm -v "${local_volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
+        docker run --rm --log-driver none -v "${local_volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
           | ssh "$REMOTE_SPEC" "docker run --rm -i -v '${remote_volume}':/data ubuntu tar xzf - -C /"
       else
         read -p "Backup images from dbserver? (y/[N])"
         if [[ "$REPLY" == "y" ]]; then
           echo "  --> Will transfer dbserver images!"
-          docker run --rm -v "${local_volume}":/data:ro ubuntu tar czf - data \
+          docker run --rm --log-driver none -v "${local_volume}":/data:ro ubuntu tar czf - data \
             | ssh "$REMOTE_SPEC" "docker run --rm -i -v '${remote_volume}':/data ubuntu tar xzf - -C /"
         else
           echo "  --> Will NOT transfer dbserver images!"
-          docker run --rm -v "${local_volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
+          docker run --rm --log-driver none -v "${local_volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
             | ssh "$REMOTE_SPEC" "docker run --rm -i -v '${remote_volume}':/data ubuntu tar xzf - -C /"
         fi
       fi
     else
-      docker run --rm -v "${local_volume}":/data:ro ubuntu tar czf - data \
+      docker run --rm --log-driver none -v "${local_volume}":/data:ro ubuntu tar czf - data \
         | ssh "$REMOTE_SPEC" "docker run --rm -i -v '${remote_volume}':/data ubuntu tar xzf - -C /"
     fi
 
