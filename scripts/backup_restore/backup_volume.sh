@@ -26,6 +26,50 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../common/backup_utils.sh"
 
 # -------------------------------------------------------------------------
+# Signal handling: clean up containers and partial files on Ctrl+C
+# -------------------------------------------------------------------------
+_BACKUP_CONTAINER_PREFIX="scv2-backup-$$"
+_CURRENT_OUTPUT_FILE=""
+_CURRENT_REMOTE_FILE=""
+
+cleanup() {
+  echo ""
+  echo "Interrupted! Cleaning up..."
+
+  # Kill any backup containers we started
+  local containers
+  containers=$(docker ps --filter "name=${_BACKUP_CONTAINER_PREFIX}" -q 2>/dev/null)
+  if [[ -n "$containers" ]]; then
+    echo "Stopping backup containers..."
+    docker kill $containers &>/dev/null
+  fi
+
+  # Remove partial local file
+  if [[ -n "$_CURRENT_OUTPUT_FILE" && -f "$_CURRENT_OUTPUT_FILE" ]]; then
+    echo "Removing partial file: $_CURRENT_OUTPUT_FILE"
+    rm -f "$_CURRENT_OUTPUT_FILE"
+  fi
+
+  # Remove partial remote file
+  if [[ -n "$_CURRENT_REMOTE_FILE" && -n "$REMOTE_SPEC" ]]; then
+    echo "Removing partial remote file: $_CURRENT_REMOTE_FILE"
+    ssh "$REMOTE_SPEC" "rm -f $_CURRENT_REMOTE_FILE" 2>/dev/null
+  fi
+
+  # Tell user how to restart services if we stopped them
+  if [[ -n "$service_shutdown" || -n "$remote_service_shutdown" ]]; then
+    echo ""
+    echo "NOTE: Services were stopped before backup. To restart:"
+    [[ -n "$service_shutdown" ]] && echo "  docker compose -p $PROJECT_NAME start"
+    [[ -n "$remote_service_shutdown" ]] && echo "  ssh $REMOTE_SPEC \"docker compose -p '$REMOTE_PROJECT' start\""
+  fi
+
+  exit 130
+}
+
+trap cleanup INT TERM
+
+# -------------------------------------------------------------------------
 # Usage
 # -------------------------------------------------------------------------
 usage() {
@@ -182,30 +226,33 @@ if [[ "$MODE" == "local" ]]; then
 
     echo "Backing up $name"
     backed_up_any=true
+    _CURRENT_OUTPUT_FILE="$output_folder_path/${name}.tar.gz"
 
     if [[ "$name" == "dbserver" ]]; then
       if [[ "$SKIP_IMAGES" == "true" ]]; then
         echo "  --> Will NOT backup dbserver images (--no-images)"
-        docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$output_folder_path/${name}.tar.gz"
+        docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$output_folder_path/${name}.tar.gz"
       else
         read -p "Backup images from dbserver? (y/[N])"
         if [[ "$REPLY" == "y" ]]; then
           echo "  --> Will backup dbserver images!"
-          docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu tar czf - data > "$output_folder_path/${name}.tar.gz"
+          docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${volume}":/data:ro ubuntu tar czf - data > "$output_folder_path/${name}.tar.gz"
         else
           echo "  --> Will NOT backup dbserver images!"
-          docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$output_folder_path/${name}.tar.gz"
+          docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$output_folder_path/${name}.tar.gz"
         fi
       fi
     else
-      docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu tar czf - data > "$output_folder_path/${name}.tar.gz"
+      docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${volume}":/data:ro ubuntu tar czf - data > "$output_folder_path/${name}.tar.gz"
     fi
 
     if [[ $? -ne 0 ]]; then
       echo "ERROR: Backup of $name failed!"
       rm -f "$output_folder_path/${name}.tar.gz"
+      _CURRENT_OUTPUT_FILE=""
       continue
     fi
+    _CURRENT_OUTPUT_FILE=""
   done
 
   if [[ "$backed_up_any" == "false" ]]; then
@@ -242,26 +289,27 @@ elif [[ "$MODE" == "ssh" ]]; then
 
     echo "Streaming $name to ${REMOTE_SPEC}:${REMOTE_PATH}/${name}.tar.gz"
     backed_up_any=true
+    _CURRENT_REMOTE_FILE="${REMOTE_PATH}/${name}.tar.gz"
 
     if [[ "$name" == "dbserver" ]]; then
       if [[ "$SKIP_IMAGES" == "true" ]]; then
         echo "  --> Excluding dbserver images (--no-images)"
-        docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
+        docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
           | ssh "$REMOTE_SPEC" "cat > ${REMOTE_PATH}/${name}.tar.gz"
       else
         read -p "Backup images from dbserver? (y/[N])"
         if [[ "$REPLY" == "y" ]]; then
           echo "  --> Will backup dbserver images!"
-          docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu tar czf - data \
+          docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${volume}":/data:ro ubuntu tar czf - data \
             | ssh "$REMOTE_SPEC" "cat > ${REMOTE_PATH}/${name}.tar.gz"
         else
           echo "  --> Will NOT backup dbserver images!"
-          docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
+          docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
             | ssh "$REMOTE_SPEC" "cat > ${REMOTE_PATH}/${name}.tar.gz"
         fi
       fi
     else
-      docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu tar czf - data \
+      docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${volume}":/data:ro ubuntu tar czf - data \
         | ssh "$REMOTE_SPEC" "cat > ${REMOTE_PATH}/${name}.tar.gz"
     fi
 
@@ -269,9 +317,11 @@ elif [[ "$MODE" == "ssh" ]]; then
       echo "ERROR: Streaming backup of $name failed!"
       echo "  --> Removing partial remote file"
       ssh "$REMOTE_SPEC" "rm -f ${REMOTE_PATH}/${name}.tar.gz"
+      _CURRENT_REMOTE_FILE=""
       continue
     fi
 
+    _CURRENT_REMOTE_FILE=""
     echo "  --> $name streamed successfully"
   done
 
@@ -326,27 +376,29 @@ elif [[ "$MODE" == "sequential" ]]; then
     fi
 
     # Perform backup
+    _CURRENT_OUTPUT_FILE="$local_file"
     if [[ "$name" == "dbserver" ]]; then
       if [[ "$SKIP_IMAGES" == "true" ]]; then
         echo "  --> Excluding dbserver images (--no-images)"
-        docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$local_file"
+        docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$local_file"
       else
         read -p "Backup images from dbserver? (y/[N])"
         if [[ "$REPLY" == "y" ]]; then
           echo "  --> Will backup dbserver images!"
-          docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu tar czf - data > "$local_file"
+          docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${volume}":/data:ro ubuntu tar czf - data > "$local_file"
         else
           echo "  --> Will NOT backup dbserver images!"
-          docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$local_file"
+          docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' > "$local_file"
         fi
       fi
     else
-      docker run --rm --log-driver none -v "${volume}":/data:ro ubuntu tar czf - data > "$local_file"
+      docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${volume}":/data:ro ubuntu tar czf - data > "$local_file"
     fi
 
     if [[ $? -ne 0 ]]; then
       echo "ERROR: Backup of $name failed!"
       rm -f "$local_file"
+      _CURRENT_OUTPUT_FILE=""
       continue
     fi
 
@@ -376,6 +428,7 @@ elif [[ "$MODE" == "sequential" ]]; then
         rm -f "$local_file"
       fi
     fi
+    _CURRENT_OUTPUT_FILE=""
   done
 
   # Copy volumes.json for reference
@@ -431,22 +484,22 @@ elif [[ "$MODE" == "direct" ]]; then
     if [[ "$name" == "dbserver" ]]; then
       if [[ "$SKIP_IMAGES" == "true" ]]; then
         echo "  --> Excluding dbserver images (--no-images)"
-        docker run --rm --log-driver none -v "${local_volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
+        docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${local_volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
           | ssh "$REMOTE_SPEC" "docker run --rm -i -v '${remote_volume}':/data ubuntu tar xzf - -C /"
       else
         read -p "Backup images from dbserver? (y/[N])"
         if [[ "$REPLY" == "y" ]]; then
           echo "  --> Will transfer dbserver images!"
-          docker run --rm --log-driver none -v "${local_volume}":/data:ro ubuntu tar czf - data \
+          docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${local_volume}":/data:ro ubuntu tar czf - data \
             | ssh "$REMOTE_SPEC" "docker run --rm -i -v '${remote_volume}':/data ubuntu tar xzf - -C /"
         else
           echo "  --> Will NOT transfer dbserver images!"
-          docker run --rm --log-driver none -v "${local_volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
+          docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${local_volume}":/data:ro ubuntu /bin/bash -c 'find data -type f ! -name "*.jpg" | tar czf - -T -' \
             | ssh "$REMOTE_SPEC" "docker run --rm -i -v '${remote_volume}':/data ubuntu tar xzf - -C /"
         fi
       fi
     else
-      docker run --rm --log-driver none -v "${local_volume}":/data:ro ubuntu tar czf - data \
+      docker run --rm --log-driver none --name "${_BACKUP_CONTAINER_PREFIX}" -v "${local_volume}":/data:ro ubuntu tar czf - data \
         | ssh "$REMOTE_SPEC" "docker run --rm -i -v '${remote_volume}':/data ubuntu tar xzf - -C /"
     fi
 
