@@ -18,5 +18,21 @@
   {
     "name": "social_video",
     "volume_suffix": "_social_video_server-data"
+  },
+  {
+    "name": "nodered",
+    "volume_suffix": "_nodered-data"
+  },
+  {
+    "name": "rdb",
+    "volume_suffix": "_relational_dbserver-data"
+  },
+  {
+    "name": "ape",
+    "volume_suffix": "_ape-data"
+  },
+  {
+    "name": "ape-tsdb",
+    "volume_suffix": "_ape_timescaledb-data"
   }
 ]
