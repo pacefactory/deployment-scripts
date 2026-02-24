@@ -140,15 +140,109 @@ The platform supports tiered ghosting enforcement to control access to unghosted
 
 # Advanced usage
 
-## Backup realtime, auditgui and rdb configs
+## Backup & Restore Docker Volumes
 
-To easily backup configs from realtime, auditgui and rdb containers, you can run
+All backup/restore scripts are located in `scripts/backup_restore/`. The volume list is defined in `scripts/backup_restore/volumes.json`.
+
+### Backup
 
 ```bash
-./scripts/backup/backup_auditgui_realtime_rdb.sh
+./scripts/backup_restore/backup_volume.sh [OPTIONS]
 ```
 
-This will save backup tar files of each container's volumes in `~/scv2/backups`. The realtime backup only includes each camera's `/config` and `/resources` folder (excludes `/resources/backgrounds`)
+| Option | Description |
+|--------|-------------|
+| `-n, --name NAME` | Project name (default: auto-detect) |
+| `-o, --output DIR` | Local backup output directory (default: `~/scv2_backups`) |
+| `-m, --mode MODE` | Backup mode: `local`, `ssh`, `sequential`, `direct` |
+| `-r, --remote USER@HOST` | Remote destination for `ssh`/`sequential`/`direct` mode |
+| `-p, --remote-path PATH` | Remote path (default: `~/scv2_backups/<timestamp>`) |
+| `--remote-name NAME` | Project name on the remote server (for `direct` mode; defaults to local project name) |
+| `--no-images` | Skip `.jpg` files from dbserver (non-interactive) |
+| `--check-only` | Run disk space pre-flight check and exit |
+| `-h, --help` | Show help |
+
+**Backup modes:**
+
+- **`local`** (default) -- Back up all volumes to a local folder. Runs a disk space pre-flight check and warns if space is tight.
+- **`ssh`** -- Stream each volume directly to a remote server via SSH. Uses **zero local disk space**. Requires the old and new servers to be on the same network.
+- **`sequential`** -- Back up one volume at a time, prompt to transfer it, then delete the local copy before backing up the next. Max disk usage = the single largest compressed volume. Works in any network situation.
+- **`direct`** -- Stream volumes directly from old server Docker volumes into new server Docker volumes via SSH. Uses **zero disk space on both servers** (no intermediate `.tar.gz` files). Run from the old server; requires SSH access to the new server with Docker installed. Supports `--remote-name` if project names differ across servers.
+
+### Restore
+
+```bash
+./scripts/backup_restore/restore_volume.sh [OPTIONS]
+```
+
+| Option | Description |
+|--------|-------------|
+| `-i, --input PATH` | Path to backup folder or `.tar.gz` archive |
+| `-n, --name NAME` | Project name (default: auto-detect) |
+| `-m, --mode MODE` | Restore mode: `local`, `ssh` |
+| `-r, --remote USER@HOST` | Remote source (the old server, for `ssh` mode) |
+| `-p, --remote-path PATH` | Remote path containing backup files |
+| `-h, --help` | Show help |
+
+**Restore modes:**
+
+- **`local`** (default) -- Restore from a local backup folder or `.tar.gz` archive.
+- **`ssh`** -- Pull backup files directly from a remote server via SSH into Docker volumes. Uses **zero local archive storage**.
+
+### Pre-flight disk check
+
+Before starting a migration, check whether the server has enough space for a local backup:
+
+```bash
+./scripts/backup_restore/backup_volume.sh --check-only
+```
+
+This prints a table of volume sizes vs. available disk space and recommends `--mode ssh` or `--mode sequential` if space is insufficient.
+
+### Migration workflows
+
+**Same network (zero disk usage on old server):**
+
+```bash
+# On old server:
+./scripts/backup_restore/backup_volume.sh --mode ssh -r user@newserver
+
+# On new server:
+./scripts/backup_restore/restore_volume.sh -i ~/scv2_backups/<backup-folder>
+```
+
+**Same network (new server pulls from old):**
+
+```bash
+# On old server: run a standard local backup (if space allows)
+./scripts/backup_restore/backup_volume.sh
+
+# On new server: pull directly from old server
+./scripts/backup_restore/restore_volume.sh --mode ssh -r user@oldserver -p /path/to/backup
+```
+
+**Same network (zero disk on both servers, direct volume-to-volume):**
+
+```bash
+# On old server: stream directly into Docker volumes on new server
+./scripts/backup_restore/backup_volume.sh --mode direct -r user@newserver
+
+# If the project name differs on the new server:
+./scripts/backup_restore/backup_volume.sh --mode direct -r user@newserver --remote-name newproject
+```
+
+No restore step needed -- data goes directly into Docker volumes on the new server.
+
+**Servers not on the same network:**
+
+```bash
+# On old server: back up one volume at a time
+./scripts/backup_restore/backup_volume.sh --mode sequential
+# (transfer each file via USB, cloud storage, etc. when prompted)
+
+# On new server: restore from wherever the files were placed
+./scripts/backup_restore/restore_volume.sh -i /path/to/backup-files
+```
 
 
 ## Compose Files

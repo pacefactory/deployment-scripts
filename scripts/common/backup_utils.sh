@@ -1,0 +1,273 @@
+#!/bin/bash
+
+# =========================================================================
+# Shared utility functions for backup/restore scripts
+# =========================================================================
+
+# Locate volumes.json relative to this file
+_UTILS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VOLUMES_JSON="$_UTILS_DIR/../backup_restore/volumes.json"
+
+# Source prompts if not already loaded
+if ! declare -f yn_prompt &>/dev/null; then
+  source "$_UTILS_DIR/prompts.sh"
+fi
+
+# -------------------------------------------------------------------------
+# ensure_docker_image IMAGE
+#   Pulls a Docker image if not already available locally.
+#   Must be called before any piped docker run commands, otherwise a
+#   pull during a pipe (e.g. docker run ... | ssh ...) will stall the
+#   receiving end and cause broken pipe / connection reset errors.
+# -------------------------------------------------------------------------
+ensure_docker_image() {
+  local image="$1"
+  if ! docker image inspect "$image" &>/dev/null; then
+    echo "Pulling Docker image '$image'..."
+    docker pull "$image"
+  fi
+}
+
+# -------------------------------------------------------------------------
+# ensure_remote_docker_image REMOTE_SPEC IMAGE
+#   Pulls a Docker image on the remote server if not already available.
+#   Must be called before any piped commands that run docker on the remote,
+#   otherwise a pull during a pipe will stall and cause broken pipe errors.
+# -------------------------------------------------------------------------
+ensure_remote_docker_image() {
+  local remote="$1"
+  local image="$2"
+  echo "Checking Docker image '$image' on remote ($remote)..."
+  if ssh "$remote" "docker image inspect '$image' &>/dev/null"; then
+    echo "  --> Image '$image' already available on remote"
+  else
+    echo "  --> Pulling '$image' on remote..."
+    if ! ssh "$remote" "docker pull '$image'"; then
+      echo "  --> ERROR: Failed to pull '$image' on remote"
+      return 1
+    fi
+  fi
+}
+
+# -------------------------------------------------------------------------
+# stop_services PROJECT_NAME
+#   Stops docker compose services if running. Sets service_shutdown=true.
+# -------------------------------------------------------------------------
+stop_services() {
+  local project="$1"
+  local running_service
+  running_service=$(docker compose ls --filter name="$project" --quiet)
+  while [[ -n "$running_service" ]]; do
+    echo "$project is running, stopping service..."
+    docker compose -p "$project" stop --timeout 600
+    service_shutdown=true
+    running_service=$(docker compose ls --filter name="$project" --quiet)
+  done
+}
+
+# -------------------------------------------------------------------------
+# stop_remote_services REMOTE_SPEC PROJECT_NAME
+#   Stops docker compose services on a remote server via SSH.
+#   Sets remote_service_shutdown=true if services were stopped.
+#   Does not fail if no services are running.
+# -------------------------------------------------------------------------
+stop_remote_services() {
+  local remote="$1"
+  local project="$2"
+  local running_service
+  running_service=$(ssh "$remote" "docker compose ls --filter name='$project' --quiet" 2>/dev/null)
+  if [[ -n "$running_service" ]]; then
+    echo "Remote project '$project' is running on $remote, stopping..."
+    ssh "$remote" "docker compose -p '$project' stop --timeout 600"
+    remote_service_shutdown=true
+  fi
+}
+
+# -------------------------------------------------------------------------
+# prompt_restart_services PROJECT_NAME
+#   Prompts to restart services if they were shut down.
+# -------------------------------------------------------------------------
+prompt_restart_services() {
+  local project="$1"
+  if [[ -n "$service_shutdown" ]]; then
+    read -r -p "Start $project service? (y/[n])? "
+    if [[ "$REPLY" == "y" ]]; then
+      docker compose -p "$project" start
+    fi
+  fi
+}
+
+# -------------------------------------------------------------------------
+# prompt_restart_remote_services REMOTE_SPEC PROJECT_NAME
+#   Prompts to restart services on a remote server if they were shut down.
+# -------------------------------------------------------------------------
+prompt_restart_remote_services() {
+  local remote="$1"
+  local project="$2"
+  if [[ -n "$remote_service_shutdown" ]]; then
+    read -r -p "Start remote $project service on $remote? (y/[n])? "
+    if [[ "$REPLY" == "y" ]]; then
+      ssh "$remote" "docker compose -p '$project' start"
+    fi
+  fi
+}
+
+# -------------------------------------------------------------------------
+# get_volume_name PROJECT_NAME ENTRY_NAME
+#   Resolves the full Docker volume name from project name + volumes.json.
+# -------------------------------------------------------------------------
+get_volume_name() {
+  local project="$1"
+  local name="$2"
+  local query=".[] | select(.name == \"${name}\")"
+  echo "${project}$(jq "$query | .volume_suffix" -r "$VOLUMES_JSON")"
+}
+
+# -------------------------------------------------------------------------
+# volume_exists VOLUME_NAME
+#   Returns 0 if the Docker volume exists, 1 otherwise.
+# -------------------------------------------------------------------------
+volume_exists() {
+  local volume="$1"
+  docker volume inspect "$volume" &>/dev/null
+}
+
+# -------------------------------------------------------------------------
+# get_volume_size_bytes VOLUME_NAME
+#   Returns raw byte count of a Docker volume's contents.
+# -------------------------------------------------------------------------
+get_volume_size_bytes() {
+  local volume="$1"
+  docker run --rm -v "${volume}":/data:ro alpine du -sb /data 2>/dev/null | awk '{print $1}'
+}
+
+# -------------------------------------------------------------------------
+# get_available_disk_bytes PATH
+#   Returns available bytes on the filesystem containing the given path.
+# -------------------------------------------------------------------------
+get_available_disk_bytes() {
+  local path="$1"
+  df --output=avail -B1 "$path" 2>/dev/null | tail -1 | tr -d ' '
+}
+
+# -------------------------------------------------------------------------
+# human_readable BYTES
+#   Converts bytes to human-readable format (e.g. "4.2 GiB").
+# -------------------------------------------------------------------------
+human_readable() {
+  local bytes="$1"
+  if command -v numfmt &>/dev/null; then
+    numfmt --to=iec-i --suffix=B "$bytes"
+  else
+    awk "BEGIN {
+      b=$bytes;
+      if (b >= 1073741824) printf \"%.1f GiB\", b/1073741824;
+      else if (b >= 1048576) printf \"%.1f MiB\", b/1048576;
+      else if (b >= 1024) printf \"%.1f KiB\", b/1024;
+      else printf \"%d B\", b;
+    }"
+  fi
+}
+
+# -------------------------------------------------------------------------
+# check_ssh_connectivity REMOTE_SPEC
+#   Validates SSH connectivity. Returns 0 on success, 1 on failure.
+# -------------------------------------------------------------------------
+check_ssh_connectivity() {
+  local remote="$1"
+  echo "Checking SSH connectivity to $remote..."
+  echo "  (you may be prompted for a password)"
+  if ssh -o ConnectTimeout=10 "$remote" "echo ok"; then
+    echo "  --> SSH connection OK"
+    echo ""
+    echo "  NOTE: If using password auth, you will be prompted for each volume."
+    echo "  To avoid repeated prompts, consider setting up SSH key-based auth:"
+    echo "    ssh-copy-id $remote"
+    return 0
+  else
+    echo "  --> ERROR: Cannot connect to $remote via SSH"
+    echo "  Verify the hostname, username, and that the remote is reachable."
+    return 1
+  fi
+}
+
+# -------------------------------------------------------------------------
+# prompt_project_name [DEFAULT_NAME]
+#   Interactively prompts for project name if not already set.
+#   Sets PROJECT_NAME variable.
+# -------------------------------------------------------------------------
+prompt_project_name() {
+  if [[ -z "$PROJECT_NAME" ]]; then
+    local default_project="deployment-scripts"
+    local current_project
+    current_project=$(docker compose ls --all --quiet | head -1)
+    PROJECT_NAME=${current_project:-$default_project}
+
+    read -r -p "Confirm project name [$PROJECT_NAME]: "
+    if [[ -n "$REPLY" ]]; then
+      PROJECT_NAME="$REPLY"
+    fi
+  fi
+  echo "Project name: '$PROJECT_NAME'"
+}
+
+# -------------------------------------------------------------------------
+# disk_space_check PROJECT_NAME OUTPUT_PATH
+#   Estimates backup sizes and compares against available disk space.
+#   Returns 0 if sufficient, 1 if insufficient.
+# -------------------------------------------------------------------------
+disk_space_check() {
+  local project="$1"
+  local output_path="$2"
+
+  echo ""
+  echo "Checking disk space requirements..."
+  echo ""
+
+  local total_raw=0
+  local total_estimated=0
+
+  # Header
+  printf "  %-20s %12s %16s\n" "Volume" "Raw Size" "Est. Compressed"
+  printf "  %-20s %12s %16s\n" "------" "--------" "---------------"
+
+  for name in $(jq '.[].name' -r "$VOLUMES_JSON"); do
+    local volume
+    volume=$(get_volume_name "$project" "$name")
+    local raw_bytes
+    raw_bytes=$(get_volume_size_bytes "$volume")
+
+    if [[ -z "$raw_bytes" || "$raw_bytes" == "0" ]]; then
+      printf "  %-20s %12s %16s\n" "$name" "(empty)" "~0 B"
+      continue
+    fi
+
+    local estimated=$((raw_bytes / 2))
+    total_raw=$((total_raw + raw_bytes))
+    total_estimated=$((total_estimated + estimated))
+
+    printf "  %-20s %12s %16s\n" "$name" "$(human_readable "$raw_bytes")" "~$(human_readable "$estimated")"
+  done
+
+  printf "  %-20s %12s %16s\n" "------" "--------" "---------------"
+  printf "  %-20s %12s %16s\n" "Total" "$(human_readable "$total_raw")" "~$(human_readable "$total_estimated")"
+
+  # Check available space
+  mkdir -p "$output_path" 2>/dev/null
+  local available
+  available=$(get_available_disk_bytes "$output_path")
+
+  echo ""
+  echo "  Available disk:    $(human_readable "$available")"
+
+  if [[ "$total_estimated" -gt "$available" ]]; then
+    echo ""
+    echo "  WARNING: Estimated backup size exceeds available disk space!"
+    echo "  Recommendation: Use --mode ssh or --mode sequential"
+    return 1
+  else
+    echo ""
+    echo "  OK: Sufficient disk space for local backup."
+    return 0
+  fi
+}

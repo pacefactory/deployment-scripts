@@ -111,7 +111,7 @@ docker save $all_images | gzip > $ALL_IMAGES_ARCHIVE
 # Install script
 cp -f scripts/offline/install.sh $INSTALL_PATH/
 mkdir -p $INSTALL_PATH/scripts
-cp -f scripts/backup/backup_volume.sh $INSTALL_PATH/scripts/ 
-cp -f scripts/backup/volumes.json $INSTALL_PATH/scripts/ 
+cp -f scripts/backup_restore/backup_volume.sh $INSTALL_PATH/scripts/
+cp -f scripts/backup_restore/volumes.json $INSTALL_PATH/scripts/
 
 echo "Offline install fileset complete in $INSTALL_PATH"
