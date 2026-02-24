@@ -84,6 +84,11 @@ services:
     restart: always
     logging:
       driver: local
+    healthcheck:
+      test: ["CMD", "mosquitto_pub", "-t", "healthcheck/ping", "-m", "ok", "-u", "admin", "-P", "pfadminpw"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     volumes:
       - mosquitto-data:/mosquitto
     networks:
