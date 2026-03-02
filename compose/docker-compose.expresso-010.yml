@@ -57,6 +57,10 @@ services:
     environment:
       - "PF_APIGATEWAY=true"
       - "PF_EXPRESSO_SERVER_PORT=8456"
+      - "PF_EXPRESSO_SERVER_HOST="
+      # The EXPRESSO_SERVER_URL overrides apigateway when connecting to the expresso server.
+      # Overrides the PF_EXPRESSO_SERVER_PORT and PF_EXPRESSO_SERVER_HOST too.
+      - "PF_EXPRESSO_SERVER_URL="
       - "PF_CONTROL_SERVER_URL="
       - "PF_APE_URL="
     depends_on:
@@ -80,7 +84,7 @@ services:
     container_name: ${PROJECT_PREFIX:-}celery_worker
     hostname: ${PROJECT_PREFIX:-}celery_worker
     image: pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-${EXPRESSO_SERVER_TAG_DEFAULT_GPU:-latest}}
-    entrypoint: [ "./scripts/start_worker.sh" ]
+    entrypoint: ["./scripts/start_worker.sh"]
     restart: always
     logging:
       driver: local
@@ -128,7 +132,6 @@ services:
 volumes:
   expresso-data:
   mongodata_exp:
-
 
 networks:
   expresso_network:
