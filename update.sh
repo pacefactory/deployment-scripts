@@ -112,6 +112,10 @@ then
   $up_command
 
   echo ""
+  echo "Reloading API gateway to refresh upstream DNS..."
+  docker compose --project-name $PROJECT_NAME exec -T apigateway nginx -s reload 2>/dev/null || true
+
+  echo ""
   echo "Deployment complete; any errors will be noted above."
   echo "To check the status of your deployment, run"
   echo "'docker ps -a'"
