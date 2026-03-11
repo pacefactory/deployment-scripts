@@ -38,14 +38,39 @@ services:
     ports:
       - "5380"
 
+  ape_frame_playback:
+    container_name: ${PROJECT_PREFIX:-}ape_frame_playback
+    hostname: ${PROJECT_PREFIX:-}ape_frame_playback
+    image: pacefactory/alert_processing_engine:${APE_TAG:-latest}
+    command: "node --enable-source-maps ape-frame-playback/dist/src/index.js"
+    restart: always
+    logging:
+      driver: local
+    depends_on:
+      - pf_mosquitto
+    # Volume is used for storing JSON configs - if those configs are eventually
+    # moved somewhere else, this volume can be removed.
+    volumes:
+      - "ape-data:/home/scv2/ape"
+    networks:
+      - external_network
+    environment:
+      - "PF_MQTT_URL=mqtt://admin:pfadminpw@${PROJECT_PREFIX:-}pf_mosquitto:1883"
+      - "PF_DBSERVER_URL=http://${PROJECT_PREFIX:-}dbserver:8050"
+      - "PF_FRAME_RECORDINGS_DIR=/home/scv2/ape/recordings"
+      - "PF_APE_FRAME_PLAYBACK_HTTP_PORT=5381"
+    ports:
+      - "5381"
+
   apigateway:
     environment:
       - "APE_HOST=${PROJECT_PREFIX:-}alert_processing_engine"
       - "APE_PORT=5380"
+      - "APE_FRAME_PLAYBACK_HOST=${PROJECT_PREFIX:-}ape_frame_playback"
+      - "APE_FRAME_PLAYBACK_PORT=5381"
       - "SCV2_PROFILE_APE=true"
     depends_on:
       - alert_processing_engine
-
 
   ape_timescaledb:
     image: timescale/timescaledb:latest-pg16
