@@ -30,6 +30,8 @@ services:
       - "PF_ROOT_PATH=/api/expresso"
       - "PF_REDIS_HOST=${PROJECT_PREFIX:-}redis"
       - PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo_exp
+      - PF_CONTROL_SERVER_HOST=${PROJECT_PREFIX:-}realtime
+      - PF_CONTROL_SERVER_PORT=8181
       # Override to connect directly to the control server (for development).
       # When empty, falls back to routing through the apigateway.
       - "PF_CONTROL_SERVER_URL="
