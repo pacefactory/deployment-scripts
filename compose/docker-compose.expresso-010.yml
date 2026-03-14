@@ -10,9 +10,6 @@ x-pf-info:
       default_var: EXPRESSO_SERVER_TAG_DEFAULT_GPU
     EXPRESSO_UI_TAG:
       default: latest
-    PF_TRACK_FRAME_BATCH_LIMIT:
-      description: Max number of frames tracked in a single run. Ram usage increases linearly with number of frames.
-      default: 10
 
 services:
   expresso_server:
@@ -33,6 +30,17 @@ services:
       - "PF_ROOT_PATH=/api/expresso"
       - "PF_REDIS_HOST=${PROJECT_PREFIX:-}redis"
       - PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo_exp
+      - PF_CONTROL_SERVER_HOST=${PROJECT_PREFIX:-}realtime
+      - PF_CONTROL_SERVER_PORT=8181
+      # Override to connect directly to the control server (for development).
+      # When empty, falls back to CONTROL_SERVER_HOST and CONTROL_SERVER_PORT
+      - "PF_CONTROL_SERVER_URL="
+      - PF_DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver
+      - PF_DBSERVER_PORT=8050
+      # The PF_DBSERVER_URL overrides the DBSERVER_HOST and DBSERVER_PORT. 
+      # The DBSERVER_URL is meant to be used for development.
+      - "PF_DBSERVER_URL="
+
     depends_on:
       mongo:
         condition: service_started
@@ -96,7 +104,6 @@ services:
     environment:
       - "PF_REDIS_HOST=${PROJECT_PREFIX:-}redis"
       - PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo_exp
-      - PF_TRACK_FRAME_BATCH_LIMIT=${PF_TRACK_FRAME_BATCH_LIMIT:-10}
     depends_on:
       mongo_exp:
         condition: service_started
