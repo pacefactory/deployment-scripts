@@ -100,10 +100,16 @@ services:
       - expresso-data:/home/scv2/volume
     # Ports are conditionally enabled in the expresso-ports profile
     networks:
+      - external_network
       - expresso_network
     environment:
       - "PF_REDIS_HOST=${PROJECT_PREFIX:-}redis"
       - PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo_exp
+      - PF_DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver
+      - PF_DBSERVER_PORT=8050
+      # The PF_DBSERVER_URL overrides the DBSERVER_HOST and DBSERVER_PORT. 
+      # The DBSERVER_URL is meant to be used for development.
+      - "PF_DBSERVER_URL="
     depends_on:
       mongo_exp:
         condition: service_started
