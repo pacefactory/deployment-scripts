@@ -52,7 +52,7 @@ services:
         condition: service_started
         required: true
       celery_worker:
-        condition: service_started
+        condition: service_healthy
         required: true
       redis:
         condition: service_started
@@ -79,7 +79,7 @@ services:
       - "PF_APE_URL="
     depends_on:
       expresso_server:
-        condition: service_started
+        condition: service_healthy
         required: true
       realtime:
         condition: service_started
@@ -102,6 +102,12 @@ services:
     restart: always
     logging:
       driver: local
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A expresso.tasks inspect ping --timeout 5"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
     volumes:
       - expresso-data:/home/scv2/volume
     # Ports are conditionally enabled in the expresso-ports profile
