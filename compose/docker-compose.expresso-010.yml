@@ -19,6 +19,12 @@ services:
     restart: always
     logging:
       driver: local
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget -qO- http://localhost:8456/health-check || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     volumes:
       - expresso-data:/home/scv2/volume
     # Ports are conditionally enabled in the expresso-ports profile
@@ -42,14 +48,14 @@ services:
       - "PF_DBSERVER_URL="
 
     depends_on:
-      mongo:
-        condition: service_started
+      mongo_exp:
+        condition: service_healthy
         required: true
       celery_worker:
-        condition: service_started
+        condition: service_healthy
         required: true
       redis:
-        condition: service_started
+        condition: service_healthy
         required: true
 
   expresso_ui:
@@ -73,7 +79,7 @@ services:
       - "PF_APE_URL="
     depends_on:
       expresso_server:
-        condition: service_started
+        condition: service_healthy
         required: true
       realtime:
         condition: service_started
@@ -85,6 +91,11 @@ services:
     image: redis:8.2.1-alpine
     restart: always
     command: redis-server --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - expresso_network
 
@@ -96,6 +107,12 @@ services:
     restart: always
     logging:
       driver: local
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A expresso.tasks inspect ping --timeout 5"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
     volumes:
       - expresso-data:/home/scv2/volume
     # Ports are conditionally enabled in the expresso-ports profile
@@ -112,10 +129,10 @@ services:
       - "PF_DBSERVER_URL="
     depends_on:
       mongo_exp:
-        condition: service_started
+        condition: service_healthy
         required: true
       redis:
-        condition: service_started
+        condition: service_healthy
         required: true
 
   mongo_exp:
@@ -123,6 +140,11 @@ services:
     hostname: ${PROJECT_PREFIX:-}mongo_exp
     image: mongodb/mongodb-community-server:8.2.1-ubi8
     restart: always
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - expresso_network
     volumes:
