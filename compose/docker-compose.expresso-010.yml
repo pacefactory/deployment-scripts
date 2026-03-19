@@ -19,6 +19,12 @@ services:
     restart: always
     logging:
       driver: local
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget -qO- http://localhost:8456/health-check || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     volumes:
       - expresso-data:/home/scv2/volume
     # Ports are conditionally enabled in the expresso-ports profile
