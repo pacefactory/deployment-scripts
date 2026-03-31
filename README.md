@@ -199,6 +199,22 @@ Before starting a migration, check whether the server has enough space for a loc
 
 This prints a table of volume sizes vs. available disk space and recommends `--mode ssh` or `--mode sequential` if space is insufficient.
 
+### Config-only backup
+
+Back up only configuration files (not databases or large data). Useful for quick config snapshots without downtime — services are **not** stopped.
+
+```bash
+./scripts/backup_restore/backup_config.sh [OPTIONS]
+```
+
+| Option | Description |
+|--------|-------------|
+| `-n, --name NAME` | Project name (default: auto-detect) |
+| `-o, --output DIR` | Backup output directory (default: `~/scv2_backups`) |
+| `-h, --help` | Show help |
+
+Backs up configs from: **realtime**, **auditgui**, **rdb**, **nodered**, **ape**. Volumes that don't exist in the current deployment are skipped automatically. The realtime volume receives special handling — only `config/` and `resources/` directories are included (excluding `resources/backgrounds`).
+
 ### Migration workflows
 
 **Same network (zero disk usage on old server):**
