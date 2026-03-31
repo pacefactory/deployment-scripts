@@ -8,6 +8,9 @@ x-pf-info:
     EXPRESSO_SERVER_TAG:
       default: latest
       default_var: EXPRESSO_SERVER_TAG_DEFAULT_GPU
+    PF_VALIDATION_CAPTURE_BUCKET_SIZE:
+      description: Default bucket duration used for creating datasets with consecutive images
+      default: 15
     EXPRESSO_UI_TAG:
       default: latest
 
@@ -40,6 +43,9 @@ services:
       # The PF_DBSERVER_URL overrides the DBSERVER_HOST and DBSERVER_PORT. 
       # The DBSERVER_URL is meant to be used for development.
       - "PF_DBSERVER_URL="
+      # Size of buckets to use in validation capture for creating datasets with consecutive images. The user
+      # has direct control over this value in the UI. This ENV is just for the default.
+      - PF_VALIDATION_CAPTURE_BUCKET_SIZE=${PF_VALIDATION_CAPTURE_BUCKET_SIZE:-15}
 
     depends_on:
       mongo:
