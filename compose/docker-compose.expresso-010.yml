@@ -4,6 +4,7 @@ x-pf-info:
   description: The Expresso profile expresso_server and UI for easier configuration
   sub-profiles:
     - expresso-020-cuda
+    - expresso-030-trainer
   settings:
     EXPRESSO_SERVER_TAG:
       default: latest
