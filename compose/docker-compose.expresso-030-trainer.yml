@@ -11,9 +11,9 @@ x-pf-info:
       default: latest
 
 services:
-  trainer_worker:
-    container_name: ${PROJECT_PREFIX:-}trainer_worker
-    hostname: ${PROJECT_PREFIX:-}trainer_worker
+  trainer:
+    container_name: ${PROJECT_PREFIX:-}trainer
+    hostname: ${PROJECT_PREFIX:-}trainer
     image: pacefactory/trainer:${TRAINER_TAG:-latest}
     entrypoint: ["./scripts/start_worker.sh"]
     restart: always
