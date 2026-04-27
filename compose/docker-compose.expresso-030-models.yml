@@ -1,0 +1,27 @@
+x-pf-info:
+  name: Expresso Models
+  prompt: Enable SAM3 for Expresso?
+  description: Should Expresso have access to the SAM3 model (2.5Gb)
+  sub-profile: true
+  settings:
+    EXPRESSO_MODELS_TAG:
+      default: latest
+
+services:
+  models_sync:
+    image: pacefactory/expresso_models:${EXPRESSO_MODELS_TAG:-latest}
+    volumes:
+      - expresso-models:/models_out
+    restart: "no"
+
+  celery_worker:
+    volumes:
+      - expresso-models:/models:ro # ro = read only mount
+    depends_on:
+      models_sync:
+        # What for the models_sync to move the models into the new volume. 
+        condition: service_completed_successfully
+
+
+volumes:
+  expresso-models:
