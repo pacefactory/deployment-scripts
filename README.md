@@ -105,6 +105,66 @@ docker compose run --rm stitch_videos <date_string> [options]
 
 TODO: Document me!
 
+# MQTT broker access
+
+The `pf_mosquitto` MQTT broker exposes three listeners. Which ones are
+reachable from outside the docker network depends on which profiles are
+enabled at build time:
+
+| Listener | Port | Profile required                          | Default | Notes                                   |
+|----------|------|-------------------------------------------|---------|-----------------------------------------|
+| MQTT     | 1883 | `mqtt-public` (sub-profile of base)       | enabled | Plain TCP MQTT                          |
+| MQTT/WS  | 7575 | `service-ports`                           | optional| Websockets, also proxied at `/api/mqtt` |
+| MQTTS    | 8883 | any `https-*` profile (auto-enabled)      | enabled with HTTPS | TLS using the same cert as nginx |
+
+## Plain MQTT on port 1883
+
+The `mqtt-public` sub-profile of `base` controls whether port 1883 is
+published on the host. It is enabled by default. Disable it during
+`./build.sh` (or remove `mqtt-public` from `.settings`'s `SCV2_PROFILES`)
+on internet-facing deployments where only TLS-protected MQTTS should be
+reachable.
+
+The host port is configurable via `PF_MOSQUITTO_PUBLIC_PORT` (default
+`1883`).
+
+## MQTTS on port 8883
+
+When any `https-*` profile is enabled (`https-manual`, `https-godaddy`,
+`https-digitalocean`, or `https-no-certbot`), the same SSL certificate
+that nginx uses is also mounted into `pf_mosquitto` and the broker's
+entrypoint script auto-enables an MQTTS listener on port 8883.
+
+What happens under the hood:
+
+- The certbot volume (or the `./credentials/ssl/` bind mount, for
+  `https-no-certbot`) is mounted read-only into `pf_mosquitto` at
+  `/mosquitto/ssl/`.
+- `SERVER_NAME` is passed to the `pf_mosquitto` container.
+- On startup, `docker-entrypoint.sh` looks for
+  `/mosquitto/ssl/live/${SERVER_NAME}/{fullchain.pem,privkey.pem}` and,
+  if found, generates a TLS listener config in
+  `/mosquitto/config/conf.d/tls.conf`.
+- If `privkey.pem` is encrypted, place the password (single line) in
+  `privkey.pass` next to it. The entrypoint will decrypt the key into a
+  runtime-only path before mosquitto reads it.
+- If the cert files are missing, MQTTS is silently skipped &mdash; the
+  broker still starts up with the plain 1883/7575 listeners.
+
+The host port is configurable via `MQTTS_PUBLIC_PORT` (default `8883`).
+Clear the variable in `.env` to disable port publishing while keeping the
+internal listener.
+
+### Connecting clients
+
+```
+# Plain
+mosquitto_sub -h <server> -p 1883 -u admin -P pfadminpw -t '#'
+
+# TLS (MQTTS)
+mosquitto_sub -h <server> -p 8883 --capath /etc/ssl/certs -u admin -P pfadminpw -t '#'
+```
+
 # Ghosting Configuration
 
 The platform supports tiered ghosting enforcement to control access to unghosted snapshot images.

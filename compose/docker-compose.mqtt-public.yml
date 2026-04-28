@@ -1,0 +1,18 @@
+x-pf-info:
+  name: Public MQTT (port 1883)
+  prompt: Expose plain MQTT on port 1883?
+  description:
+    Exposes the pf_mosquitto broker's plain MQTT listener on the host.
+    Default-enabled. Disable on deployments where 1883 should not be
+    publicly reachable (e.g. internet-facing sites that prefer MQTTS only).
+    Note: this is a sub-profile of base; HTTPS-enabled deployments can
+    additionally serve MQTTS on port 8883 via the https-* profiles.
+  sub-profile: true
+  settings:
+    PF_MOSQUITTO_PUBLIC_PORT:
+      default: 1883
+
+services:
+  pf_mosquitto:
+    ports:
+      - "${PF_MOSQUITTO_PUBLIC_PORT:-1883}:1883"

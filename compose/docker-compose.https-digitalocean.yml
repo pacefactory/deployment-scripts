@@ -3,6 +3,7 @@ x-pf-info:
   prompt: Enable HTTPS (via digitalocean DNS, pacefactory.dev domain)
   description: Provision HTTPS certificate via letsencrypt.
     You MUST have already updated ./credentials/digitalocean/credentials.ini with the appropriate API key.
+    MQTTS is auto-enabled on port ${MQTTS_PUBLIC_PORT:-8883} using the same certs.
   settings:
     SERVER_NAME:
       description: Final domain name will be SERVER_NAME.pacefactory.dev
@@ -12,6 +13,9 @@ x-pf-info:
       default: ""
     HTTPS_PORT:
       default: 443
+    MQTTS_PUBLIC_PORT:
+      description: Public port for MQTTS (TLS over MQTT). Set blank to disable.
+      default: 8883
 
 services:
   certbot:
@@ -52,6 +56,14 @@ services:
       - certbot:/etc/nginx/ssl/:ro
     environment:
       - "SCV2_PROFILE_SSL=true"
+      - "SERVER_NAME=${SERVER_NAME}.pacefactory.dev"
+
+  pf_mosquitto:
+    ports:
+      - "${MQTTS_PUBLIC_PORT:-8883}:8883"
+    volumes:
+      - certbot:/mosquitto/ssl/:ro
+    environment:
       - "SERVER_NAME=${SERVER_NAME}.pacefactory.dev"
 
 volumes:

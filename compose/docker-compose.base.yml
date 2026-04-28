@@ -1,6 +1,7 @@
 x-pf-info:
   sub-profiles:
     - cuda
+    - mqtt-public
   settings:
     PROJECT_PREFIX:
       default: ""

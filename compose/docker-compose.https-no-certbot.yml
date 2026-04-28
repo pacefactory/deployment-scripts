@@ -6,12 +6,16 @@ x-pf-info:
     ./credentials/ssl/live/${SERVER_NAME}/privkey.pem with certificate and key.
     If privkey.pem is encrypted, the password must be specified in
     ./credentials/ssl/live/${SERVER_NAME}/privkey.pass on a single line.
+    MQTTS is auto-enabled on port ${MQTTS_PUBLIC_PORT:-8883} using the same certs.
   settings:
     SERVER_NAME:
       description: Final domain name will be SERVER_NAME
       default: ""
     HTTPS_PORT:
       default: 443
+    MQTTS_PUBLIC_PORT:
+      description: Public port for MQTTS (TLS over MQTT). Set blank to disable.
+      default: 8883
 
 services:
   apigateway:
@@ -21,4 +25,12 @@ services:
       - ../credentials/ssl:/etc/nginx/ssl/:ro
     environment:
       - "SCV2_PROFILE_SSL=true"
+      - "SERVER_NAME=${SERVER_NAME}"
+
+  pf_mosquitto:
+    ports:
+      - "${MQTTS_PUBLIC_PORT:-8883}:8883"
+    volumes:
+      - ../credentials/ssl:/mosquitto/ssl/:ro
+    environment:
       - "SERVER_NAME=${SERVER_NAME}"

@@ -4,13 +4,13 @@ x-pf-info:
   description:
     These are not strictly necessary, but make management easier. In a security
     constrained environment open ports can be disabled.
+    Plain MQTT (port 1883) lives in its own sub-profile (mqtt-public);
+    MQTTS (port 8883) is enabled automatically by any https-* profile.
   settings:
     DTREESERVER_PUBLIC_PORT:
       default: 7272
     GIFWRAPPER_PUBLIC_PORT:
       default: 7171
-    PF_MOSQUITTO_PUBLIC_PORT:
-      default: 1883
     PF_MOSQUITTO_WS_PUBLIC_PORT:
       default: 7575
 
@@ -23,5 +23,4 @@ services:
       - "${DTREESERVER_PUBLIC_PORT:-7272}:7272"
   pf_mosquitto:
     ports:
-      - "${PF_MOSQUITTO_PUBLIC_PORT:-1883}:1883"
       - "${PF_MOSQUITTO_WS_PUBLIC_PORT:-7575}:7575"
