@@ -32,6 +32,7 @@ SCV2_PROFILES[rdb]="true"
 SCV2_PROFILES[expresso-010]="true"
 SCV2_PROFILES[node-red]="true"
 SCV2_PROFILES[mqtt-public]="true"
+SCV2_PROFILES[mqtts-public]="true"
 
 # Then allow the defaults to be overriden from settings file
 . "$settingsfile" 2>/dev/null || :

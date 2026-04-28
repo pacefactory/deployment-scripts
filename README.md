@@ -111,11 +111,11 @@ The `pf_mosquitto` MQTT broker exposes three listeners. Which ones are
 reachable from outside the docker network depends on which profiles are
 enabled at build time:
 
-| Listener | Port | Profile required                          | Default | Notes                                   |
-|----------|------|-------------------------------------------|---------|-----------------------------------------|
-| MQTT     | 1883 | `mqtt-public` (sub-profile of base)       | enabled | Plain TCP MQTT                          |
-| MQTT/WS  | 7575 | `service-ports`                           | optional| Websockets, also proxied at `/api/mqtt` |
-| MQTTS    | 8883 | any `https-*` profile (auto-enabled)      | enabled with HTTPS | TLS using the same cert as nginx |
+| Listener | Port | Profile required                              | Default | Notes                                   |
+|----------|------|-----------------------------------------------|---------|-----------------------------------------|
+| MQTT     | 1883 | `mqtt-public` (sub-profile of `base`)         | enabled | Plain TCP MQTT                          |
+| MQTT/WS  | 7575 | `service-ports`                               | optional| Websockets, also proxied at `/api/mqtt` |
+| MQTTS    | 8883 | `mqtts-public` (sub-profile of every `https-*`) | enabled with HTTPS | TLS using the same cert as nginx |
 
 ## Plain MQTT on port 1883
 
@@ -131,16 +131,25 @@ The host port is configurable via `PF_MOSQUITTO_PUBLIC_PORT` (default
 ## MQTTS on port 8883
 
 When any `https-*` profile is enabled (`https-manual`, `https-godaddy`,
-`https-digitalocean`, or `https-no-certbot`), the same SSL certificate
-that nginx uses is also mounted into `pf_mosquitto` and the broker's
-entrypoint script auto-enables an MQTTS listener on port 8883.
+`https-digitalocean`, or `https-no-certbot`), build.sh also prompts for
+the `mqtts-public` sub-profile (default `y`). When enabled, the same SSL
+certificate that nginx uses is mounted into `pf_mosquitto` and the
+broker's entrypoint script enables an MQTTS listener on port 8883.
 
-What happens under the hood:
+Each `https-*` profile contributes the cert source via two hidden
+settings consumed by `mqtts-public`:
 
-- The certbot volume (or the `./credentials/ssl/` bind mount, for
-  `https-no-certbot`) is mounted read-only into `pf_mosquitto` at
+| Variable             | `https-no-certbot`   | `https-manual` | `https-godaddy`     | `https-digitalocean` |
+|----------------------|----------------------|----------------|---------------------|----------------------|
+| `MQTTS_CERT_SOURCE`  | `../credentials/ssl` | `certbot`      | `certbot`           | `certbot`            |
+| `MQTTS_FQDN_SUFFIX`  | (empty)              | (empty)        | `.pacefactory.com`  | `.pacefactory.dev`   |
+
+What happens under the hood when `mqtts-public` is on:
+
+- `${MQTTS_CERT_SOURCE}` is mounted read-only into `pf_mosquitto` at
   `/mosquitto/ssl/`.
-- `SERVER_NAME` is passed to the `pf_mosquitto` container.
+- `SERVER_NAME=${SERVER_NAME}${MQTTS_FQDN_SUFFIX}` is passed to the
+  `pf_mosquitto` container.
 - On startup, `docker-entrypoint.sh` looks for
   `/mosquitto/ssl/live/${SERVER_NAME}/{fullchain.pem,privkey.pem}` and,
   if found, generates a TLS listener config in
@@ -148,12 +157,15 @@ What happens under the hood:
 - If `privkey.pem` is encrypted, place the password (single line) in
   `privkey.pass` next to it. The entrypoint will decrypt the key into a
   runtime-only path before mosquitto reads it.
-- If the cert files are missing, MQTTS is silently skipped &mdash; the
-  broker still starts up with the plain 1883/7575 listeners.
+- If the cert files are missing at runtime, MQTTS is silently skipped
+  &mdash; the broker still starts up with the plain 1883/7575 listeners.
 
 The host port is configurable via `MQTTS_PUBLIC_PORT` (default `8883`).
-Clear the variable in `.env` to disable port publishing while keeping the
-internal listener.
+Clear the variable in `.env` to keep the listener internal-only.
+
+To run HTTPS for the web UI without exposing native MQTTS, answer `n` to
+`Expose MQTTS on port 8883?` during build, or remove `mqtts-public` from
+`SCV2_PROFILES` in `.settings`.
 
 ### Connecting clients
 
