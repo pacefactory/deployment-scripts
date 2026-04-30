@@ -5,8 +5,8 @@ x-pf-info:
     Exposes the pf_mosquitto broker's plain MQTT listener on the host.
     Default-enabled. Disable on deployments where 1883 should not be
     publicly reachable (e.g. internet-facing sites that prefer MQTTS only).
-    Note: this is a sub-profile of base; HTTPS-enabled deployments can
-    additionally serve MQTTS on port 8883 via the https-* profiles.
+    HTTPS-enabled deployments can additionally serve MQTTS on port 8883
+    via the mqtts-public sub-profile of any https-* profile.
   sub-profile: true
   settings:
     PF_MOSQUITTO_PUBLIC_PORT:
