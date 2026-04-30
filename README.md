@@ -147,15 +147,18 @@ settings consumed by `mqtts-public`:
 What happens under the hood when `mqtts-public` is on:
 
 - `${MQTTS_CERT_SOURCE}` is mounted read-only into `pf_mosquitto` at
-  `/mosquitto/ssl/`.
+  `/etc/mosquitto-tls/`.
 - `SERVER_NAME=${SERVER_NAME}${MQTTS_FQDN_SUFFIX}` is passed to the
   `pf_mosquitto` container.
 - On startup, `docker-entrypoint.sh` looks for
-  `/mosquitto/ssl/live/${SERVER_NAME}/{fullchain.pem,privkey.pem}` and,
-  if found, generates a TLS listener config in
-  `/mosquitto/config/conf.d/tls.conf`.
+  `/etc/mosquitto-tls/live/${SERVER_NAME}/{fullchain.pem,privkey.pem}` and,
+  if found, copies them into `/run/mosquitto-tls/` (owned by the
+  `mosquitto` user) and generates a TLS listener config in
+  `/mosquitto/config/conf.d/tls.conf`. Staging the files is required
+  because Let's Encrypt writes `privkey.pem` as `0600 root:root`, which
+  the unprivileged mosquitto process can't read directly.
 - If `privkey.pem` is encrypted, place the password (single line) in
-  `privkey.pass` next to it. The entrypoint will decrypt the key into a
+  `privkey.pass` next to it. The entrypoint will decrypt the key into the
   runtime-only path before mosquitto reads it.
 - If the cert files are missing at runtime, MQTTS is silently skipped
   &mdash; the broker still starts up with the plain 1883/7575 listeners.

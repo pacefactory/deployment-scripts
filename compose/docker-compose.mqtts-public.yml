@@ -19,6 +19,6 @@ services:
     ports:
       - "${MQTTS_PUBLIC_PORT:-8883}:8883"
     volumes:
-      - "${MQTTS_CERT_SOURCE:?MQTTS_CERT_SOURCE must be set by the parent https-* profile}:/mosquitto/ssl/:ro"
+      - "${MQTTS_CERT_SOURCE:?MQTTS_CERT_SOURCE must be set by the parent https-* profile}:/etc/mosquitto-tls/:ro"
     environment:
       - "SERVER_NAME=${SERVER_NAME}${MQTTS_FQDN_SUFFIX:-}"
