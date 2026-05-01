@@ -1,0 +1,24 @@
+x-pf-info:
+  name: Public MQTTS (port 8883)
+  prompt: Expose MQTTS on port 8883?
+  description:
+    Mounts the SSL cert dir from the active https-* profile into
+    pf_mosquitto, passes SERVER_NAME, and publishes the MQTTS listener
+    (port 8883) to the host. Default-enabled whenever an https-* profile
+    is active. Disable to keep TLS internal-only (or to use HTTPS for
+    the web UI without exposing native MQTTS to the public).
+    Requires a parent https-* profile to set MQTTS_CERT_SOURCE.
+  sub-profile: true
+  settings:
+    MQTTS_PUBLIC_PORT:
+      description: Public host port for MQTTS. Set blank to keep listener internal.
+      default: 8883
+
+services:
+  pf_mosquitto:
+    ports:
+      - "${MQTTS_PUBLIC_PORT:-8883}:8883"
+    volumes:
+      - "${MQTTS_CERT_SOURCE:?MQTTS_CERT_SOURCE must be set by the parent https-* profile}:/etc/mosquitto-tls/:ro"
+    environment:
+      - "SERVER_NAME=${SERVER_NAME}${MQTTS_FQDN_SUFFIX:-}"

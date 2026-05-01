@@ -3,6 +3,10 @@ x-pf-info:
   prompt: Enable HTTPS (via godaddy DNS, pacefactory.com domain)
   description: Provision HTTPS certificate via letsencrypt.
     You MUST have already updated ./credentials/godaddy/credentials.ini with the appropriate secret and key.
+    The mqtts-public sub-profile (default-enabled) reuses the cert to
+    expose MQTTS on port 8883.
+  sub-profiles:
+    - mqtts-public
   settings:
     SERVER_NAME:
       description: Final domain name will be SERVER_NAME.pacefactory.com
@@ -12,6 +16,12 @@ x-pf-info:
       default: ""
     HTTPS_PORT:
       default: 443
+    MQTTS_CERT_SOURCE:
+      default: certbot
+      hidden: true
+    MQTTS_FQDN_SUFFIX:
+      default: .pacefactory.com
+      hidden: true
 
 services:
   certbot:
