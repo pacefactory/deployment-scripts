@@ -111,10 +111,9 @@ The `pf_mosquitto` MQTT broker exposes three listeners. Which ones are
 reachable from outside the docker network depends on which profiles are
 enabled at build time:
 
-| Listener | Port | Profile required                              | Default | Notes                                   |
-|----------|------|-----------------------------------------------|---------|-----------------------------------------|
-| MQTT     | 1883 | `mqtt-public` (sub-profile of `base`)         | enabled | Plain TCP MQTT                          |
-| MQTT/WS  | 7575 | `service-ports`                               | optional| Websockets, also proxied at `/api/mqtt` |
+| Listener | Port | Profile required                                | Default            | Notes                            |
+| -------- | ---- | ----------------------------------------------- | ------------------ | -------------------------------- |
+| MQTT     | 1883 | `mqtt-public` (sub-profile of `base`)           | enabled            | Plain TCP MQTT                   |
 | MQTTS    | 8883 | `mqtts-public` (sub-profile of every `https-*`) | enabled with HTTPS | TLS using the same cert as nginx |
 
 ## Plain MQTT on port 1883
@@ -139,10 +138,10 @@ broker's entrypoint script enables an MQTTS listener on port 8883.
 Each `https-*` profile contributes the cert source via two hidden
 settings consumed by `mqtts-public`:
 
-| Variable             | `https-no-certbot`   | `https-manual` | `https-godaddy`     | `https-digitalocean` |
-|----------------------|----------------------|----------------|---------------------|----------------------|
-| `MQTTS_CERT_SOURCE`  | `../credentials/ssl` | `certbot`      | `certbot`           | `certbot`            |
-| `MQTTS_FQDN_SUFFIX`  | (empty)              | (empty)        | `.pacefactory.com`  | `.pacefactory.dev`   |
+| Variable            | `https-no-certbot`   | `https-manual` | `https-godaddy`    | `https-digitalocean` |
+| ------------------- | -------------------- | -------------- | ------------------ | -------------------- |
+| `MQTTS_CERT_SOURCE` | `../credentials/ssl` | `certbot`      | `certbot`          | `certbot`            |
+| `MQTTS_FQDN_SUFFIX` | (empty)              | (empty)        | `.pacefactory.com` | `.pacefactory.dev`   |
 
 What happens under the hood when `mqtts-public` is on:
 
@@ -186,24 +185,27 @@ The platform supports tiered ghosting enforcement to control access to unghosted
 
 ## Deployment Modes
 
-| Mode | `WEBGUI_FORCE_GHOSTING` | `DBSERVER_DISABLE_SNAPSHOT_IMAGES` | Description |
-|------|-------------------------|-------------------------------------|-------------|
-| **Hard** (default) | `true` | `true` | Maximum security. Webgui locked, dbserver snapshot image endpoints disabled. |
-| **Soft** | `true` | `false` | Webgui locked but `UNGHOSTED_CAMERA_LIST` works. DBServer endpoints available. |
-| **None** | `false` | `false` | Full user control over ghosting toggle. |
+| Mode               | `WEBGUI_FORCE_GHOSTING` | `DBSERVER_DISABLE_SNAPSHOT_IMAGES` | Description                                                                    |
+| ------------------ | ----------------------- | ---------------------------------- | ------------------------------------------------------------------------------ |
+| **Hard** (default) | `true`                  | `true`                             | Maximum security. Webgui locked, dbserver snapshot image endpoints disabled.   |
+| **Soft**           | `true`                  | `false`                            | Webgui locked but `UNGHOSTED_CAMERA_LIST` works. DBServer endpoints available. |
+| **None**           | `false`                 | `false`                            | Full user control over ghosting toggle.                                        |
 
 ## Environment Variables
 
 ### WEBGUI_FORCE_GHOSTING
+
 - **Default:** `true`
 - Controls whether the ghosting toggle in the web UI is locked.
 
 ### WEBGUI_UNGHOSTED_CAMERA_LIST
+
 - **Default:** `""` (empty)
 - Comma-separated list of camera names that can be displayed unghosted in the webgui.
 - Only effective when `WEBGUI_FORCE_GHOSTING=true` and `DBSERVER_DISABLE_SNAPSHOT_IMAGES=false` (soft mode).
 
 ### DBSERVER_DISABLE_SNAPSHOT_IMAGES
+
 - **Default:** `true`
 - When `true`, snapshot image endpoints are not registered in dbserver (hard enforcement).
 - Gifwrapper automatically reads snapshots directly from the shared volume when this is enabled.
@@ -225,17 +227,17 @@ All backup/restore scripts are located in `scripts/backup_restore/`. The volume 
 ./scripts/backup_restore/backup_volume.sh [OPTIONS]
 ```
 
-| Option | Description |
-|--------|-------------|
-| `-n, --name NAME` | Project name (default: auto-detect) |
-| `-o, --output DIR` | Local backup output directory (default: `~/scv2_backups`) |
-| `-m, --mode MODE` | Backup mode: `local`, `ssh`, `sequential`, `direct` |
-| `-r, --remote USER@HOST` | Remote destination for `ssh`/`sequential`/`direct` mode |
-| `-p, --remote-path PATH` | Remote path (default: `~/scv2_backups/<timestamp>`) |
-| `--remote-name NAME` | Project name on the remote server (for `direct` mode; defaults to local project name) |
-| `--no-images` | Skip `.jpg` files from dbserver (non-interactive) |
-| `--check-only` | Run disk space pre-flight check and exit |
-| `-h, --help` | Show help |
+| Option                   | Description                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------- |
+| `-n, --name NAME`        | Project name (default: auto-detect)                                                   |
+| `-o, --output DIR`       | Local backup output directory (default: `~/scv2_backups`)                             |
+| `-m, --mode MODE`        | Backup mode: `local`, `ssh`, `sequential`, `direct`                                   |
+| `-r, --remote USER@HOST` | Remote destination for `ssh`/`sequential`/`direct` mode                               |
+| `-p, --remote-path PATH` | Remote path (default: `~/scv2_backups/<timestamp>`)                                   |
+| `--remote-name NAME`     | Project name on the remote server (for `direct` mode; defaults to local project name) |
+| `--no-images`            | Skip `.jpg` files from dbserver (non-interactive)                                     |
+| `--check-only`           | Run disk space pre-flight check and exit                                              |
+| `-h, --help`             | Show help                                                                             |
 
 **Backup modes:**
 
@@ -250,14 +252,14 @@ All backup/restore scripts are located in `scripts/backup_restore/`. The volume 
 ./scripts/backup_restore/restore_volume.sh [OPTIONS]
 ```
 
-| Option | Description |
-|--------|-------------|
-| `-i, --input PATH` | Path to backup folder or `.tar.gz` archive |
-| `-n, --name NAME` | Project name (default: auto-detect) |
-| `-m, --mode MODE` | Restore mode: `local`, `ssh` |
+| Option                   | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| `-i, --input PATH`       | Path to backup folder or `.tar.gz` archive     |
+| `-n, --name NAME`        | Project name (default: auto-detect)            |
+| `-m, --mode MODE`        | Restore mode: `local`, `ssh`                   |
 | `-r, --remote USER@HOST` | Remote source (the old server, for `ssh` mode) |
-| `-p, --remote-path PATH` | Remote path containing backup files |
-| `-h, --help` | Show help |
+| `-p, --remote-path PATH` | Remote path containing backup files            |
+| `-h, --help`             | Show help                                      |
 
 **Restore modes:**
 
@@ -319,7 +321,6 @@ No restore step needed -- data goes directly into Docker volumes on the new serv
 ./scripts/backup_restore/restore_volume.sh -i /path/to/backup-files
 ```
 
-
 ## Compose Files
 
 ### Profile System
@@ -330,8 +331,8 @@ Profiles are defined in `compose/docker-compose.{profile}.yml` files. Each profi
 
 ```yaml
 x-pf-info:
-  name: My Profile                    # Display name shown in prompts
-  prompt: Enable My Profile?          # Custom prompt text
+  name: My Profile # Display name shown in prompts
+  prompt: Enable My Profile? # Custom prompt text
   description: What this profile does # Shown when user enters '?' for help
 ```
 
@@ -343,7 +344,7 @@ Profiles can define settings that will be prompted to the user. If the user ente
 x-pf-info:
   settings:
     MY_SETTING:
-      default: default_value          # Default value shown in prompt
+      default: default_value # Default value shown in prompt
       description: What this setting does
 ```
 
@@ -367,8 +368,8 @@ A setting can reference another variable for its default value using `default_va
 x-pf-info:
   settings:
     MY_TAG:
-      default: latest                 # Fallback if default_var is not set
-      default_var: MY_TAG_OVERRIDE    # Use this variable's value as the default
+      default: latest # Fallback if default_var is not set
+      default_var: MY_TAG_OVERRIDE # Use this variable's value as the default
 ```
 
 When the user is prompted for `MY_TAG`, the prompt will show `[${MY_TAG_OVERRIDE}]` if that variable is set, otherwise `[latest]`.
@@ -479,4 +480,3 @@ EXPRESSO_UI_TAG [latest]:
 ```
 
 If the user had said "no" to CUDA, the prompt would show `EXPRESSO_SERVER_TAG [latest]:` instead.
-
