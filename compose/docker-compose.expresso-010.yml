@@ -118,6 +118,26 @@ services:
         condition: service_started
         required: true
 
+  # Singleton: never scale this service. Two beat replicas would enqueue every
+  # scheduled task twice.
+  celery_beat:
+    container_name: ${PROJECT_PREFIX:-}celery_beat
+    hostname: ${PROJECT_PREFIX:-}celery_beat
+    image: pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-${EXPRESSO_SERVER_TAG_DEFAULT_GPU:-latest}}
+    entrypoint: ["./scripts/start_beat.sh"]
+    restart: always
+    logging:
+      driver: local
+    networks:
+      - expresso_network
+    environment:
+      - "PF_REDIS_HOST=${PROJECT_PREFIX:-}redis"
+      - PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo_exp
+    depends_on:
+      redis:
+        condition: service_started
+        required: true
+
   mongo_exp:
     container_name: ${PROJECT_PREFIX:-}mongo_exp
     hostname: ${PROJECT_PREFIX:-}mongo_exp
