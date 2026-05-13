@@ -105,15 +105,40 @@ services:
     environment:
       - "PF_REDIS_HOST=${PROJECT_PREFIX:-}redis"
       - PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo_exp
+      - PF_CONTROL_SERVER_HOST=${PROJECT_PREFIX:-}realtime
+      - PF_CONTROL_SERVER_PORT=8181
+      # Override to connect directly to the control server (for development).
+      # When empty, falls back to CONTROL_SERVER_HOST and CONTROL_SERVER_PORT
+      - "PF_CONTROL_SERVER_URL="
       - PF_DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver
       - PF_DBSERVER_PORT=8050
-      # The PF_DBSERVER_URL overrides the DBSERVER_HOST and DBSERVER_PORT. 
+      # The PF_DBSERVER_URL overrides the DBSERVER_HOST and DBSERVER_PORT.
       # The DBSERVER_URL is meant to be used for development.
       - "PF_DBSERVER_URL="
     depends_on:
       mongo_exp:
         condition: service_started
         required: true
+      redis:
+        condition: service_started
+        required: true
+
+  # Singleton: never scale this service. Two beat replicas would enqueue every
+  # scheduled task twice.
+  celery_beat:
+    container_name: ${PROJECT_PREFIX:-}celery_beat
+    hostname: ${PROJECT_PREFIX:-}celery_beat
+    image: pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-${EXPRESSO_SERVER_TAG_DEFAULT_GPU:-latest}}
+    entrypoint: ["./scripts/start_beat.sh"]
+    restart: always
+    logging:
+      driver: local
+    networks:
+      - expresso_network
+    environment:
+      - "PF_REDIS_HOST=${PROJECT_PREFIX:-}redis"
+      - PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo_exp
+    depends_on:
       redis:
         condition: service_started
         required: true
