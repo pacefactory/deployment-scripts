@@ -21,6 +21,10 @@ services:
       driver: local
     volumes:
       - expresso-data:/home/scv2/volume
+      # Read-only mount of the dbserver data volume so the stations config UI
+      # can fetch snapshot JPEGs directly from disk when DBSERVER_DISABLE_SNAPSHOT_IMAGES
+      # is true on the dbserver (the default). Same strategy as service_gifwrapper.
+      - "dbserver-data:/home/scv2/dbserver_volume:ro"
     # Ports are conditionally enabled in the expresso-ports profile
     networks:
       - external_network
@@ -37,9 +41,14 @@ services:
       - "PF_CONTROL_SERVER_URL="
       - PF_DBSERVER_HOST=${PROJECT_PREFIX:-}dbserver
       - PF_DBSERVER_PORT=8050
-      # The PF_DBSERVER_URL overrides the DBSERVER_HOST and DBSERVER_PORT. 
+      # The PF_DBSERVER_URL overrides the DBSERVER_HOST and DBSERVER_PORT.
       # The DBSERVER_URL is meant to be used for development.
       - "PF_DBSERVER_URL="
+      # Root of the mounted dbserver data volume. When set, expresso_server
+      # reads snapshot images directly from disk rather than via the dbserver
+      # HTTP API, which is disabled by default for privacy
+      # (DBSERVER_DISABLE_SNAPSHOT_IMAGES=true).
+      - "PF_DBSERVER_VOLUME_DATA_PATH=/home/scv2/dbserver_volume/data"
 
     depends_on:
       mongo:
