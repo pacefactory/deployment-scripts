@@ -14,6 +14,82 @@ if ! declare -f yn_prompt &>/dev/null; then
 fi
 
 # -------------------------------------------------------------------------
+# SSH multiplexing + fast-cipher helpers
+#
+# Goal: amortize the SSH handshake across many calls (we make at least 1
+# per volume, plus several control calls) and use a hardware-accelerated
+# cipher with SSH-level compression disabled on the bulk-data pipe.
+# -------------------------------------------------------------------------
+_SSH_MUX_DIR=""
+_SSH_MUX_REMOTE=""
+
+# setup_ssh_multiplex REMOTE_SPEC
+#   Opens a master SSH connection to REMOTE_SPEC. Subsequent ssh/scp calls
+#   to the same host that include "$(ssh_mux_opts)" will reuse it.
+setup_ssh_multiplex() {
+  local remote="$1"
+  _SSH_MUX_DIR="$(mktemp -d -t scv2-ssh.XXXXXX)"
+  _SSH_MUX_REMOTE="$remote"
+  # -fN = background, no command. ControlPersist keeps it alive briefly
+  # after the script exits in case we crash before teardown.
+  if ! ssh -o ControlMaster=yes \
+          -o ControlPath="${_SSH_MUX_DIR}/cm-%C" \
+          -o ControlPersist=60 \
+          -fN "$remote" 2>/dev/null; then
+    # Multiplexing failed (e.g. password auth, unusual SSH config).
+    # Fall back to no multiplexing; everything still works.
+    rm -rf "$_SSH_MUX_DIR"
+    _SSH_MUX_DIR=""
+    _SSH_MUX_REMOTE=""
+  fi
+}
+
+# teardown_ssh_multiplex
+#   Closes the master connection set up by setup_ssh_multiplex.
+teardown_ssh_multiplex() {
+  if [[ -n "$_SSH_MUX_DIR" && -n "$_SSH_MUX_REMOTE" ]]; then
+    ssh -o ControlPath="${_SSH_MUX_DIR}/cm-%C" -O exit "$_SSH_MUX_REMOTE" 2>/dev/null
+    rm -rf "$_SSH_MUX_DIR"
+    _SSH_MUX_DIR=""
+    _SSH_MUX_REMOTE=""
+  fi
+}
+
+# ssh_mux_opts
+#   Echoes the -o ControlPath=... option when multiplexing is active,
+#   or nothing otherwise. Safe to interpolate unquoted in ssh/scp calls.
+ssh_mux_opts() {
+  if [[ -n "$_SSH_MUX_DIR" ]]; then
+    echo "-o ControlPath=${_SSH_MUX_DIR}/cm-%C"
+  fi
+}
+
+# fast_ssh_opts
+#   Options for the bulk-data pipe: AES-GCM (HW-accelerated on modern CPUs)
+#   and SSH-level compression off (we either don't compress, or we already
+#   compressed at the tar layer; either way SSH should not try to gzip).
+#   Also includes the multiplex ControlPath when active.
+fast_ssh_opts() {
+  echo "-c aes128-gcm@openssh.com -o Compression=no $(ssh_mux_opts)"
+}
+
+# -------------------------------------------------------------------------
+# Host-side compression helpers
+#
+# We do compression on the host (not in the ubuntu backup container) so
+# we can use pigz for multi-threaded gzip without modifying the image.
+# Output is gzip-compatible either way, so .tar.gz files produced by
+# pigz are decompressed transparently by plain `gzip -d` / `tar xzf`.
+# -------------------------------------------------------------------------
+host_compressor() {
+  if command -v pigz &>/dev/null; then
+    echo "pigz"
+  else
+    echo "gzip"
+  fi
+}
+
+# -------------------------------------------------------------------------
 # ensure_docker_image IMAGE
 #   Pulls a Docker image if not already available locally.
 #   Must be called before any piped docker run commands, otherwise a
@@ -38,11 +114,11 @@ ensure_remote_docker_image() {
   local remote="$1"
   local image="$2"
   echo "Checking Docker image '$image' on remote ($remote)..."
-  if ssh "$remote" "docker image inspect '$image' &>/dev/null"; then
+  if ssh $(ssh_mux_opts) "$remote" "docker image inspect '$image' &>/dev/null"; then
     echo "  --> Image '$image' already available on remote"
   else
     echo "  --> Pulling '$image' on remote..."
-    if ! ssh "$remote" "docker pull '$image'"; then
+    if ! ssh $(ssh_mux_opts) "$remote" "docker pull '$image'"; then
       echo "  --> ERROR: Failed to pull '$image' on remote"
       return 1
     fi
@@ -75,10 +151,10 @@ stop_remote_services() {
   local remote="$1"
   local project="$2"
   local running_service
-  running_service=$(ssh "$remote" "docker compose ls --filter name='$project' --quiet" 2>/dev/null)
+  running_service=$(ssh $(ssh_mux_opts) "$remote" "docker compose ls --filter name='$project' --quiet" 2>/dev/null)
   if [[ -n "$running_service" ]]; then
     echo "Remote project '$project' is running on $remote, stopping..."
-    ssh "$remote" "docker compose -p '$project' stop --timeout 600"
+    ssh $(ssh_mux_opts) "$remote" "docker compose -p '$project' stop --timeout 600"
     remote_service_shutdown=true
   fi
 }
@@ -107,7 +183,7 @@ prompt_restart_remote_services() {
   if [[ -n "$remote_service_shutdown" ]]; then
     read -r -p "Start remote $project service on $remote? (y/[n])? "
     if [[ "$REPLY" == "y" ]]; then
-      ssh "$remote" "docker compose -p '$project' start"
+      ssh $(ssh_mux_opts) "$remote" "docker compose -p '$project' start"
     fi
   fi
 }
@@ -179,10 +255,6 @@ check_ssh_connectivity() {
   echo "  (you may be prompted for a password)"
   if ssh -o ConnectTimeout=10 "$remote" "echo ok"; then
     echo "  --> SSH connection OK"
-    echo ""
-    echo "  NOTE: If using password auth, you will be prompted for each volume."
-    echo "  To avoid repeated prompts, consider setting up SSH key-based auth:"
-    echo "    ssh-copy-id $remote"
     return 0
   else
     echo "  --> ERROR: Cannot connect to $remote via SSH"
