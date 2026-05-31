@@ -6,6 +6,9 @@ x-pf-info:
   settings:
     TRAINER_TAG:
       default: latest
+    TRAINER_SHM_SIZE:
+      default: 2gb
+      description: "Shared memory (/dev/shm) size for the trainer container. Increase if PyTorch DataLoader deadlocks (e.g. 4gb, 8gb)."
 
 services:
   trainer:
@@ -14,6 +17,7 @@ services:
     image: pacefactory/trainer:${TRAINER_TAG:-latest}
     entrypoint: [ "./scripts/start_worker.sh" ]
     restart: always
+    shm_size: ${TRAINER_SHM_SIZE:-2gb}
     logging:
       driver: local
     volumes:
