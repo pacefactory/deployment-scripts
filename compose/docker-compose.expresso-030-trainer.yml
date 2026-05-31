@@ -1,10 +1,7 @@
 x-pf-info:
   name: Expresso Trainer
   prompt: Enable the Trainer worker for Expresso?
-  description:
-    Adds a GPU-backed Celery worker that runs model training (YOLOv8, YOLOX,
-    RF-DETR) and synthetic data generation tasks dispatched by expresso_server.
-    Requires an NVIDIA GPU and the nvidia container runtime on the host.
+  description: Adds a GPU-backed Celery worker that runs model training (YOLOv8, YOLOX, RF-DETR) and synthetic data generation tasks dispatched by expresso_server. Requires an NVIDIA GPU and the nvidia container runtime on the host.
   sub-profile: true
   settings:
     TRAINER_TAG:
@@ -15,7 +12,7 @@ services:
     container_name: ${PROJECT_PREFIX:-}trainer
     hostname: ${PROJECT_PREFIX:-}trainer
     image: pacefactory/trainer:${TRAINER_TAG:-latest}
-    entrypoint: ["./scripts/start_worker.sh"]
+    entrypoint: [ "./scripts/start_worker.sh" ]
     restart: always
     logging:
       driver: local
@@ -28,7 +25,7 @@ services:
       - "PF_REDIS_HOST=${PROJECT_PREFIX:-}redis"
       - "PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo_exp"
       - "PF_TRAINER_VOLUME_PATH=/home/scv2/volume"
-      - "PF_PREFER_GPU=true"
+      - "PF_EXPRESSO_HOST=${PROJECT_PREFIX:-}expresso_server"
     depends_on:
       mongo_exp:
         condition: service_started
