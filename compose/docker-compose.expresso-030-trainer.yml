@@ -1,0 +1,50 @@
+x-pf-info:
+  name: Expresso Trainer
+  prompt: Enable the Trainer worker for Expresso?
+  description: Adds a GPU-backed Celery worker that runs model training and synthetic data generation tasks dispatched by expresso_server. Requires an NVIDIA GPU and the nvidia container runtime on the host.
+  sub-profile: true
+  settings:
+    TRAINER_TAG:
+      default: latest
+    TRAINER_SHM_SIZE:
+      default: 2gb
+      description: "Shared memory (/dev/shm) size for the trainer container. Increase if PyTorch DataLoader deadlocks (e.g. 4gb, 8gb)."
+
+services:
+  trainer:
+    container_name: ${PROJECT_PREFIX:-}trainer
+    hostname: ${PROJECT_PREFIX:-}trainer
+    image: pacefactory/trainer:${TRAINER_TAG:-latest}
+    entrypoint: [ "./scripts/start_worker.sh" ]
+    restart: always
+    shm_size: ${TRAINER_SHM_SIZE:-2gb}
+    logging:
+      driver: local
+    volumes:
+      - expresso-data:/home/scv2/volume
+    networks:
+      - external_network
+      - expresso_network
+    environment:
+      - "PF_REDIS_HOST=${PROJECT_PREFIX:-}redis"
+      - "PF_MONGO_HOST=${PROJECT_PREFIX:-}mongo_exp"
+      - "PF_TRAINER_VOLUME_PATH=/home/scv2/volume"
+      - "PF_EXPRESSO_HOST=${PROJECT_PREFIX:-}expresso_server"
+    depends_on:
+      mongo_exp:
+        condition: service_started
+        required: true
+      redis:
+        condition: service_started
+        required: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
+                - utility
+                - compute
+                - video
