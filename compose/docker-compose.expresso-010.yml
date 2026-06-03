@@ -11,7 +11,7 @@ x-pf-info:
       default_var: EXPRESSO_SERVER_TAG_DEFAULT_GPU
     EXPRESSO_UI_TAG:
       default: latest
-    EXPRESSO_PUBLIC_URL_BASE:
+    PF_EXPRESSO_PUBLIC_URL_BASE:
       description: >-
         Public URL other deployments use to reach this one for remote-training
         callbacks, including scheme and the /api/expresso prefix
@@ -65,9 +65,9 @@ services:
       - "PF_DBSERVER_VOLUME_DATA_PATH=/home/scv2/dbserver_volume/data"
       # Externally-reachable base URL of THIS deployment, used to build the
       # remote-training callback endpoint (<base>/training/remote/callback).
-      # No PF_ prefix by design. Empty = this deployment cannot originate
-      # remote training jobs (local training still works).
-      - "EXPRESSO_PUBLIC_URL_BASE=${EXPRESSO_PUBLIC_URL_BASE:-}"
+      # Empty = this deployment cannot originate remote training jobs
+      # (local training still works).
+      - "PF_EXPRESSO_PUBLIC_URL_BASE=${PF_EXPRESSO_PUBLIC_URL_BASE:-}"
       # Optional comma-separated remote Expresso base URLs pre-registered as
       # remote trainers at startup (idempotent).
       - "PF_REMOTE_TRAINER_URLS=${PF_REMOTE_TRAINER_URLS:-}"
