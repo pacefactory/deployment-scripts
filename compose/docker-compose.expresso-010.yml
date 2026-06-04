@@ -21,7 +21,7 @@ x-pf-info:
     PF_REMOTE_TRAINER_URLS:
       description: >-
         Optional comma-separated remote Expresso base URLs to pre-register as
-        remote trainers (e.g. https://siteB.example.com,https://siteC.example.com).
+        remote trainers (e.g. https://siteB.example.com/api/expresso,https://siteC.example.com/api/expresso).
         Leave blank to add them later via the UI/API.
       default: ""
 
