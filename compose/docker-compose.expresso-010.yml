@@ -11,6 +11,19 @@ x-pf-info:
       default_var: EXPRESSO_SERVER_TAG_DEFAULT_GPU
     EXPRESSO_UI_TAG:
       default: latest
+    PF_EXPRESSO_PUBLIC_URL_BASE:
+      description: >-
+        Public URL other deployments use to reach this one for remote-training
+        callbacks, including scheme and the /api/expresso prefix
+        (e.g. https://site.example.com/api/expresso). Leave blank if this
+        deployment will not dispatch training to a remote.
+      default: ""
+    PF_REMOTE_TRAINER_URLS:
+      description: >-
+        Optional comma-separated remote Expresso base URLs to pre-register as
+        remote trainers (e.g. https://siteB.example.com/api/expresso,https://siteC.example.com/api/expresso).
+        Leave blank to add them later via the UI/API.
+      default: ""
 
 services:
   expresso_server:
@@ -50,6 +63,14 @@ services:
       # HTTP API, which is disabled by default for privacy
       # (DBSERVER_DISABLE_SNAPSHOT_IMAGES=true).
       - "PF_DBSERVER_VOLUME_DATA_PATH=/home/scv2/dbserver_volume/data"
+      # Externally-reachable base URL of THIS deployment, used to build the
+      # remote-training callback endpoint (<base>/training/remote/callback).
+      # Empty = this deployment cannot originate remote training jobs
+      # (local training still works).
+      - "PF_EXPRESSO_PUBLIC_URL_BASE=${PF_EXPRESSO_PUBLIC_URL_BASE:-}"
+      # Optional comma-separated remote Expresso base URLs pre-registered as
+      # remote trainers at startup (idempotent).
+      - "PF_REMOTE_TRAINER_URLS=${PF_REMOTE_TRAINER_URLS:-}"
 
     depends_on:
       mongo:
