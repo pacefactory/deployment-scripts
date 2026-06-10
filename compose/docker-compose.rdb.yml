@@ -42,5 +42,9 @@ services:
     environment:
       - PF_RDB_URL=http://${PROJECT_PREFIX:-}relational_dbserver:8282
 
+  expresso_server:
+    environment:
+      - "PF_RDB_URL=http://${PROJECT_PREFIX:-}relational_dbserver:8282"
+
 volumes:
   relational_dbserver-data:
