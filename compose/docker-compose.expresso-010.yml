@@ -147,6 +147,10 @@ services:
       # The PF_DBSERVER_URL overrides the DBSERVER_HOST and DBSERVER_PORT.
       # The DBSERVER_URL is meant to be used for development.
       - "PF_DBSERVER_URL="
+      # MQTT broker used by periodic publishing tasks (e.g. site reliability).
+      # When PF_MQTT_HOST is empty, publishing is disabled.
+      - "PF_MQTT_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
+      - "PF_MQTT_PORT=1883"
     depends_on:
       mongo_exp:
         condition: service_started
