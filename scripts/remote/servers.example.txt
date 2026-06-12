@@ -1,0 +1,5 @@
+# Fleet server list: one hostname or IP per line.
+# Lines starting with '#' and blank lines are ignored.
+# Copy this file to servers.txt (servers.txt is gitignored) and edit it.
+site-a.example.com
+192.0.2.10

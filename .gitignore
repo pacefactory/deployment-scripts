@@ -8,3 +8,5 @@ docker-compose.yml
 credentials/*/credentials.ini
 credentials/*/fullchain.pem
 credentials/*/privkey.pem
+scripts/remote/servers.txt
+scripts/remote/logs/
