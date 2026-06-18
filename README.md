@@ -227,24 +227,34 @@ All backup/restore scripts are located in `scripts/backup_restore/`. The volume 
 ./scripts/backup_restore/backup_volume.sh [OPTIONS]
 ```
 
-| Option                   | Description                                                                           |
-| ------------------------ | ------------------------------------------------------------------------------------- |
-| `-n, --name NAME`        | Project name (default: auto-detect)                                                   |
-| `-o, --output DIR`       | Local backup output directory (default: `~/scv2_backups`)                             |
-| `-m, --mode MODE`        | Backup mode: `local`, `ssh`, `sequential`, `direct`                                   |
-| `-r, --remote USER@HOST` | Remote destination for `ssh`/`sequential`/`direct` mode                               |
-| `-p, --remote-path PATH` | Remote path (default: `~/scv2_backups/<timestamp>`)                                   |
-| `--remote-name NAME`     | Project name on the remote server (for `direct` mode; defaults to local project name) |
-| `--no-images`            | Skip `.jpg` files from dbserver (non-interactive)                                     |
-| `--check-only`           | Run disk space pre-flight check and exit                                              |
-| `-h, --help`             | Show help                                                                             |
+| Option                   | Description                                                                                                    |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `-n, --name NAME`        | Project name (default: auto-detect)                                                                            |
+| `-o, --output DIR`       | Local backup output directory (default: `~/scv2_backups`)                                                      |
+| `-m, --mode MODE`        | Backup mode: `local`, `ssh`, `sequential`, `direct`                                                            |
+| `-r, --remote USER@HOST` | Remote destination for `ssh`/`sequential`/`direct` mode                                                        |
+| `-p, --remote-path PATH` | Remote path (default: `~/scv2_backups/<timestamp>`)                                                            |
+| `--remote-name NAME`     | Project name on the remote server (for `direct` mode; defaults to local project name)                          |
+| `--compress MODE`        | `auto` (default), `always`, or `never`. `auto` compresses `local`/`sequential` and skips for `ssh`/`direct`.   |
+| `--no-compress`          | Shorthand for `--compress never`. Produces `.tar` archives instead of `.tar.gz`.                               |
+| `--no-images`            | Skip `.jpg` files from dbserver (non-interactive)                                                              |
+| `--check-only`           | Run disk space pre-flight check and exit                                                                       |
+| `-h, --help`             | Show help                                                                                                      |
 
 **Backup modes:**
 
 - **`local`** (default) -- Back up all volumes to a local folder. Runs a disk space pre-flight check and warns if space is tight.
 - **`ssh`** -- Stream each volume directly to a remote server via SSH. Uses **zero local disk space**. Requires the old and new servers to be on the same network.
-- **`sequential`** -- Back up one volume at a time, prompt to transfer it, then delete the local copy before backing up the next. Max disk usage = the single largest compressed volume. Works in any network situation.
-- **`direct`** -- Stream volumes directly from old server Docker volumes into new server Docker volumes via SSH. Uses **zero disk space on both servers** (no intermediate `.tar.gz` files). Run from the old server; requires SSH access to the new server with Docker installed. Supports `--remote-name` if project names differ across servers.
+- **`sequential`** -- Back up one volume at a time, prompt to transfer it, then delete the local copy before backing up the next. Max disk usage = the single largest archive. Works in any network situation.
+- **`direct`** -- Stream volumes directly from old server Docker volumes into new server Docker volumes via SSH. Uses **zero disk space on both servers** (no intermediate archive files). Run from the old server; requires SSH access to the new server with Docker installed. Supports `--remote-name` if project names differ across servers.
+
+**Compression & throughput:**
+
+For network modes (`ssh`, `direct`) the default is **uncompressed** -- on a fast LAN, single-threaded `gzip` is the bottleneck, not the link, and dbserver's already-compressed `.jpg` images don't shrink under gzip anyway. Uncompressed streaming with a hardware-accelerated SSH cipher (`aes128-gcm`) typically saturates a 1 Gbps link instead. SSH connection multiplexing is set up automatically so all per-volume transfers share one authentication handshake.
+
+For disk-bound modes (`local`, `sequential`) the default is **compressed** to `.tar.gz`. If `pigz` is installed on the host, it is used automatically for multi-threaded gzip (5-8x faster than plain `gzip` on multi-core boxes); otherwise it falls back to single-threaded `gzip`.
+
+Override per run with `--compress always` (e.g. backing up across a slow WAN link where bytes-on-wire matter more than CPU) or `--compress never` (e.g. local backup on a host with plenty of disk and no `pigz`, where you want the fastest possible local copy). Archives carry a `.tar.gz` extension when compressed and `.tar` when not; the restore script accepts either.
 
 ### Restore
 
@@ -252,19 +262,21 @@ All backup/restore scripts are located in `scripts/backup_restore/`. The volume 
 ./scripts/backup_restore/restore_volume.sh [OPTIONS]
 ```
 
-| Option                   | Description                                    |
-| ------------------------ | ---------------------------------------------- |
-| `-i, --input PATH`       | Path to backup folder or `.tar.gz` archive     |
-| `-n, --name NAME`        | Project name (default: auto-detect)            |
-| `-m, --mode MODE`        | Restore mode: `local`, `ssh`                   |
-| `-r, --remote USER@HOST` | Remote source (the old server, for `ssh` mode) |
-| `-p, --remote-path PATH` | Remote path containing backup files            |
-| `-h, --help`             | Show help                                      |
+| Option                   | Description                                       |
+| ------------------------ | ------------------------------------------------- |
+| `-i, --input PATH`       | Path to backup folder or `.tar`/`.tar.gz` archive |
+| `-n, --name NAME`        | Project name (default: auto-detect)               |
+| `-m, --mode MODE`        | Restore mode: `local`, `ssh`                      |
+| `-r, --remote USER@HOST` | Remote source (the old server, for `ssh` mode)    |
+| `-p, --remote-path PATH` | Remote path containing backup files               |
+| `-h, --help`             | Show help                                         |
 
 **Restore modes:**
 
-- **`local`** (default) -- Restore from a local backup folder or `.tar.gz` archive.
+- **`local`** (default) -- Restore from a local backup folder or `.tar`/`.tar.gz` archive.
 - **`ssh`** -- Pull backup files directly from a remote server via SSH into Docker volumes. Uses **zero local archive storage**.
+
+Each volume's file is auto-detected per extension (`.tar` or `.tar.gz`), so a backup directory can mix the two and restores from older `.tar.gz`-only backups still work.
 
 ### Pre-flight disk check
 
@@ -281,7 +293,7 @@ This prints a table of volume sizes vs. available disk space and recommends `--m
 **Same network (zero disk usage on old server):**
 
 ```bash
-# On old server:
+# On old server (streams uncompressed over the LAN -- fastest):
 ./scripts/backup_restore/backup_volume.sh --mode ssh -r user@newserver
 
 # On new server:
@@ -310,6 +322,13 @@ This prints a table of volume sizes vs. available disk space and recommends `--m
 
 No restore step needed -- data goes directly into Docker volumes on the new server.
 
+**Slow / WAN link (force compression on the wire):**
+
+```bash
+# On old server (compress to save bytes; pigz used if installed):
+./scripts/backup_restore/backup_volume.sh --mode ssh -r user@newserver --compress always
+```
+
 **Servers not on the same network:**
 
 ```bash
@@ -320,6 +339,12 @@ No restore step needed -- data goes directly into Docker volumes on the new serv
 # On new server: restore from wherever the files were placed
 ./scripts/backup_restore/restore_volume.sh -i /path/to/backup-files
 ```
+
+### Tips
+
+- Install `pigz` on the host that will compress (`sudo apt install pigz`) to get multi-threaded gzip in `local`/`sequential` modes. No script changes required -- it's picked up automatically.
+- Pass `--no-images` to skip dbserver `.jpg` files non-interactively when scripting migrations. Without it, the script prompts once up-front.
+- The first SSH call may prompt for a password; subsequent volume transfers reuse the same connection via SSH multiplexing, so you authenticate once per run even with password auth.
 
 ## Compose Files
 
