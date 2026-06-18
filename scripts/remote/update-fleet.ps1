@@ -39,10 +39,10 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$ServerList = (Join-Path $PSScriptRoot 'servers.txt'),
+    [string]$ServerList,
     [string]$User = 'pacefactory',
     [string]$KeyPath = (Join-Path $env:USERPROFILE '.ssh\pf_fleet_ed25519'),
-    [string]$ReportDir = (Join-Path $PSScriptRoot 'logs'),
+    [string]$ReportDir,
     [int]$ConnectTimeoutSec = 15,
     [int]$HealthDelaySec = 15,
     [switch]$DryRun,
@@ -54,6 +54,16 @@ param(
 
 # Deliberately NOT setting $ErrorActionPreference = 'Stop': in PowerShell 5.1
 # that turns native-command stderr (with 2>&1) into terminating errors.
+
+# $PSScriptRoot can be empty inside a param() default under some PowerShell 5.1
+# invocations (notably -File with a relative path), which made the Join-Path
+# defaults throw "Cannot bind argument to parameter 'Path'". Resolve the script's
+# own directory here - with a fallback - and fill in any path-based defaults the
+# caller did not supply.
+$ScriptDir = $PSScriptRoot
+if (-not $ScriptDir) { $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition }
+if (-not $ServerList) { $ServerList = Join-Path $ScriptDir 'servers.txt' }
+if (-not $ReportDir) { $ReportDir = Join-Path $ScriptDir 'logs' }
 
 function Write-Warn([string]$Message) {
     Write-Host ('WARNING: {0}' -f $Message) -ForegroundColor Yellow
@@ -335,7 +345,7 @@ if (-not (Test-Path -LiteralPath $ServerList)) {
 if (-not (Test-Path -LiteralPath $KeyPath)) {
     Fail-Preflight ('ssh key not found: {0} (run install-ssh-key.ps1 first)' -f $KeyPath)
 }
-$payloadPath = Join-Path $PSScriptRoot 'update-server.sh'
+$payloadPath = Join-Path $ScriptDir 'update-server.sh'
 if (-not (Test-Path -LiteralPath $payloadPath)) {
     Fail-Preflight ('payload not found: {0}' -f $payloadPath)
 }

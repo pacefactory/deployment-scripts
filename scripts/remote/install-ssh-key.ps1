@@ -32,7 +32,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$ServerList = (Join-Path $PSScriptRoot 'servers.txt'),
+    [string]$ServerList,
     [string]$User = 'pacefactory',
     [string]$KeyPath = (Join-Path $env:USERPROFILE '.ssh\pf_fleet_ed25519'),
     [switch]$Force
@@ -40,6 +40,15 @@ param(
 
 # Deliberately NOT setting $ErrorActionPreference = 'Stop': in PowerShell 5.1
 # that turns native-command stderr (with 2>&1) into terminating errors.
+
+# $PSScriptRoot can be empty inside a param() default under some PowerShell 5.1
+# invocations (notably -File with a relative path), which made the Join-Path
+# default throw "Cannot bind argument to parameter 'Path'". Resolve the script's
+# own directory here - with a fallback - and fill in any path-based default the
+# caller did not supply.
+$ScriptDir = $PSScriptRoot
+if (-not $ScriptDir) { $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition }
+if (-not $ServerList) { $ServerList = Join-Path $ScriptDir 'servers.txt' }
 
 function Write-Warn([string]$Message) {
     Write-Host ('WARNING: {0}' -f $Message) -ForegroundColor Yellow
