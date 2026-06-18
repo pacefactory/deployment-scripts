@@ -85,6 +85,11 @@ then
     NEEDS_LOGOUT=true
 
     pull_command="docker compose --project-name $PROJECT_NAME pull"
+    # In quiet mode, suppress the per-layer pull progress (very noisy without a TTY, e.g. over ssh).
+    if [[ "$QUIET_MODE" == "true" ]];
+    then
+        pull_command="$pull_command --quiet"
+    fi
     echo $pull_command
 
     if $pull_command;
