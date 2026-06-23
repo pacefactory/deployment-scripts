@@ -63,7 +63,7 @@ fi
 
 if [[ "$RECONFIGURE" == "true" ]];
 then
-  ./build.sh --name $PROJECT_NAME
+  ./build.sh --name "$PROJECT_NAME"
 fi
 
 echo "Updating deployment..."
