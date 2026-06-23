@@ -16,12 +16,17 @@
     OpenSSH client is required (no admin rights, no extra software).
     Run install-ssh-key.ps1 once first to set up key-based auth.
 
+    Press Ctrl+C during a run to stop gracefully: the server being updated
+    finishes, the remaining servers are marked SKIPPED, and the summary and
+    per-server logs are still written.
+
     Statuses:
       OK          - updated, all containers up
       WARN        - updated, but something needs attention (non-standard image
                     tags, degraded containers, missing proxy script)
       FAIL        - a step failed on the server (see Detail and the log file)
       UNREACHABLE - ssh could not connect
+      SKIPPED     - not attempted; the run was cancelled with Ctrl+C
 
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File .\update-fleet.ps1
@@ -129,6 +134,36 @@ function Get-FirstLine([string]$Text) {
         if ($t -ne '') { return $t }
     }
     return ''
+}
+
+# With TreatControlCAsInput enabled, Ctrl+C lands in the console input buffer as
+# an ordinary key event instead of stopping the script. Drain the buffer and
+# report whether a Ctrl+C was among the pending keys.
+function Test-CancelRequested {
+    if (-not $script:CancelEnabled) { return $false }
+    $found = $false
+    try {
+        while ([Console]::KeyAvailable) {
+            $key = [Console]::ReadKey($true)
+            if (($key.Key -eq [ConsoleKey]::C) -and (($key.Modifiers -band [ConsoleModifiers]::Control) -ne 0)) {
+                $found = $true
+            }
+        }
+    }
+    catch { }
+    return $found
+}
+
+# Hand Ctrl+C back to the console (and clear any buffered keystrokes so they do
+# not leak to the parent shell). Safe to call more than once.
+function Restore-CtrlCMode {
+    if (-not $script:CancelEnabled) { return }
+    try {
+        while ([Console]::KeyAvailable) { [void][Console]::ReadKey($true) }
+    }
+    catch { }
+    try { [Console]::TreatControlCAsInput = $false } catch { }
+    $script:CancelEnabled = $false
 }
 
 # Run ssh via System.Diagnostics.Process: no cmd.exe quoting, no PowerShell
@@ -370,10 +405,33 @@ $runStamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $runDir = Join-Path $ReportDir $runStamp
 [void](New-Item -ItemType Directory -Path $runDir -Force)
 
+# Ctrl+C handling: turn Ctrl+C into ordinary console input so it kills neither
+# this script nor the in-flight ssh. We poll for it between servers (see the
+# main loop) and stop gracefully, marking servers we never reached as SKIPPED.
+$script:CancelEnabled = $false
+$script:StopRequested = $false
+try {
+    [Console]::TreatControlCAsInput = $true
+    $script:CancelEnabled = $true
+}
+catch {
+    Write-Warn 'cannot capture Ctrl+C in this console; the run will not be interruptible.'
+}
+
+# Hand Ctrl+C back to the console even on an unexpected terminating error,
+# otherwise the parent shell is left in raw-input mode.
+trap {
+    Restore-CtrlCMode
+    break
+}
+
 $mode = 'update'
 if ($DryRun) { $mode = 'check (dry run)' }
 Write-Host ''
 Write-Host ('Fleet {0}: {1} server(s) as {2}, logs in {3}' -f $mode, $servers.Count, $User, $runDir)
+if ($script:CancelEnabled) {
+    Write-Host '(Press Ctrl+C to stop gracefully after the current server.)' -ForegroundColor DarkGray
+}
 Write-Host ''
 
 # ---- main loop ---------------------------------------------------------------
@@ -381,6 +439,40 @@ Write-Host ''
 $results = New-Object System.Collections.ArrayList
 
 foreach ($server in $servers) {
+    if (-not $script:StopRequested -and (Test-CancelRequested)) {
+        $script:StopRequested = $true
+        Write-Host ''
+        Write-Host 'Cancellation requested (Ctrl+C); skipping remaining servers.' -ForegroundColor Yellow
+    }
+    if ($script:StopRequested) {
+        Write-Host ('--- {0}: SKIPPED (run cancelled)' -f $server) -ForegroundColor DarkYellow
+        [void]$results.Add([pscustomobject]@{
+                Server          = $server
+                Status          = 'SKIPPED'
+                Detail          = 'run cancelled before this server'
+                Containers      = ''
+                CommitBefore    = ''
+                CommitAfter     = ''
+                Behind          = ''
+                ProjectName     = ''
+                NonStandardTags = ''
+                ContainersUp    = ''
+                ContainersTotal = ''
+                Proxy           = ''
+                GitPull         = ''
+                GitFetch        = ''
+                Build           = ''
+                TagScan         = ''
+                Update          = ''
+                Health          = ''
+                PayloadExit     = ''
+                SshExit         = ''
+                DurationSec     = 0
+                LogFile         = ''
+            })
+        continue
+    }
+
     Write-Host ('>>> {0}' -f $server) -ForegroundColor Cyan
     $watch = [System.Diagnostics.Stopwatch]::StartNew()
     $startedAt = Get-Date
@@ -497,10 +589,16 @@ $results |
 $okCount = @($results | Where-Object { $_.Status -eq 'OK' }).Count
 $warnCount = @($results | Where-Object { $_.Status -eq 'WARN' }).Count
 $failCount = @($results | Where-Object { ($_.Status -eq 'FAIL') -or ($_.Status -eq 'UNREACHABLE') }).Count
-Write-Host ('Total: {0}  OK: {1}  WARN: {2}  FAIL/UNREACHABLE: {3}' -f $results.Count, $okCount, $warnCount, $failCount)
+$skipCount = @($results | Where-Object { $_.Status -eq 'SKIPPED' }).Count
+if ($script:StopRequested) {
+    Write-Host ''
+    Write-Host ('Run cancelled (Ctrl+C): {0} server(s) skipped.' -f $skipCount) -ForegroundColor Yellow
+}
+Write-Host ('Total: {0}  OK: {1}  WARN: {2}  FAIL/UNREACHABLE: {3}  SKIPPED: {4}' -f $results.Count, $okCount, $warnCount, $failCount, $skipCount)
 Write-Host ('Logs and summary.csv: {0}' -f $runDir)
 
 $badCount = $failCount
 if ($FailOnWarn) { $badCount = $failCount + $warnCount }
+Restore-CtrlCMode
 if ($badCount -gt 0) { exit 1 }
 exit 0

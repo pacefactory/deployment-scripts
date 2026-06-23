@@ -73,6 +73,12 @@ powershell.exe -ExecutionPolicy Bypass -File .\update-fleet.ps1
 Servers are processed **sequentially**, and a failure on one server never
 stops the rest of the run.
 
+Press **Ctrl+C** to stop gracefully: the server currently being updated
+finishes (so it is never left half-migrated), the servers not yet reached are
+marked `SKIPPED`, and the summary and per-server logs are still written. Note
+that Ctrl+C does *not* abort the server in progress — if it is mid-pull on a
+large image, it runs to completion before the run stops.
+
 ## What a run does on each server
 
 1. `source ~/connect-to-proxy.sh` (warning if missing, not fatal)
@@ -107,6 +113,7 @@ Statuses:
 | `WARN` | Updated, but needs attention: non-standard tags, degraded containers, or missing proxy script |
 | `FAIL` | A step failed — see Detail and the server's log file |
 | `UNREACHABLE` | ssh could not connect (DNS, network, auth) |
+| `SKIPPED` | Not attempted; the run was cancelled with Ctrl+C |
 
 Script exit code: `0` all OK/WARN, `1` any FAIL/UNREACHABLE (and WARN too
 with `-FailOnWarn`), `2` usage/preflight error.
