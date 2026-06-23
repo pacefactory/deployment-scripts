@@ -64,6 +64,14 @@ services:
       # HTTP API, which is disabled by default for privacy
       # (DBSERVER_DISABLE_SNAPSHOT_IMAGES=true).
       - "PF_DBSERVER_VOLUME_DATA_PATH=/home/scv2/dbserver_volume/data"
+      # Social video server connection (used for user-engagement metrics). Only
+      # reachable when the social profile is deployed (docker-compose.social.yml);
+      # expresso_server tolerates it being unreachable otherwise.
+      - PF_SOCIAL_VIDEO_SERVER_HOST=${PROJECT_PREFIX:-}social_video_server
+      - PF_SOCIAL_VIDEO_SERVER_PORT=9999
+      # The PF_SOCIAL_VIDEO_SERVER_URL overrides the SOCIAL_VIDEO_SERVER_HOST and
+      # SOCIAL_VIDEO_SERVER_PORT. Meant to be used for development.
+      - "PF_SOCIAL_VIDEO_SERVER_URL="
       # Externally-reachable base URL of THIS deployment, used to build the
       # remote-training callback endpoint (<base>/training/remote/callback).
       # Empty = this deployment cannot originate remote training jobs
