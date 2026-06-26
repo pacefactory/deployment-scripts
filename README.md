@@ -118,7 +118,7 @@ credentials/ssl/live/<FQDN>/privkey.pem
 ```
 
 where `<FQDN>` is the domain end users browse to (e.g.
-`https://serverhostname001.region.company.com`) and the value you enter for
+`serverhostname001.region.company.com`) and the value you enter for
 `SERVER_NAME` during `./build.sh`.
 
 If you were handed a single password-protected PKCS#12 bundle (`.pfx` /
