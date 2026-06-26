@@ -105,6 +105,54 @@ docker compose run --rm stitch_videos <date_string> [options]
 
 TODO: Document me!
 
+## HTTPS without Certbot (direct SSL)
+
+The `https-no-certbot` profile ("Enable HTTPS (via direct SSL)") serves an
+existing certificate instead of provisioning one through certbot. The
+apigateway (and, by extension, the `mqtts-public` sub-profile) expects an
+**unencrypted** cert/key pair at:
+
+```
+credentials/ssl/live/<FQDN>/fullchain.pem
+credentials/ssl/live/<FQDN>/privkey.pem
+```
+
+where `<FQDN>` is the domain end users browse to (e.g.
+`https://serverhostname001.region.company.com`) and the value you enter for
+`SERVER_NAME` during `./build.sh`.
+
+If you were handed a single password-protected PKCS#12 bundle (`.pfx` /
+`.p12`) containing the full chain plus the private key, use
+`scripts/import-ssl-cert.sh` to convert and place the files for you:
+
+```bash
+# FQDN is taken from the file name by default, e.g.
+#   serverhostname001.region.company.com.pfx
+#       -> credentials/ssl/live/serverhostname001.region.company.com/
+./scripts/import-ssl-cert.sh ~/certs/serverhostname001.region.company.com.pfx
+
+# Or derive the FQDN from the certificate's Common Name:
+./scripts/import-ssl-cert.sh --from-cn ~/certs/wildcard-export.pfx
+
+# Or set it explicitly:
+./scripts/import-ssl-cert.sh --server-name app.example.com ~/certs/export.pfx
+```
+
+The script prompts for the bundle password (or accept it via
+`--password-file`, the `PFX_PASSWORD` environment variable, or `--password`),
+runs the appropriate `openssl pkcs12` commands (including the `-legacy`
+fallback needed for Windows/IIS exports under OpenSSL 3), verifies the key
+matches the certificate, and writes `fullchain.pem` (leaf first, then any
+intermediates) and `privkey.pem` (mode `0600`). Run `--help` for all options.
+
+Afterwards, run `./build.sh`, enable "Enable HTTPS (via direct SSL)", set
+`SERVER_NAME` to the same `<FQDN>`, then `./update.sh`.
+
+> The generated `privkey.pem` is unencrypted, so no `privkey.pass` file is
+> needed. (The apigateway also supports an encrypted `privkey.pem` paired with
+> a single-line `privkey.pass`; see the profile description in
+> `compose/docker-compose.https-no-certbot.yml`.)
+
 # MQTT broker access
 
 The `pf_mosquitto` MQTT broker exposes three listeners. Which ones are
