@@ -27,6 +27,10 @@ Notes for deployment
 - `yq` is used for YAML parsing. `build.sh` can run without `yq` but is much faster if it is installed. Installation instructions are available in [YQ.md](YQ.md)
 - CUDA support requires the host system to have specific driver's installed. Instructions for setting up CUDA support are available at [realtime/CUDA.md](https://github.com/pacefactory/scv2_realtime/blob/main/CUDA.md)
 
+## MongoDB
+
+The main `mongo` service runs with a bounded memory footprint and as a single-node replica set. Sizing guidance, how the replica set is initialized, verification and rollback steps are documented in [MONGODB.md](MONGODB.md).
+
 ## Build script
 
 Run the `build.sh` script to enable/disable compose profiles and set environment variables.
