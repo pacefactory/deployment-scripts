@@ -11,6 +11,9 @@ x-pf-info:
       default_var: EXPRESSO_SERVER_TAG_DEFAULT_GPU
     EXPRESSO_UI_TAG:
       default: latest
+    EXPRESSO_UI_PASSWORD_PROTECTION:
+      description: Enable Expresso UI password protection (true/false)
+      default: true
     PF_EXPRESSO_PUBLIC_URL_BASE:
       description: >-
         Public URL other deployments use to reach this one for remote-training
@@ -111,6 +114,8 @@ services:
       - "PF_EXPRESSO_SERVER_URL="
       - "PF_CONTROL_SERVER_URL="
       - "PF_APE_URL="
+      # Set to false to remove the password prompt that gates the entire UI.
+      - "PF_PASSWORD_PROTECTION=${EXPRESSO_UI_PASSWORD_PROTECTION:-true}"
     depends_on:
       expresso_server:
         condition: service_started
