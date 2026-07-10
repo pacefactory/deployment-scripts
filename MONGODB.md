@@ -139,12 +139,12 @@ docker inspect --format '{{.State.OOMKilled}}' mongo
 ### Diagnosing slow writes / slow batch processing
 
 If batch processing (`service_audit_processing`) or ingest slows down after
-this configuration lands, run the read-only diagnostic script on the affected
-server and compare the highlighted numbers against the notes it prints:
-
-```bash
-./scripts/diagnose_mongo_slowdown.sh [project_prefix]
-```
+this configuration lands, sample `db.serverStatus()` inside the mongo
+container (the `wiredTiger.cache`, `wiredTiger.log` and `opLatencies`
+sections), check the slow-query log (`docker logs mongo`, operations over
+`--slowms`), and check the container state (`docker stats`,
+`docker inspect` for `OOMKilled`/`RestartCount`) alongside host swap and
+disk utilization.
 
 The three mechanisms this configuration can slow down, and the isolation knob
 for each (change ONE at a time, re-measure batch run duration after each):
