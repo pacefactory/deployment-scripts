@@ -32,8 +32,8 @@ These are prompted by `./build.sh` and stored in `.env`:
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `MONGO_MEMORY_LIMIT` | `3g` | Hard memory limit for the mongo container. **Must include units** (e.g. `3g`, `4096m`). |
-| `MONGO_WIREDTIGER_CACHE_GB` | `1` | WiredTiger cache size in GB (fractional values allowed, min `0.25`). |
+| `MONGO_MEMORY_LIMIT` | scales with host RAM (see below); `3g` if RAM can't be detected | Hard memory limit for the mongo container. **Must include units** (e.g. `3g`, `4096m`). |
+| `MONGO_WIREDTIGER_CACHE_GB` | scales with host RAM (see below); `1` if RAM can't be detected | WiredTiger cache size in GB (fractional values allowed, min `0.25`). |
 | `MONGO_OPLOG_SIZE_MB` | `2048` | Maximum oplog size in MB (replica set write-ahead log, capped collection on disk). |
 
 ### Sizing guidance
@@ -42,17 +42,32 @@ Use MongoDB's own rule: WiredTiger cache should be at most
 **50% of (memory limit − 1 GB)**. The rest of the budget is used by
 connections, in-memory sorts/aggregations, the oplog and allocator overhead.
 
-| Host RAM | Suggested `MONGO_MEMORY_LIMIT` | Suggested `MONGO_WIREDTIGER_CACHE_GB` |
-| --- | --- | --- |
-| 8 GB | `2g` | `0.5` |
-| 16 GB | `3g` (default) | `1` (default) |
-| 32 GB | `6g` | `2.5` |
-| 64 GB+ | `12g` | `5.5` |
+`./build.sh` reads the host's RAM from `/proc/meminfo` and applies these
+defaults (roughly 25% of host RAM for the container, keeping the OOM
+protection while leaving most of the host for the other services):
 
-A smaller cache trades query performance for stability; data is never lost by
-shrinking the cache, mongod just reads from disk more often. If the container
-is observed restarting due to the memory limit (`docker inspect mongo`
-shows `OOMKilled: true`), raise `MONGO_MEMORY_LIMIT` rather than the cache.
+| Host RAM | Default `MONGO_MEMORY_LIMIT` | Default `MONGO_WIREDTIGER_CACHE_GB` |
+| --- | --- | --- |
+| < 12 GB | `2g` | `0.5` |
+| 12–23 GB | `4g` | `1.5` |
+| 24–47 GB | `8g` | `3.5` |
+| 48 GB+ | `16g` | `7` |
+
+Explicit `MONGO_MEMORY_LIMIT` / `MONGO_WIREDTIGER_CACHE_GB` values in `.env`
+always win over the scaled defaults — to adopt the defaults on an existing
+deployment, delete those lines from `.env` and re-run `./build.sh` +
+`./update.sh`. (One caveat: the containerized macOS build sees the Docker
+Desktop VM's memory, not the Mac's — which is the right budget for containers
+anyway.)
+
+The original working-set sizing before memory bounding was introduced was
+~50% of host RAM; deployments whose batch processing working set exceeds the
+scaled default (high camera counts, long report ranges) should size up toward
+that, keeping the cache at 50% of (limit − 1 GB). A smaller cache trades
+query performance for stability; data is never lost by shrinking the cache,
+mongod just reads from disk more often. If the container is observed
+restarting due to the memory limit (`docker inspect mongo` shows
+`OOMKilled: true`), raise `MONGO_MEMORY_LIMIT` rather than the cache.
 
 Host swap also matters: with a container memory limit set, docker allows the
 container to swap by default, which smooths out short spikes instead of

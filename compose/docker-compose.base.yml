@@ -49,11 +49,13 @@ x-pf-info:
     DATA_INTERCONNECTOR_TAG:
       default: latest
     MONGO_MEMORY_LIMIT:
-      description: Hard memory limit for the mongo container, with units (e.g. 3g). See MONGODB.md for sizing guidance
+      description: Hard memory limit for the mongo container, with units (e.g. 3g). Default scales with host RAM; see MONGODB.md for sizing guidance
       default: 3g
+      default_var: MONGO_MEMORY_LIMIT_DEFAULT
     MONGO_WIREDTIGER_CACHE_GB:
-      description: MongoDB WiredTiger cache size in GB. Rule of thumb is 50% of (MONGO_MEMORY_LIMIT - 1GB)
+      description: MongoDB WiredTiger cache size in GB. Rule of thumb is 50% of (MONGO_MEMORY_LIMIT - 1GB). Default scales with host RAM
       default: 1
+      default_var: MONGO_WIREDTIGER_CACHE_GB_DEFAULT
     MONGO_OPLOG_SIZE_MB:
       description: Maximum size (in MB) of the MongoDB replica set oplog
       default: 2048
@@ -79,7 +81,7 @@ services:
       - "--slowms"
       - "200"
       - "--wiredTigerCacheSizeGB"
-      - "${MONGO_WIREDTIGER_CACHE_GB:-1}"
+      - "${MONGO_WIREDTIGER_CACHE_GB:-${MONGO_WIREDTIGER_CACHE_GB_DEFAULT:-1}}"
       - "--replSet"
       - "rs0"
       - "--oplogSize"
@@ -89,7 +91,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: ${MONGO_MEMORY_LIMIT:-3g}
+          memory: ${MONGO_MEMORY_LIMIT:-${MONGO_MEMORY_LIMIT_DEFAULT:-3g}}
     # The healthcheck reports healthy only when the node is PRIMARY. As a side
     # effect it initializes the single-node replica set on first boot (code 94,
     # NotYetInitialized) and re-binds the replica set config if the container
