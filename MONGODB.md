@@ -121,6 +121,46 @@ docker inspect --format '{{.State.OOMKilled}}' mongo
 
 (Prefix the container name with your `PROJECT_PREFIX` if one is set.)
 
+### Diagnosing slow writes / slow batch processing
+
+If batch processing (`service_audit_processing`) or ingest slows down after
+this configuration lands, run the read-only diagnostic script on the affected
+server and compare the highlighted numbers against the notes it prints:
+
+```bash
+./scripts/diagnose_mongo_slowdown.sh [project_prefix]
+```
+
+The three mechanisms this configuration can slow down, and the isolation knob
+for each (change ONE at a time, re-measure batch run duration after each):
+
+1. **WiredTiger cache too small** (cache miss ratio > ~5%, large
+   "application threads page read from disk" deltas). Before this change the
+   cache was ~50% of *host* RAM; the default is now a flat 1 GB. Raise the
+   cache without restarting mongod (takes effect immediately, lasts until the
+   next restart):
+
+   ```bash
+   docker exec mongo mongo --quiet --eval 'db.adminCommand({setParameter: 1, wiredTigerEngineRuntimeConfig: "cache_size=4G"})'
+   ```
+
+   If this fixes it, make it permanent by raising `MONGO_WIREDTIGER_CACHE_GB`
+   (and `MONGO_MEMORY_LIMIT` to at least double the cache) in `.env` /
+   `./build.sh`, then `./update.sh`.
+
+2. **Journal-acknowledged writes** (high journal syncs/s with high
+   time-in-sync, mean write latency > ~10 ms, especially on spinning disks).
+   Disable in the clients only — no mongo change needed: add
+   `MONGO_JOURNALED_WRITES=false` to the `dbserver` environment and
+   `PF_MONGO_JOURNALED_WRITES=false` to the `data_interconnector` environment,
+   then recreate those two containers.
+
+3. **Oplog write amplification / memory-limit swapping** (high oplog churn
+   MB/hour relative to disk speed, or the mongo container swapping /
+   OOMKilled / RestartCount climbing). Raise `MONGO_MEMORY_LIMIT`, and if the
+   oplog churn itself is the problem, roll back the replica set entirely
+   (below).
+
 ### Rolling back
 
 To return to a standalone mongod: remove `--replSet rs0` and `--oplogSize ...`
