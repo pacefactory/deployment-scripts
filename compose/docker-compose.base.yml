@@ -37,6 +37,9 @@ x-pf-info:
     PF_PROCESS_BLOCK_LAG_MINUTES:
       description: Duration to wait after end of a processing block for late-arriving data to arrive in dbserver (minutes)
       default: 5
+    PF_TRIM_SEGMENTS_TO_BLOCK:
+      description: Trim segments of some entry types (GENERIC_DURATION_FILTER, GENERIC_COMPLEMENT, MAPPED_UNION) to the processing block time range (true/false)
+      default: false
     GIFWRAPPER_TAG:
       default: latest
     DTREESERVER_TAG:
@@ -317,6 +320,7 @@ services:
       - "PF_PROCESS_BLOCK_DURATION_MINUTES=${PF_PROCESS_BLOCK_DURATION_MINUTES:-15}"
       - "PF_PROCESS_BLOCK_PREVIOUS_MINUTES=${PF_PROCESS_BLOCK_PREVIOUS_MINUTES:-5}"
       - "PF_PROCESS_BLOCK_LAG_MINUTES=${PF_PROCESS_BLOCK_LAG_MINUTES:-5}"
+      - "PF_TRIM_SEGMENTS_TO_BLOCK=${PF_TRIM_SEGMENTS_TO_BLOCK:-false}"
     volumes:
       - "audit_processing-data:/home/scv2/volume"
     networks:
