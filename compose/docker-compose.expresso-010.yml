@@ -114,6 +114,15 @@ services:
       - "PF_EXPRESSO_SERVER_URL="
       - "PF_CONTROL_SERVER_URL="
       - "PF_APE_URL="
+      # MQTT broker for the browser (websockets, not the raw 1883 port the worker uses).
+      # The PF_MQTT_URL overrides apigateway when connecting to the broker; it must be a
+      # ws:// or wss:// URL reachable from the browser. Overrides PF_MQTT_HOST and
+      # PF_MQTT_WEBSOCKETS_PORT too. With apigateway enabled the UI uses /api/mqtt/, so the
+      # host is left empty; it only applies in gateway-less deployments and must then be a
+      # hostname the browser can resolve (not the docker service name).
+      - "PF_MQTT_URL="
+      - "PF_MQTT_HOST="
+      - "PF_MQTT_WEBSOCKETS_PORT=7575"
       # Set to false to remove the password prompt that gates the entire UI.
       - "PF_PASSWORD_PROTECTION=${EXPRESSO_UI_PASSWORD_PROTECTION:-true}"
     depends_on:
