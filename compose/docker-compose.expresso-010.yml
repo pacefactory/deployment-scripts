@@ -173,6 +173,8 @@ services:
       # When PF_MQTT_HOST is empty, publishing is disabled.
       - "PF_MQTT_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
       - "PF_MQTT_PORT=1883"
+      # The site-reliability snapshot includes the audit app's version info, read from uiserver.
+      - PF_UISERVER_URL=http://${PROJECT_PREFIX:-}auditgui:80
     depends_on:
       mongo_exp:
         condition: service_started
