@@ -2,10 +2,14 @@ x-pf-info:
   name: HTTPS (manual, no certbot)
   prompt: Enable HTTPS (via direct SSL)
   description: Use existing HTTPS certificate. No provisioning via certbot.
-    You MUST have already updated ./credentials/ssl/live/${SERVER_NAME}/fullchain.pem and
-    ./credentials/ssl/live/${SERVER_NAME}/privkey.pem with certificate and key.
+    The certificate and key are read from ./credentials/ssl/live/${SERVER_NAME}/fullchain.pem
+    and ./credentials/ssl/live/${SERVER_NAME}/privkey.pem (the paths used by the
+    automated certificate install and scripts/import-ssl-cert.sh).
     If privkey.pem is encrypted, the password must be specified in
     ./credentials/ssl/live/${SERVER_NAME}/privkey.pass on a single line.
+    If the certificate and key do not exist yet, the apigateway serves a
+    temporary self-signed certificate until they are installed and the
+    deployment is restarted (./update.sh).
     The mqtts-public sub-profile (default-enabled) reuses these certs to
     expose MQTTS on port 8883.
   sub-profiles:
