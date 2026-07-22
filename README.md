@@ -70,12 +70,10 @@ reads it); re-run `./build.sh` to regenerate the compose without it.
 A new setting `PF_PROCESS_BLOCK_MAX_LOOKBACK_MINUTES` (default 240) caps the per-entry source-data
 lookback that audit processing now derives from each entry's duration parameters.
 
-Segment data stored **before** this upgrade does not self-heal: segments dropped or trimmed under
-the old rules stay as-is until the affected entry is cleared + reprocessed (webgui "Clear entry
-from uistore" button, or the audit-processing service's
-`GET /repair/:camera/:configID/:entryID/by-time-range/:start/:end` route). This applies
-especially to sites that ran with `PF_TRIM_SEGMENTS_TO_BLOCK=true` — their legacy trimmed pieces
-carry no provenance flags and are never stitched.
+Segment data stored **before** this upgrade is deliberately left as-is: segments dropped or
+trimmed under the old rules (including at sites that ran `PF_TRIM_SEGMENTS_TO_BLOCK=true`) carry
+no provenance flags and are never touched by the new stitching. Only blocks processed after the
+upgrade get the new behavior.
 
 # Tools
 
