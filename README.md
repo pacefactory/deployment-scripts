@@ -373,6 +373,14 @@ No restore step needed -- data goes directly into Docker volumes on the new serv
 ./scripts/backup_restore/restore_volume.sh -i /path/to/backup-files
 ```
 
+## Remote Fleet Updates (from Windows)
+
+`scripts/remote/` contains tooling to run `git pull` + `build.sh -q` +
+`update.sh -q` across many servers over ssh from a Windows machine (built-in
+OpenSSH client only, no admin rights), with per-server health checks, detection
+of pacefactory images pinned to non-`latest` tags, and a summary report.
+See [scripts/remote/README.md](scripts/remote/README.md).
+
 ## Compose Files
 
 ### Profile System

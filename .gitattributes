@@ -1,1 +1,7 @@
 * text=auto
+
+# Shell scripts must stay LF even on Windows checkouts: update-fleet.ps1
+# streams scripts/remote/update-server.sh to a remote 'bash -s', and CRLF
+# line endings would break it.
+*.sh text eol=lf
+*.ps1 text eol=crlf

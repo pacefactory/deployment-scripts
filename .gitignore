@@ -8,6 +8,8 @@ docker-compose.yml
 credentials/*/credentials.ini
 credentials/*/fullchain.pem
 credentials/*/privkey.pem
+scripts/remote/servers.txt
+scripts/remote/logs/
 # SSL material created by scripts/import-ssl-cert.sh lives one level deeper,
 # under credentials/ssl/live/<fqdn>/. Never commit real keys/certs or the
 # source .pfx/.p12 bundles (the *.example templates are kept on purpose).
