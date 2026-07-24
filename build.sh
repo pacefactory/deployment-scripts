@@ -105,6 +105,22 @@ then
     source .env
 fi
 
+# Scale the default mongo memory settings with the host's RAM (see MONGODB.md).
+# Exported so 'docker compose config' can resolve the compose-file fallbacks;
+# explicit MONGO_* values in .env always take precedence over these.
+host_ram_gb=$(awk '/^MemTotal:/ { printf "%d", $2 / 1048576 }' /proc/meminfo 2>/dev/null || true)
+if [[ -n "$host_ram_gb" ]]; then
+    if (( host_ram_gb >= 48 )); then
+        export MONGO_MEMORY_LIMIT_DEFAULT="16g" MONGO_WIREDTIGER_CACHE_GB_DEFAULT="7"
+    elif (( host_ram_gb >= 24 )); then
+        export MONGO_MEMORY_LIMIT_DEFAULT="8g" MONGO_WIREDTIGER_CACHE_GB_DEFAULT="3.5"
+    elif (( host_ram_gb >= 12 )); then
+        export MONGO_MEMORY_LIMIT_DEFAULT="4g" MONGO_WIREDTIGER_CACHE_GB_DEFAULT="1.5"
+    else
+        export MONGO_MEMORY_LIMIT_DEFAULT="2g" MONGO_WIREDTIGER_CACHE_GB_DEFAULT="0.5"
+    fi
+fi
+
 source scripts/common/projectName.sh
 
 rm -f .env.new

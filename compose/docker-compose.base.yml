@@ -37,6 +37,9 @@ x-pf-info:
     PF_PROCESS_BLOCK_LAG_MINUTES:
       description: Duration to wait after end of a processing block for late-arriving data to arrive in dbserver (minutes)
       default: 5
+    PF_TRIM_SEGMENTS_TO_BLOCK:
+      description: Trim segments of some entry types (GENERIC_DURATION_FILTER, GENERIC_COMPLEMENT, MAPPED_UNION) to the processing block time range (true/false)
+      default: false
     GIFWRAPPER_TAG:
       default: latest
     DTREESERVER_TAG:
@@ -45,6 +48,17 @@ x-pf-info:
       default: latest
     DATA_INTERCONNECTOR_TAG:
       default: latest
+    MONGO_MEMORY_LIMIT:
+      description: Hard memory limit for the mongo container, with units (e.g. 3g). Default scales with host RAM; see MONGODB.md for sizing guidance
+      default: 3g
+      default_var: MONGO_MEMORY_LIMIT_DEFAULT
+    MONGO_WIREDTIGER_CACHE_GB:
+      description: MongoDB WiredTiger cache size in GB. Rule of thumb is 50% of (MONGO_MEMORY_LIMIT - 1GB). Default scales with host RAM
+      default: 1
+      default_var: MONGO_WIREDTIGER_CACHE_GB_DEFAULT
+    MONGO_OPLOG_SIZE_MB:
+      description: Maximum size (in MB) of the MongoDB replica set oplog
+      default: 2048
     HTTP_PORT:
       default: 80
 
@@ -54,6 +68,59 @@ services:
     hostname: ${PROJECT_PREFIX:-}mongo
     image: mongo:4.2.3-bionic
     restart: always
+    # Memory bounding + single-node replica set (see MONGODB.md for details)
+    # - wiredTigerCacheSizeGB must be set explicitly, since mongod 4.2 cannot
+    #   detect container memory limits and would otherwise size its cache
+    #   from the *host* RAM (unbounded growth -> host OOM killer events)
+    # - replSet/oplogSize run mongo as a single-node replica set, which gives
+    #   journal-acknowledged (crash-durable) writes, retryable writes and
+    #   change streams; the replica set is initialized by the healthcheck below
+    command:
+      - "mongod"
+      - "--quiet"
+      - "--slowms"
+      - "200"
+      - "--wiredTigerCacheSizeGB"
+      - "${MONGO_WIREDTIGER_CACHE_GB:-${MONGO_WIREDTIGER_CACHE_GB_DEFAULT:-1}}"
+      - "--replSet"
+      - "rs0"
+      - "--oplogSize"
+      - "${MONGO_OPLOG_SIZE_MB:-2048}"
+    # Hard cap so a misbehaving mongod is restarted by docker (restart: always)
+    # instead of growing until the host OOM killer takes out arbitrary processes
+    deploy:
+      resources:
+        limits:
+          memory: ${MONGO_MEMORY_LIMIT:-${MONGO_MEMORY_LIMIT_DEFAULT:-3g}}
+    # The healthcheck reports healthy only when the node is PRIMARY. As a side
+    # effect it initializes the single-node replica set on first boot (code 94,
+    # NotYetInitialized) and re-binds the replica set config if the container
+    # hostname changes, e.g. after a PROJECT_PREFIX change (code 93,
+    # InvalidReplicaSetConfig)
+    healthcheck:
+      test:
+        - "CMD"
+        - "mongo"
+        - "--quiet"
+        - "--eval"
+        - |
+          var self_host = getHostName() + ":27017";
+          var status;
+          try { status = rs.status(); } catch (rs_error) { status = rs_error; }
+          if (status.ok === 1 && status.myState === 1) { quit(0); }
+          if (status.code === 94) {
+            rs.initiate({ _id: "rs0", members: [{ _id: 0, host: self_host }] });
+          } else if (status.code === 93) {
+            var cfg = db.getSiblingDB("local").system.replset.findOne();
+            cfg.members = [{ _id: 0, host: self_host }];
+            cfg.version += 1;
+            db.adminCommand({ replSetReconfig: cfg, force: true });
+          }
+          quit(1);
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
     # Increase open file handle limits (https://github.com/pacefactory/deployment-scripts/issues/94)
     ulimits:
       nofile:
@@ -255,6 +322,7 @@ services:
       - "PF_PROCESS_BLOCK_DURATION_MINUTES=${PF_PROCESS_BLOCK_DURATION_MINUTES:-15}"
       - "PF_PROCESS_BLOCK_PREVIOUS_MINUTES=${PF_PROCESS_BLOCK_PREVIOUS_MINUTES:-5}"
       - "PF_PROCESS_BLOCK_LAG_MINUTES=${PF_PROCESS_BLOCK_LAG_MINUTES:-5}"
+      - "PF_TRIM_SEGMENTS_TO_BLOCK=${PF_TRIM_SEGMENTS_TO_BLOCK:-false}"
     volumes:
       - "audit_processing-data:/home/scv2/volume"
     networks:

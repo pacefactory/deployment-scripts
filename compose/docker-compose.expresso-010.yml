@@ -11,6 +11,9 @@ x-pf-info:
       default_var: EXPRESSO_SERVER_TAG_DEFAULT_GPU
     EXPRESSO_UI_TAG:
       default: latest
+    EXPRESSO_UI_PASSWORD_PROTECTION:
+      description: Enable Expresso UI password protection (true/false)
+      default: true
     PF_EXPRESSO_PUBLIC_URL_BASE:
       description: >-
         Public URL other deployments use to reach this one for remote-training
@@ -64,6 +67,14 @@ services:
       # HTTP API, which is disabled by default for privacy
       # (DBSERVER_DISABLE_SNAPSHOT_IMAGES=true).
       - "PF_DBSERVER_VOLUME_DATA_PATH=/home/scv2/dbserver_volume/data"
+      # Social video server connection (used for user-engagement metrics). Only
+      # reachable when the social profile is deployed (docker-compose.social.yml);
+      # expresso_server tolerates it being unreachable otherwise.
+      - PF_SOCIAL_VIDEO_SERVER_HOST=${PROJECT_PREFIX:-}social_video_server
+      - PF_SOCIAL_VIDEO_SERVER_PORT=9999
+      # The PF_SOCIAL_VIDEO_SERVER_URL overrides the SOCIAL_VIDEO_SERVER_HOST and
+      # SOCIAL_VIDEO_SERVER_PORT. Meant to be used for development.
+      - "PF_SOCIAL_VIDEO_SERVER_URL="
       # Externally-reachable base URL of THIS deployment, used to build the
       # remote-training callback endpoint (<base>/training/remote/callback).
       # Empty = this deployment cannot originate remote training jobs
@@ -103,6 +114,17 @@ services:
       - "PF_EXPRESSO_SERVER_URL="
       - "PF_CONTROL_SERVER_URL="
       - "PF_APE_URL="
+      # MQTT broker for the browser (websockets, not the raw 1883 port the worker uses).
+      # The PF_MQTT_URL overrides apigateway when connecting to the broker; it must be a
+      # ws:// or wss:// URL reachable from the browser. Overrides PF_MQTT_HOST and
+      # PF_MQTT_WEBSOCKETS_PORT too. With apigateway enabled the UI uses /api/mqtt/, so the
+      # host is left empty; it only applies in gateway-less deployments and must then be a
+      # hostname the browser can resolve (not the docker service name).
+      - "PF_MQTT_URL="
+      - "PF_MQTT_HOST="
+      - "PF_MQTT_WEBSOCKETS_PORT=7575"
+      # Set to false to remove the password prompt that gates the entire UI.
+      - "PF_PASSWORD_PROTECTION=${EXPRESSO_UI_PASSWORD_PROTECTION:-true}"
     depends_on:
       expresso_server:
         condition: service_started
@@ -147,6 +169,12 @@ services:
       # The PF_DBSERVER_URL overrides the DBSERVER_HOST and DBSERVER_PORT.
       # The DBSERVER_URL is meant to be used for development.
       - "PF_DBSERVER_URL="
+      # MQTT broker used by periodic publishing tasks (e.g. site reliability).
+      # When PF_MQTT_HOST is empty, publishing is disabled.
+      - "PF_MQTT_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
+      - "PF_MQTT_PORT=1883"
+      # The site-reliability snapshot includes the audit app's version info, read from uiserver.
+      - PF_UISERVER_URL=http://${PROJECT_PREFIX:-}auditgui:80
     depends_on:
       mongo_exp:
         condition: service_started
