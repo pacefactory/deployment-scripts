@@ -504,7 +504,6 @@ The Expresso profile demonstrates sub-profiles with dynamic defaults:
 ```yaml
 x-pf-info:
   name: Expresso profile
-  prompt: Enable the Expresso profile?
   sub-profiles:
     - expresso-020-cuda
   settings:
@@ -547,8 +546,9 @@ services:
 
 **User Experience:**
 
+The Expresso profile itself is mandatory (build.sh force-enables it without prompting), so the user is only asked about its sub-profiles and settings:
+
 ```
-Enable the Expresso profile? ([y]/n/?) y
  -> Will enable Expresso profile
 
 Enable CUDA for Expresso? (y/[n]/?) y

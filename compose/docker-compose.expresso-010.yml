@@ -1,7 +1,7 @@
 x-pf-info:
   name: Expresso profile
-  prompt: Enable the Expresso profile?
-  description: The Expresso profile expresso_server and UI for easier configuration
+  # Always enabled — build.sh force-enables this profile without prompting.
+  description: The Expresso profile provides expresso_server and the Expresso UI
   sub-profiles:
     - expresso-020-cuda
     - expresso-030-trainer
