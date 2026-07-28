@@ -133,6 +133,12 @@ services:
         condition: service_started
         required: false
 
+  auditgui:
+    environment:
+      # Base URL of the expresso UI behind the apigateway, used by the webgui
+      # to link to the expresso UI (e.g. the site reliability page).
+      - "WEBGUI_EXPRESSO_UI_URL=/expresso"
+
   redis:
     container_name: ${PROJECT_PREFIX:-}redis
     hostname: ${PROJECT_PREFIX:-}redis
