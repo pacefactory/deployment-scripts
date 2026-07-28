@@ -57,6 +57,24 @@ Flags
 - Pass `-q` to skip all user prompts.
 - Pass `--pull` to force-pull all latest images referenced in the compose file.
 
+## Upgrade notes
+
+### Audit processing: per-entry segment trimming (2026-07)
+
+`PF_TRIM_SEGMENTS_TO_BLOCK` has been removed. Segment trimming at processing-block boundaries is
+now controlled **per entry** in the audit config (webgui → Advanced Entry Edit), is ON by default
+for all station entries and most generic entries, and trimmed pieces are stitched back together
+in storage. A stale `PF_TRIM_SEGMENTS_TO_BLOCK` value in an existing `.env` is harmless (nothing
+reads it); re-run `./build.sh` to regenerate the compose without it.
+
+A new setting `PF_PROCESS_BLOCK_MAX_LOOKBACK_MINUTES` (default 240) caps the per-entry source-data
+lookback that audit processing now derives from each entry's duration parameters.
+
+Segment data stored **before** this upgrade is deliberately left as-is: segments dropped or
+trimmed under the old rules (including at sites that ran `PF_TRIM_SEGMENTS_TO_BLOCK=true`) carry
+no provenance flags and are never touched by the new stitching. Only blocks processed after the
+upgrade get the new behavior.
+
 # Tools
 
 ## Record & Stitch Video
