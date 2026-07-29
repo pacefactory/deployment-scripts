@@ -70,6 +70,12 @@ reads it); re-run `./build.sh` to regenerate the compose without it.
 A new setting `PF_PROCESS_BLOCK_MAX_LOOKBACK_MINUTES` (default 240) caps the per-entry source-data
 lookback that audit processing now derives from each entry's duration parameters.
 
+**Global kill switch (2026-07):** the whole trim/stitch/derived-lookback feature is additionally
+gated by `PF_ENABLE_SEGMENT_TRIM_STITCH`, which **defaults to false** pending performance
+evaluation at scale. While false, audit processing behaves exactly as before the feature landed
+(legacy drop rule, fixed fetch windows, no stitch pass) and per-entry trim settings are ignored;
+stored records are never modified by the switch. Set it to `true` to enable the feature.
+
 Segment data stored **before** this upgrade is deliberately left as-is: segments dropped or
 trimmed under the old rules (including at sites that ran `PF_TRIM_SEGMENTS_TO_BLOCK=true`) carry
 no provenance flags and are never touched by the new stitching. Only blocks processed after the
