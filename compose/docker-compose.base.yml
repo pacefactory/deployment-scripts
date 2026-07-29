@@ -40,6 +40,9 @@ x-pf-info:
     PF_PROCESS_BLOCK_MAX_LOOKBACK_MINUTES:
       description: Upper bound on the per-entry source-data lookback derived from duration parameters in each entry's dependency chain (minutes)
       default: 240
+    PF_ENABLE_SEGMENT_TRIM_STITCH:
+      description: Globally enable per-entry segment trimming, stitching, and derived source-data lookback in audit processing (true/false)
+      default: false
     GIFWRAPPER_TAG:
       default: latest
     DTREESERVER_TAG:
@@ -323,6 +326,7 @@ services:
       - "PF_PROCESS_BLOCK_PREVIOUS_MINUTES=${PF_PROCESS_BLOCK_PREVIOUS_MINUTES:-5}"
       - "PF_PROCESS_BLOCK_LAG_MINUTES=${PF_PROCESS_BLOCK_LAG_MINUTES:-5}"
       - "PF_PROCESS_BLOCK_MAX_LOOKBACK_MINUTES=${PF_PROCESS_BLOCK_MAX_LOOKBACK_MINUTES:-240}"
+      - "PF_ENABLE_SEGMENT_TRIM_STITCH=${PF_ENABLE_SEGMENT_TRIM_STITCH:-false}"
     volumes:
       - "audit_processing-data:/home/scv2/volume"
     networks:
