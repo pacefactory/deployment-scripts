@@ -114,6 +114,10 @@ services:
       - "PF_EXPRESSO_SERVER_URL="
       - "PF_CONTROL_SERVER_URL="
       - "PF_APE_URL="
+      # The PF_GIF_URL overrides apigateway when connecting to the gifwrapper service
+      # (used for ghosted snapshot images). With apigateway enabled the UI uses
+      # /api/gif/, so this is left empty; it is meant to be used for development.
+      - "PF_GIF_URL="
       # MQTT broker for the browser (websockets, not the raw 1883 port the worker uses).
       # The PF_MQTT_URL overrides apigateway when connecting to the broker; it must be a
       # ws:// or wss:// URL reachable from the browser. Overrides PF_MQTT_HOST and
