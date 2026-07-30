@@ -280,6 +280,16 @@ The platform supports tiered ghosting enforcement to control access to unghosted
 - Comma-separated list of camera names that can be displayed unghosted in the webgui.
 - Only effective when `WEBGUI_FORCE_GHOSTING=true` and `DBSERVER_DISABLE_SNAPSHOT_IMAGES=false` (soft mode).
 
+### WEBGUI_DEFAULT_GHOSTING_TYPE
+
+- **Default:** `ghosted`
+- Ghosting style the webgui starts with. One of `no_image` (Outline), `edges` (Dark Mode),
+  `edges_inverted` (Light Mode), `ghosted` (Ghosted), `ghosted_blur` (Blur), `color_invert` (Invert).
+- Only sets the starting value: users can still pick a different style from the ghosting settings
+  dropdown for their session. Independent of `WEBGUI_FORCE_GHOSTING`, which locks whether ghosting
+  can be turned off at all.
+- An unrecognized value falls back to `ghosted` in the webgui.
+
 ### DBSERVER_DISABLE_SNAPSHOT_IMAGES
 
 - **Default:** `true`
