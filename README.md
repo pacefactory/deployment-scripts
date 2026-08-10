@@ -290,6 +290,19 @@ The platform supports tiered ghosting enforcement to control access to unghosted
   can be turned off at all.
 - An unrecognized value falls back to `ghosted` in the webgui.
 
+### UISERVER_AUDIT_TIME_ZONE
+
+- **Default:** `""` (empty)
+- IANA time zone name (e.g. `America/Toronto`) used by the audit app for every camera that does
+  not override the time zone itself.
+- On startup, the uiserver writes this into the `timeZone` field of the audit config's
+  `global.json`, as a new config version.
+- Only ever fills in a **missing** time zone: once `global.json` has a `timeZone`, this variable is
+  ignored, so a value set in the app is never overwritten on restart.
+- Leaving it blank (the default, i.e. pressing enter at the prompt) leaves `global.json` untouched —
+  no `timeZone` field is written at all.
+- An unrecognized time zone name is ignored, with a message in the `auditgui` container logs.
+
 ### DBSERVER_DISABLE_SNAPSHOT_IMAGES
 
 - **Default:** `true`

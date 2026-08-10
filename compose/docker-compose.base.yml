@@ -23,6 +23,9 @@ x-pf-info:
     WEBGUI_DEFAULT_GHOSTING_TYPE:
       description: "Ghosting style the webgui starts with. One of: no_image, edges, edges_inverted, ghosted, ghosted_blur, color_invert"
       default: ghosted
+    UISERVER_AUDIT_TIME_ZONE:
+      description: "IANA time zone for the audit app, e.g. America/Toronto. Seeds the global audit config time zone when it is not already set. Leave blank to leave the time zone unset"
+      default: ""
     DBSERVER_DISABLE_SNAPSHOT_IMAGES:
       description: Disable unghosted snapshot image endpoints in dbserver (hard ghosting enforcement)
       default: true
@@ -262,6 +265,8 @@ services:
       - "WEBGUI_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
       - "WEBGUI_UNGHOSTED_CAMERA_LIST=${WEBGUI_UNGHOSTED_CAMERA_LIST:-}"
       - "WEBGUI_DEFAULT_GHOSTING_TYPE=${WEBGUI_DEFAULT_GHOSTING_TYPE:-ghosted}"
+      # Blank means "leave the audit config's global time zone alone" (uiserver ignores a blank value)
+      - "UISERVER_AUDIT_TIME_ZONE=${UISERVER_AUDIT_TIME_ZONE:-}"
       - "WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT=${WEBGUI_RETRIEVE_REALTIME_CAM_CONFIG_ON_INIT:-false}"
       - "WEBGUI_OBJ_REQ_BATCH_SIZE=${WEBGUI_OBJ_REQ_BATCH_SIZE:-20}"
       - "WEBGUI_WORK_QUEUE_INSERTION_MODE=${WEBGUI_WORK_QUEUE_INSERTION_MODE:-depth-first}"
