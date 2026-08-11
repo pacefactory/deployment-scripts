@@ -23,6 +23,9 @@ x-pf-info:
     WEBGUI_DEFAULT_GHOSTING_TYPE:
       description: "Ghosting style the webgui starts with. One of: no_image, edges, edges_inverted, ghosted, ghosted_blur, color_invert"
       default: ghosted
+    UISERVER_AUDIT_DEFAULT_TIMEZONE:
+      description: "IANA time zone for this site (e.g. America/Toronto). Seeds the audit global.json timeZone when it is not already set; a time zone set in the app always wins"
+      default: ""
     DBSERVER_DISABLE_SNAPSHOT_IMAGES:
       description: Disable unghosted snapshot image endpoints in dbserver (hard ghosting enforcement)
       default: true
@@ -271,6 +274,9 @@ services:
       - "WEBGUI_STATIC_PATH=/scv3/static/"
       - "WEBGUI_BASE_PATH=/scv3"
       - "WEBGUI_SOCIAL_WEB_APP_URL=/"
+      # Seeds the audit global.json timeZone on startup when it is unset; never overrides a
+      # time zone set in the app (see scv3_webgui uiserver/local/lib/audit_timezone.py)
+      - "UISERVER_AUDIT_DEFAULT_TIMEZONE=${UISERVER_AUDIT_DEFAULT_TIMEZONE:-}"
     volumes:
       - "webgui-data:/home/scv2/volume"
     networks:

@@ -39,6 +39,10 @@ This repository contains deployment scripts for containerized services using Doc
 - Environment variables in `.env` file
 - Interactive prompts for profile-specific settings
 - Backup of previous .env as .env.backup
+- `UISERVER_AUDIT_DEFAULT_TIMEZONE` seeds the audit `global.json` `timeZone` when the auditgui
+  container starts. It only fills an unset/empty value: a time zone set in the app always wins,
+  and clearing it in the app lets the setting seed it again on the next restart. Leave it blank
+  to opt out entirely.
 
 ## Commands
 - **Build compose file**: `./build.sh` (Linux) or `./scripts/build-mac.sh` (macOS)
