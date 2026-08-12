@@ -26,6 +26,7 @@ This repository contains deployment scripts for containerized services using Doc
 ### Profile System
 - Profiles are defined in `compose/docker-compose.{profile}.yml` files
 - Base profiles: base, proc, social, audit, custom
+- expresso-010 is force-enabled by `build.sh` and effectively part of the base stack; its separate file exists for the GPU sub-profiles (expresso-020-cuda, expresso-030-trainer)
 - Special handling for noaudit profile when audit is disabled
 - Each profile can define settings via `x-pf-info` metadata
 
