@@ -288,7 +288,7 @@ The platform supports tiered ghosting enforcement to control access to unghosted
 - Only sets the starting value: users can still pick a different style from the ghosting settings
   dropdown for their session. Independent of `WEBGUI_FORCE_GHOSTING`, which locks whether ghosting
   can be turned off at all.
-- An unrecognized value falls back to `ghosted` in the webgui.
+- An unrecognized value falls back to `ghosted` in the webgui and social app.
 
 ### DBSERVER_DISABLE_SNAPSHOT_IMAGES
 

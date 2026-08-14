@@ -27,6 +27,7 @@ services:
       - "SOCIAL_SCV3_URL=/scv3/"
       - "SOCIAL_GIF_URL=/api/gif"
       - "SOCIAL_FORCE_GHOSTING=${WEBGUI_FORCE_GHOSTING:-true}"
+      - "SOCIAL_DEFAULT_GHOSTING_TYPE=${WEBGUI_DEFAULT_GHOSTING_TYPE:-ghosted}"
     networks:
       - external_network
 
