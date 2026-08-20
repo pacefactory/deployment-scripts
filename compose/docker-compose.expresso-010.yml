@@ -14,6 +14,12 @@ x-pf-info:
     EXPRESSO_UI_PASSWORD_PROTECTION:
       description: Enable Expresso UI password protection (true/false)
       default: true
+    PF_IDLE_ARCHIVE_ENABLED:
+      description: >-
+        Enable the scheduled idle-object snapshot archiving task (true/false).
+        Per-site kill switch; disabled means the task exits immediately without
+        calling gifwrapper.
+      default: true
     PF_EXPRESSO_PUBLIC_URL_BASE:
       description: >-
         Public URL other deployments use to reach this one for remote-training
@@ -83,6 +89,10 @@ services:
       # Optional comma-separated remote Expresso base URLs pre-registered as
       # remote trainers at startup (idempotent).
       - "PF_REMOTE_TRAINER_URLS=${PF_REMOTE_TRAINER_URLS:-}"
+      # Per-site kill switch for the scheduled idle-object snapshot archiving.
+      # The task itself executes in celery_worker (which also gets this var);
+      # it is passed here too so the server reports the effective setting.
+      - "PF_IDLE_ARCHIVE_ENABLED=${PF_IDLE_ARCHIVE_ENABLED:-true}"
 
     depends_on:
       mongo:
@@ -183,6 +193,14 @@ services:
       # When PF_MQTT_HOST is empty, publishing is disabled.
       - "PF_MQTT_HOST=${PROJECT_PREFIX:-}pf_mosquitto"
       - "PF_MQTT_PORT=1883"
+      # gifwrapper connection used by the idle-object archiving task; without a
+      # host the worker would fall back to localhost and never reach the service.
+      - PF_GIFWRAPPER_HOST=${PROJECT_PREFIX:-}service_gifwrapper
+      - PF_GIFWRAPPER_PORT=7171
+      # Per-site kill switch for the scheduled idle-object snapshot archiving.
+      # Celery beat still enqueues the tick; the task checks this flag here (in
+      # the worker) and exits immediately when false, with zero gifwrapper calls.
+      - "PF_IDLE_ARCHIVE_ENABLED=${PF_IDLE_ARCHIVE_ENABLED:-true}"
       # The site-reliability snapshot includes the audit app's version info, read from uiserver.
       - PF_UISERVER_URL=http://${PROJECT_PREFIX:-}auditgui:80
     depends_on:
