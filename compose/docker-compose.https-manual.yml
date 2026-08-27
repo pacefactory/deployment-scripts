@@ -52,8 +52,6 @@ services:
     environment:
       - "SCV2_PROFILE_SSL=true"
       - "SERVER_NAME=${SERVER_NAME}"
-      # Lets the apigateway point its HTTP -> HTTPS redirect at the published
-      # HTTPS port when it is not the default 443.
       - "HTTPS_PUBLIC_PORT=${HTTPS_PORT:-443}"
 
 volumes:
