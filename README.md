@@ -181,6 +181,31 @@ Afterwards, run `./build.sh`, enable "Enable HTTPS (via direct SSL)", set
 > a single-line `privkey.pass`; see the profile description in
 > `compose/docker-compose.https-no-certbot.yml`.)
 
+## HTTP to HTTPS redirect
+
+Whenever any `https-*` profile is enabled (`https-manual`, `https-godaddy`,
+`https-digitalocean`, or `https-no-certbot`), the apigateway stops serving the
+app over plain HTTP and redirects those clients to HTTPS instead. A request for
+`http://<FQDN>/scv3/` is answered with `307 Location: https://<FQDN>/scv3/`.
+
+The redirect is a `307` rather than the more common `301`, so that the request
+method and body survive it (a `301` would silently downgrade an API client's
+`POST` to a `GET`) and so that browsers do not cache the upgrade permanently —
+a deployment that later drops its `https-*` profile starts answering over HTTP
+again without users having to clear their cache.
+
+HTTP stays published on `HTTP_PORT` (default `80`) purely to serve the
+redirect; there is no need to change it. If you moved HTTPS off the default
+port with `HTTPS_PORT`, the redirect target picks that port up automatically:
+each `https-*` profile passes it to the apigateway as `HTTPS_PUBLIC_PORT`, and
+the container appends `:<port>` to the redirect URL when it is not `443`.
+
+> On a deployment that is still waiting on its real certificate, the apigateway
+> serves a temporary self-signed one (see above). The redirect sends HTTP
+> clients to that endpoint too, so browsers will show a certificate warning
+> where they previously got plain HTTP. Installing the real certificate and
+> running `./update.sh` clears it.
+
 # MQTT broker access
 
 The `pf_mosquitto` MQTT broker exposes three listeners. Which ones are
