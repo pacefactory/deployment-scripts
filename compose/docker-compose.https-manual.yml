@@ -2,6 +2,7 @@ x-pf-info:
   name: HTTPS (Manual)
   prompt: Enable HTTPS (via manual DNS)
   description: Manually provision HTTPS certificate via letsencrypt.
+    Clients that connect over plain HTTP are redirected to HTTPS.
     The mqtts-public sub-profile (default-enabled) reuses the cert to
     expose MQTTS on port 8883.
   sub-profiles:
@@ -51,6 +52,7 @@ services:
     environment:
       - "SCV2_PROFILE_SSL=true"
       - "SERVER_NAME=${SERVER_NAME}"
+      - "HTTPS_PUBLIC_PORT=${HTTPS_PORT:-443}"
 
 volumes:
   certbot:
