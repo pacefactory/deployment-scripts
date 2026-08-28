@@ -18,6 +18,7 @@ docker compose version 2>/dev/null || { printf >&2 "'docker compose' required, b
 source scripts/common/runYq.sh
 
 declare -A SCV2_PROFILES=()
+declare -A SCV2_PROFILE_DEFAULTS=()
 declare -A SCV2_SKIP_PROMPT_PROFILES=()
 declare -A FORCE_REQUIRED=()
 declare -A PROCESSED_PROFILES=()
@@ -26,15 +27,25 @@ POSITIONAL=()
 settingsfile=".settings"
 
 # Set all the profiles that should default to true here
-SCV2_PROFILES[social]="true"
-SCV2_PROFILES[audit]="true"
-SCV2_PROFILES[rdb]="true"
-SCV2_PROFILES[node-red]="true"
-SCV2_PROFILES[mqtt-public]="true"
-SCV2_PROFILES[mqtts-public]="true"
+SCV2_PROFILE_DEFAULTS[social]="true"
+SCV2_PROFILE_DEFAULTS[rdb]="true"
+SCV2_PROFILE_DEFAULTS[node-red]="true"
+SCV2_PROFILE_DEFAULTS[mqtt-public]="true"
+SCV2_PROFILE_DEFAULTS[mqtts-public]="true"
 
 # Then allow the defaults to be overriden from settings file
 . "$settingsfile" 2>/dev/null || :
+
+# Applied after '.settings', and only where it has no answer: it is written with
+# 'typeset -p', so sourcing it replaces SCV2_PROFILES wholesale and would
+# otherwise drop any newly added default.
+for default_profile_id in "${!SCV2_PROFILE_DEFAULTS[@]}"
+do
+    if [[ ! -v SCV2_PROFILES[$default_profile_id] ]];
+    then
+        SCV2_PROFILES[$default_profile_id]="${SCV2_PROFILE_DEFAULTS[$default_profile_id]}"
+    fi
+done
 
 # Then force re-enable the mandatory ones & skip prompting them.
 SCV2_PROFILES[base]="true"
@@ -434,7 +445,14 @@ save_state () {
   typeset -p "$@" >"$settingsfile"
 }
 
-yn_prompt_strict "Save settings" "SAVE_SETTINGS"
+# Nobody is there to answer in quiet mode, so save what was used instead of
+# leaving '.settings' frozen at the last interactive build.
+if [[ -n "$QUIET_MODE" ]];
+then
+  SAVE_SETTINGS=true
+else
+  yn_prompt_strict "Save settings" "SAVE_SETTINGS"
+fi
 
 if [[ "$SAVE_SETTINGS" == "true" ]];
 then
