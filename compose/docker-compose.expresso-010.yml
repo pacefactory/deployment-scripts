@@ -42,6 +42,17 @@ services:
     restart: always
     logging:
       driver: local
+    # Liveness only (/health-check/live never touches mongo or redis), so a dependency
+    # blip cannot flip the container to unhealthy. The start_period covers the startup
+    # migrations in the app's lifespan, which run before uvicorn accepts connections.
+    # /health-check is the dependency-aware report, for monitoring rather than docker.
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget -qO- http://localhost:8456/health-check/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     volumes:
       - expresso-data:/home/scv2/volume
       # Read-only mount of the dbserver data volume so the stations config UI
@@ -94,11 +105,10 @@ services:
       # it is passed here too so the server reports the effective setting.
       - "PF_IDLE_ARCHIVE_ENABLED=${PF_IDLE_ARCHIVE_ENABLED:-true}"
 
+    # The API server does not need the celery worker to serve requests, so the worker is
+    # not listed here — starting it first would only delay the server on a cold boot.
     depends_on:
-      mongo:
-        condition: service_started
-        required: true
-      celery_worker:
+      mongo_exp:
         condition: service_started
         required: true
       redis:
@@ -159,6 +169,11 @@ services:
     image: redis:8.2.1-alpine
     restart: always
     command: redis-server --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - expresso_network
 
@@ -236,6 +251,12 @@ services:
     hostname: ${PROJECT_PREFIX:-}mongo_exp
     image: mongodb/mongodb-community-server:8.2.1-ubi8
     restart: always
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     networks:
       - expresso_network
     volumes:
