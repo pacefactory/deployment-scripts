@@ -8,7 +8,7 @@ x-pf-info:
       default: latest
     TRAINER_SHM_SIZE:
       default: 2gb
-      description: "Shared memory (/dev/shm) size for the trainer container. Increase if PyTorch DataLoader deadlocks (e.g. 4gb, 8gb)."
+      description: "Shared memory (/dev/shm) size for the trainer container. Increase if PyTorch DataLoader deadlocks (e.g. 4gb, 8gb). Default is 2gb."
 
 services:
   trainer:
