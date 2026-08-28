@@ -36,13 +36,9 @@ SCV2_PROFILE_DEFAULTS[mqtts-public]="true"
 # Then allow the defaults to be overriden from settings file
 . "$settingsfile" 2>/dev/null || :
 
-# '.settings' is written with 'typeset -p', so it carries a whole-array
-# assignment that REPLACES SCV2_PROFILES rather than merging into it. The
-# defaults above are therefore applied here, after the settings file, and only
-# for profiles it has no answer for. Applying them before would mean a profile
-# newly added to the default list is dropped on every machine that already has
-# a '.settings': never enabled in quiet mode, and prompted with a "no" default
-# interactively.
+# Applied after '.settings', and only where it has no answer: it is written with
+# 'typeset -p', so sourcing it replaces SCV2_PROFILES wholesale and would
+# otherwise drop any newly added default.
 for default_profile_id in "${!SCV2_PROFILE_DEFAULTS[@]}"
 do
     if [[ ! -v SCV2_PROFILES[$default_profile_id] ]];
@@ -449,10 +445,8 @@ save_state () {
   typeset -p "$@" >"$settingsfile"
 }
 
-# Quiet runs are non-interactive (the fleet tooling, offline installs), so there
-# is nobody to answer the prompt. Persist what was just used instead of leaving
-# '.settings' frozen: it records newly added profile defaults and pins the
-# project name, rather than both being re-derived on every future run.
+# Nobody is there to answer in quiet mode, so save what was used instead of
+# leaving '.settings' frozen at the last interactive build.
 if [[ -n "$QUIET_MODE" ]];
 then
   SAVE_SETTINGS=true
