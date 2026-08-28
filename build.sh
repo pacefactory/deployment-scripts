@@ -374,21 +374,35 @@ then
     if [[ "${env_diff}" != "" ]];
     then
       printf >&2 "New settings:\n${env_diff}\n"
-      while true; do
-        read -r -p "Continue and write settings to '.env'? (y/n): "
-        case "${REPLY,,}" in
-          y|yes)
+      # Non-interactive runs apply the new settings automatically: quiet mode,
+      # or no terminal on stdin (the fleet tooling streams this over ssh with
+      # stdin redirected from /dev/null, where 'read' returns EOF immediately).
+      # Rolling out new defaults must not stall waiting for a y/n that can
+      # never arrive; the previous file is always kept as '.env.backup'.
+      if [[ -n "$QUIET_MODE" || ! -t 0 ]];
+      then
+        printf >&2 " -> Applying new settings automatically (previous settings kept as '.env.backup')\n"
+      else
+        while true; do
+          if ! read -r -p "Continue and write settings to '.env'? (y/n): ";
+          then
+            printf >&2 "\n -> No input available; applying new settings automatically (previous settings kept as '.env.backup')\n"
             break
-            ;;
-          n|no)
-            printf >&2 "Aborting."
-            exit 2
-            ;;
-          *)
-            echo "Please enter 'y' or 'n'."
-            ;;
-        esac
-      done
+          fi
+          case "${REPLY,,}" in
+            y|yes)
+              break
+              ;;
+            n|no)
+              printf >&2 "Aborting."
+              exit 2
+              ;;
+            *)
+              echo "Please enter 'y' or 'n'."
+              ;;
+          esac
+        done
+      fi
     fi
     
     mv -f .env .env.backup
