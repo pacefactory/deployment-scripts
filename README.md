@@ -44,6 +44,11 @@ Flags:
 
 - Pass `-q` to re-generate the `docker-compose.yml`, using existing settings in `.env` and `.settings`, with no user prompts.
 
+When a new release changes the default environment variables, the resulting `.env`
+diff is printed. Interactively you are asked to confirm it; with `-q` (or any run
+without a terminal on stdin, such as the fleet tooling) the new defaults are applied
+automatically. Either way the previous file is kept as `.env.backup`.
+
 ## Update script
 
 Run the `update.sh` script to pull the latest docker images and update the compose.
