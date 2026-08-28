@@ -43,6 +43,7 @@ This will create a `.settings`, `.env`, and the compiled `docker-compose.yml` fi
 Flags:
 
 - Pass `-q` to re-generate the `docker-compose.yml`, using existing settings in `.env` and `.settings`, with no user prompts.
+  A quiet run also writes `.settings` back, so the profile selection and project name it used are recorded rather than re-derived on the next run.
 
 When a new release changes the default environment variables, the resulting `.env`
 diff is printed. Interactively you are asked to confirm it; with `-q` (or any run

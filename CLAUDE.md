@@ -25,9 +25,10 @@ This repository contains deployment scripts for containerized services using Doc
 
 ### Profile System
 - Profiles are defined in `compose/docker-compose.{profile}.yml` files
-- Base profiles: base, proc, social, audit, custom
-- expresso-010 is force-enabled by `build.sh` and effectively part of the base stack; its separate file exists for the GPU sub-profiles (expresso-020-cuda, expresso-030-trainer)
-- Special handling for noaudit profile when audit is disabled
+- Force-enabled by `build.sh` and never prompted for: base, custom, tools, expresso-010
+- `custom` is an extension point: `compose/docker-compose.custom.yml` is gitignored, so a site can drop in its own overrides and have them picked up automatically
+- expresso-010 is effectively part of the base stack; its separate file exists for the GPU sub-profiles (expresso-020-cuda, expresso-030-trainer)
+- Prompted, defaulting to enabled: social, rdb, node-red, mqtt-public, mqtts-public. These defaults live in `SCV2_PROFILE_DEFAULTS` and are applied only to profiles `.settings` has no answer for, since `.settings` replaces the whole `SCV2_PROFILES` array when sourced
 - Each profile can define settings via `x-pf-info` metadata
 
 ### Common Scripts
@@ -36,7 +37,7 @@ This repository contains deployment scripts for containerized services using Doc
 - `scripts/common/prompts.sh`: Interactive prompts
 
 ## Settings Management
-- Settings stored in `.settings` file
+- Settings stored in `.settings` file, written by `build.sh` (interactively on confirmation, always in quiet mode)
 - Environment variables in `.env` file
 - Interactive prompts for profile-specific settings
 - Backup of previous .env as .env.backup
