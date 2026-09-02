@@ -1,0 +1,213 @@
+# Shadow audit-processing instance for benchmarking the segment trim/stitch/lookback feature
+# against live production data WITHOUT writing to the production database.
+#
+# Wiring (see scv3_services_processing docs/PERF_EVAL_RUNBOOK.md for the full A/B procedure):
+#   - source reads  -> the production dbserver (objects/stations/camerainfo/... — reads only)
+#   - uistore reads/writes (expected-blocks, segment/trend posting, stitch) -> a scratch
+#     dbserver + mongo pair on dedicated perf_eval-* volumes
+#   - audit config  -> read (GET only) from the production auditgui/uiserver; a shadow uiserver
+#     on the prod config volume must never be used (non-atomic writes + startup migration)
+#   - MQTT export disabled: the shadow must not re-announce segments on prod MQTT
+#   - PF_PERF_EVAL_MODE=true: metrics on http://127.0.0.1:${PERF_EVAL_HTTP_PORT}/service/perf
+#
+# The shadow processor does not auto-restart: with PERF_EVAL_RUN_ONCE=true (the default) it
+# processes the pinned window once, emits its perf summary, and exits.
+#
+# Wiping the scratch target between runs (never `docker compose down -v` — that removes ALL
+# project volumes, including production data):
+#   docker compose rm -sf service_audit_processing_perf_eval perf_eval_dbserver perf_eval_mongo
+#   docker volume rm <project>_perf_eval-mongodata <project>_perf_eval-dbserver-data
+#   docker compose up -d perf_eval_mongo perf_eval_dbserver
+x-pf-info:
+  name: audit perf-eval shadow profile
+  prompt: Enable the audit processing performance-evaluation shadow instance?
+  description:
+    Runs a second audit-processing container that reads source data from the production
+    dbserver but writes all uistore output to a scratch dbserver+mongo pair on dedicated
+    volumes (nothing is written to production; MQTT export is disabled). Used to benchmark
+    the segment trim/stitch/lookback feature (run A = PERF_EVAL_TRIM_STITCH false, run B =
+    true) with PF_PERF_EVAL_MODE metrics. See docs/PERF_EVAL_RUNBOOK.md in
+    scv3_services_processing. On sites using autozone entries, also set
+    PERF_EVAL_AUTOZONE_URL (e.g. http://autozone_api:4545).
+    (perf_eval_mongo, perf_eval_dbserver, service_audit_processing_perf_eval)
+  settings:
+    PERF_EVAL_AUDIT_PROCESSING_TAG:
+      description: Image tag for the shadow audit processing service (e.g. a PR build like pr-126)
+      default: latest
+    PERF_EVAL_DBSERVER_TAG:
+      description: Image tag for the scratch dbserver (must include the compound uistore index fix)
+      default: latest
+    PERF_EVAL_TRIM_STITCH:
+      description: The A/B switch — false = run A baseline (legacy), true = run B (trim/stitch/lookback on)
+      default: false
+    PERF_EVAL_START_TIME:
+      description: Start of the pinned benchmark window (epoch ms or ISO date, e.g. 2026-07-20). Empty = derive from PERF_EVAL_REPORT_RANGE_HOURS (live-tail)
+      default: ""
+    PERF_EVAL_END_TIME:
+      description: End of the pinned benchmark window (epoch ms or ISO date). Empty = now
+      default: ""
+    PERF_EVAL_PROCESS_CAMERAS:
+      description: Comma-separated camera names to benchmark. Empty = all cameras (not recommended)
+      default: ""
+    PERF_EVAL_RUN_ONCE:
+      description: Process the window once and exit (false = live-tail mode, keeps cycling like prod)
+      default: true
+    PERF_EVAL_REPORT_RANGE_HOURS:
+      description: Report range when no explicit window is pinned (live-tail mode)
+      default: 48
+    PERF_EVAL_HTTP_PORT:
+      description: Host port (bound to 127.0.0.1) for the shadow service's /service/status + /service/perf
+      default: 3006
+    PERF_EVAL_AUTOZONE_URL:
+      description: Autozone API URL for the shadow instance (only needed when autozone entries are audited, e.g. http://autozone_api:4545). Empty = disabled
+      default: ""
+    PERF_EVAL_MONGO_MEMORY_LIMIT:
+      description: Hard memory limit for the scratch mongo container (uistore output only, so small)
+      default: 2g
+    PERF_EVAL_MONGO_WIREDTIGER_CACHE_GB:
+      description: WiredTiger cache size (GB) for the scratch mongo
+      default: 0.5
+
+services:
+  perf_eval_mongo:
+    container_name: ${PROJECT_PREFIX:-}perf_eval_mongo
+    hostname: ${PROJECT_PREFIX:-}perf_eval_mongo
+    image: mongo:4.2.3-bionic
+    restart: always
+    # Mirrors the production mongo setup (memory bounding + single-node replica set; see
+    # MONGODB.md and the base profile for rationale), scaled down: the scratch instance only
+    # ever holds the shadow run's uistore segments + trend bins.
+    command:
+      - "mongod"
+      - "--quiet"
+      - "--slowms"
+      - "200"
+      - "--wiredTigerCacheSizeGB"
+      - "${PERF_EVAL_MONGO_WIREDTIGER_CACHE_GB:-0.5}"
+      - "--replSet"
+      - "rs0"
+      - "--oplogSize"
+      - "512"
+    deploy:
+      resources:
+        limits:
+          memory: ${PERF_EVAL_MONGO_MEMORY_LIMIT:-2g}
+    # Reports healthy only when PRIMARY; initializes the single-node replica set on first boot
+    # and re-binds it if the container hostname changes (same script as the base mongo)
+    healthcheck:
+      test:
+        - "CMD"
+        - "mongo"
+        - "--quiet"
+        - "--eval"
+        - |
+          var self_host = getHostName() + ":27017";
+          var status;
+          try { status = rs.status(); } catch (rs_error) { status = rs_error; }
+          if (status.ok === 1 && status.myState === 1) { quit(0); }
+          if (status.code === 94) {
+            rs.initiate({ _id: "rs0", members: [{ _id: 0, host: self_host }] });
+          } else if (status.code === 93) {
+            var cfg = db.getSiblingDB("local").system.replset.findOne();
+            cfg.members = [{ _id: 0, host: self_host }];
+            cfg.version += 1;
+            db.adminCommand({ replSetReconfig: cfg, force: true });
+          }
+          quit(1);
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    ulimits:
+      nofile:
+        soft: 64000
+        hard: 64000
+    logging:
+      driver: local
+    expose:
+      - "27017"
+    volumes:
+      - "perf_eval-mongodata:/data/db"
+    networks:
+      - internal_network
+
+  perf_eval_dbserver:
+    container_name: ${PROJECT_PREFIX:-}perf_eval_dbserver
+    hostname: ${PROJECT_PREFIX:-}perf_eval_dbserver
+    image: pacefactory/dbserver:${PERF_EVAL_DBSERVER_TAG:-latest}
+    restart: always
+    logging:
+      driver: local
+    depends_on:
+      - perf_eval_mongo
+    stdin_open: true
+    tty: true
+    environment:
+      - "MONGO_HOST=${PROJECT_PREFIX:-}perf_eval_mongo"
+      # The scratch target must keep every record the benchmark writes: disable autodelete so a
+      # disk-usage sweep cannot remove uistore data mid-run
+      - "DAYS_TO_KEEP=9999999"
+      - "UPPER_DISK_USAGE_PCT=100"
+      - "MAX_DISK_USAGE_PCT=100"
+      - "DBSERVER_DISABLE_SNAPSHOT_IMAGES=true"
+    volumes:
+      - "perf_eval-dbserver-data:/home/scv2/volume"
+    networks:
+      - internal_network
+      - external_network
+
+  service_audit_processing_perf_eval:
+    container_name: ${PROJECT_PREFIX:-}service_audit_processing_perf_eval
+    image: pacefactory/service-audit-processing:${PERF_EVAL_AUDIT_PROCESSING_TAG:-latest}
+    # Benchmark semantics: with PF_RUN_ONCE the service exits after the pinned window — it must
+    # not be restarted into an unintended re-run
+    restart: "no"
+    logging:
+      driver: local
+    depends_on:
+      - dbserver
+      - auditgui
+      - service_dtreeserver
+      - perf_eval_dbserver
+    environment:
+      - "PF_DEBUG=false"
+      - "PF_PERF_EVAL_MODE=true"
+      # Source reads from PROD dbserver; ALL uistore traffic to the scratch target
+      - "PF_SOURCE_DBSERVER_URL=http://${PROJECT_PREFIX:-}dbserver:8050"
+      - "PF_TARGET_DBSERVER_URL=http://${PROJECT_PREFIX:-}perf_eval_dbserver:8050"
+      # Legacy fallback only: older service builds routed frametiming/custom-uistore source
+      # reads through PF_DBSERVER_URL; instrumented builds use PF_SOURCE_DBSERVER_URL for those
+      - "PF_DBSERVER_URL=http://${PROJECT_PREFIX:-}dbserver:8050"
+      # Read-only GET of the current audit config from the PROD uiserver
+      - "PF_UISERVER_URL=http://${PROJECT_PREFIX:-}auditgui:80"
+      - "PF_DTREE_CLASSIFIER_URL=http://${PROJECT_PREFIX:-}service_dtreeserver:7272"
+      - "PF_AUTOZONE_URL=${PERF_EVAL_AUTOZONE_URL:-}"
+      # Never re-announce segments on prod MQTT (no PF_MQTT_URL is set either)
+      - "PF_ENABLE_MQTT_EXPORT=false"
+      # The A/B switch: run A = false (legacy baseline), run B = true
+      - "PF_ENABLE_SEGMENT_TRIM_STITCH=${PERF_EVAL_TRIM_STITCH:-false}"
+      # Reproducible workload pinning
+      - "PF_RUN_ONCE=${PERF_EVAL_RUN_ONCE:-true}"
+      - "PF_START_TIME=${PERF_EVAL_START_TIME:-}"
+      - "PF_END_TIME=${PERF_EVAL_END_TIME:-}"
+      - "PF_PROCESS_CAMERAS=${PERF_EVAL_PROCESS_CAMERAS:-}"
+      - "PF_REPORT_RANGE_HOURS=${PERF_EVAL_REPORT_RANGE_HOURS:-48}"
+      # Block geometry shared with the production service's settings so the shadow processes
+      # the same block shapes prod would
+      - "PF_PROCESS_BLOCK_DURATION_MINUTES=${PF_PROCESS_BLOCK_DURATION_MINUTES:-15}"
+      - "PF_PROCESS_BLOCK_PREVIOUS_MINUTES=${PF_PROCESS_BLOCK_PREVIOUS_MINUTES:-5}"
+      - "PF_PROCESS_BLOCK_LAG_MINUTES=${PF_PROCESS_BLOCK_LAG_MINUTES:-5}"
+      - "PF_PROCESS_BLOCK_MAX_LOOKBACK_MINUTES=${PF_PROCESS_BLOCK_MAX_LOOKBACK_MINUTES:-240}"
+    ports:
+      # Loopback-only: /service/status (compact perfEval aggregates) + /service/perf (full)
+      - "127.0.0.1:${PERF_EVAL_HTTP_PORT:-3006}:3005"
+    volumes:
+      # Holds the rotated logs with the one-line JSON perf records — survives scratch wipes
+      - "perf_eval-audit_processing-data:/home/scv2/volume"
+    networks:
+      - external_network
+
+volumes:
+  perf_eval-mongodata:
+  perf_eval-dbserver-data:
+  perf_eval-audit_processing-data:
