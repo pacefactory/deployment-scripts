@@ -46,6 +46,9 @@ x-pf-info:
     PF_ENABLE_SEGMENT_TRIM_STITCH:
       description: Globally enable per-entry segment trimming, stitching, and derived source-data lookback in audit processing (true/false)
       default: false
+    PF_SOURCE_CACHE_ENTRIES_PER_CAMERA:
+      description: Audit processing's shared source-data cache bound, in payloads retained per camera (keep >= PF_PROCESS_BLOCK_CONCURRENCY + 1; 0 disables the cache)
+      default: 4
     GIFWRAPPER_TAG:
       default: latest
     DTREESERVER_TAG:
@@ -331,6 +334,7 @@ services:
       - "PF_PROCESS_BLOCK_LAG_MINUTES=${PF_PROCESS_BLOCK_LAG_MINUTES:-5}"
       - "PF_PROCESS_BLOCK_MAX_LOOKBACK_MINUTES=${PF_PROCESS_BLOCK_MAX_LOOKBACK_MINUTES:-240}"
       - "PF_ENABLE_SEGMENT_TRIM_STITCH=${PF_ENABLE_SEGMENT_TRIM_STITCH:-false}"
+      - "PF_SOURCE_CACHE_ENTRIES_PER_CAMERA=${PF_SOURCE_CACHE_ENTRIES_PER_CAMERA:-4}"
     volumes:
       - "audit_processing-data:/home/scv2/volume"
     networks:
