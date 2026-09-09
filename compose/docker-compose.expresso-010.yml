@@ -95,7 +95,7 @@ services:
       - "PF_IDLE_ARCHIVE_ENABLED=${PF_IDLE_ARCHIVE_ENABLED:-true}"
 
     depends_on:
-      mongo:
+      mongo_exp:
         condition: service_started
         required: true
       celery_worker:
