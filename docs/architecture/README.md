@@ -5,7 +5,7 @@ derived_from:
   - docs/architecture/**/*.mmd
   - docs/reference/profile-dependencies.md
 last_verified: 2026-09-09
-verified_against: def9139
+verified_against: 3630e2f
 ---
 
 # Architecture documentation

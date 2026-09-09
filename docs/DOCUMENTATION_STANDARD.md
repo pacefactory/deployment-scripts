@@ -54,6 +54,7 @@ Every rule is phrased so that compliance can be checked against the repo.
   CLAUDE.md                  # AI assistant instructions; MUST link to this standard + repo overrides
   docs/
     README.md                # index of every doc below with a one-line purpose each
+    DOCUMENTATION_STANDARD.md  # vendored copy of this standard (see §11); never edited locally
     reference/               # code-derived facts (API, config, CLI, data/config schemas)
     how-to/                  # one task per file, imperative titles
     architecture/            # service-internal diagrams (.mmd) + a README mapping each to its source
@@ -210,7 +211,7 @@ Include this block in every service repo's `CLAUDE.md`, then add repo-specific o
 
 ```markdown
 ## Documentation
-- Follow the canonical standard at https://github.com/pacefactory/deployment-scripts/blob/main/docs/DOCUMENTATION_STANDARD.md for all docs work.
+- Follow `docs/DOCUMENTATION_STANDARD.md` for all docs work. It is a vendored copy of the canonical standard in `pacefactory/deployment-scripts`; never edit it here, propose changes upstream. If the copy is missing, stop and ask for it rather than improvising conventions.
 - Before writing or editing a doc, read the files listed in its `derived_from` header.
 - Never state a fact you cannot point to in the repo. Write `TODO(source): …` instead.
 - When asked to "update docs", first produce a list of discrepancies between the doc and its `derived_from` sources, then apply fixes. Report both.
@@ -218,7 +219,7 @@ Include this block in every service repo's `CLAUDE.md`, then add repo-specific o
 - When you add or change a data or config type the service produces, add or update its file under `docs/reference/schemas/`.
 - Diagrams are Mermaid; edit the `.mmd` source and the embedded copy together, or regenerate both when they are generated.
 - Do not create docs that are not listed in `docs/README.md`; add the entry.
-- Use the vocabulary and node IDs from the deployment-scripts glossary.
+- Use the vocabulary and node IDs recorded in the "Repo-specific overrides" section below; the full glossary lives in deployment-scripts (`docs/architecture/glossary.md`).
 ```
 
 ### Repo-specific overrides
@@ -229,6 +230,11 @@ Each repo adds a short section to its `CLAUDE.md` with only what differs:
 - Service-specific terminology or acronyms.
 - Which sections of this standard do not apply and why (e.g., "no API reference; this service exposes no HTTP API", "no schema reference; this service produces no data or config").
 - Location of the OpenAPI spec, if any.
+- This repo's glossary excerpt: the Mermaid node ID of this service, the
+  deployment vocabulary terms its docs use, and the canonical glossary URL
+  (`https://github.com/pacefactory/deployment-scripts/blob/main/docs/architecture/glossary.md`).
+  The glossary itself is not vendored; it changes often and a service needs
+  only a few entries.
 
 Overrides may tighten this standard. They may not loosen §1 (principles),
 §4 (headers), or §6 node-ID rules.
@@ -249,6 +255,7 @@ Before merging a docs change, confirm:
 - [ ] Generated docs were regenerated, not hand-edited.
 - [ ] `docs/README.md` index updated.
 - [ ] `last_verified` and `verified_against` updated.
+- [ ] `docs/DOCUMENTATION_STANDARD.md` is the unmodified vendored copy (`sync-standard.sh --check`).
 
 ---
 
@@ -257,5 +264,30 @@ Before merging a docs change, confirm:
 This file is versioned. Its canonical copy lives in
 `pacefactory/deployment-scripts` at `docs/DOCUMENTATION_STANDARD.md`. Changes
 are proposed as a pull request to that repository and announced to repo
-owners. Service repos reference the canonical copy by URL in `CLAUDE.md`
-rather than vendoring it, so a change applies everywhere at once.
+owners. After a change merges, the copies in the service repos are refreshed
+with the sync script (§11, [how-to](how-to/sync-documentation-standard.md)); service repos never edit their copy directly.
+
+---
+
+## 11. Vendored copies in service repos
+
+Every service repo carries a verbatim copy of this file at
+`docs/DOCUMENTATION_STANDARD.md`. A copy, not a link, because an AI assistant
+or CI job working in a service repo frequently has no read access to
+deployment-scripts (repository-scoped GitHub tokens, private raw URLs), and a
+standard that cannot be read is not followed.
+
+- The copy is produced only by `scripts/docs/sync-standard.sh` in
+  deployment-scripts. It prepends one banner comment directly after the YAML
+  header recording the canonical URL, the standard version, and the
+  deployment-scripts commit and date it was copied from. Everything else is
+  byte-identical to the canonical file.
+- `sync-standard.sh --check <service-repo-checkout>` strips the banner and
+  diffs the copy against the canonical file; it exits non-zero on drift. Run it
+  from deployment-scripts after every change to the standard, and in a service
+  repo's CI where a token with read access to deployment-scripts exists.
+- The copy is listed in the service repo's `docs/README.md` like any other
+  doc, with the purpose "vendored copy of the Pacefactory documentation
+  standard; do not edit".
+- A service repo that finds the copy stale or missing asks deployment-scripts
+  for a sync; it does not patch the copy locally.

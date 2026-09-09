@@ -5,7 +5,7 @@ derived_from:
   - scripts/docs/index.tsv
   - docs/
 last_verified: 2026-09-09
-verified_against: def9139
+verified_against: 3630e2f
 ---
 
 # Documentation index
@@ -115,6 +115,7 @@ Read the two standards first:
 | [how-to/tune-mongodb-performance.md](how-to/tune-mongodb-performance.md) | Diagnose slow writes and adjust one knob at a time |
 | [how-to/roll-back-mongodb-replica-set.md](how-to/roll-back-mongodb-replica-set.md) | Return mongo to a standalone mongod |
 | [how-to/create-an-offline-install.md](how-to/create-an-offline-install.md) | Package Docker, images and an installer for a host without internet |
+| [how-to/sync-documentation-standard.md](how-to/sync-documentation-standard.md) | Refresh or verify the vendored copy of the documentation standard in service repos |
 
 ## Design notes and other
 

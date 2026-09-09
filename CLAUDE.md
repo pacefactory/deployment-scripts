@@ -9,7 +9,7 @@ This repo owns the canonical documentation standards and the cross-repo
 architecture documentation for all Pacefactory repositories.
 
 ## Documentation
-- Follow the canonical standard at https://github.com/pacefactory/deployment-scripts/blob/main/docs/DOCUMENTATION_STANDARD.md for all docs work.
+- Follow `docs/DOCUMENTATION_STANDARD.md` for all docs work. This repository holds the canonical copy; service repos carry copies produced by `scripts/docs/sync-standard.sh`.
 - Before writing or editing a doc, read the files listed in its `derived_from` header.
 - Never state a fact you cannot point to in the repo. Write `TODO(source): …` instead.
 - When asked to "update docs", first produce a list of discrepancies between the doc and its `derived_from` sources, then apply fixes. Report both.
@@ -44,3 +44,4 @@ architecture documentation for all Pacefactory repositories.
 ## Commands
 - Build: `./build.sh` (interactive) or `./build.sh -q` (quiet). Update: `./update.sh`.
 - Regenerate docs: `./scripts/docs/regenerate.sh`; drift check: `./scripts/docs/regenerate.sh --check`.
+- Push the documentation standard to service repos: `./scripts/docs/sync-standard.sh <checkout>...`; verify with `--check`.

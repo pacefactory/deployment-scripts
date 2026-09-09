@@ -48,6 +48,7 @@ docs/how-to/verify-mongodb.md	Check replica set state, cache size and OOM histor
 docs/how-to/tune-mongodb-performance.md	Diagnose slow writes and adjust one knob at a time
 docs/how-to/roll-back-mongodb-replica-set.md	Return mongo to a standalone mongod
 docs/how-to/create-an-offline-install.md	Package Docker, images and an installer for a host without internet
+docs/how-to/sync-documentation-standard.md	Refresh or verify the vendored copy of the documentation standard in service repos
 docs/upgrade-notes.md	Behaviour changes operators need to know about per release
 scripts/remote/README.md	Pointer to the fleet update how-to (colocated with the scripts)
 scv2_base_images/README.md	How the shared base images are built and pushed (colocated with their Dockerfiles)

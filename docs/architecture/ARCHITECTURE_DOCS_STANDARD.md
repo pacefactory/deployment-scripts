@@ -507,6 +507,10 @@ entries:
   node ID, protocol spelling to use in docs.
 - Terms are defined once. Other docs link to the glossary anchor rather than
   redefining.
+- The glossary is not vendored into service repos (unlike the documentation
+  standard, service-repo standard §11). Each service repo records the few
+  entries it needs (its own node ID, the terms it uses, the canonical glossary
+  URL) in the "Repo-specific overrides" section of its `CLAUDE.md`.
 
 ---
 
