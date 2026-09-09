@@ -1,5 +1,5 @@
 ---
-title: IP cameras (RTSP)
+title: "IP cameras (RTSP)"
 type: reference
 derived_from:
   - compose/docker-compose.base.yml
@@ -27,17 +27,18 @@ are camera-specific; the deployment consumes the stream as-is.
 
 ## Direction and protocol(s)
 
-Inbound to the deployment. RTSP over TCP (`record_cli.py:129` forces
-`-rtsp_transport tcp`), URL per camera built from the location config
-(`rtsp://…`, `record_cli.py:97`). Port is camera-specific (RTSP default 554).
-Camera credentials are part of the RTSP URL in the realtime configuration;
-their format is owned by scv2_realtime. `TODO(source)`: realtime's own ingest
-path is not visible in compose; confirm transport and reconnect behaviour in
-the scv2_realtime docs.
+Inbound to the deployment. RTSP over **TCP only** (`record_cli.py:129` forces
+`-rtsp_transport tcp`); the URL per camera is built from the location config
+(`rtsp://…`, `record_cli.py:97`). Assume port 554, the RTSP default; 8554 is
+the RTSP alternate port some cameras and relays use. Camera credentials are
+part of the RTSP URL in the realtime configuration; their format is owned by
+scv2_realtime. `TODO(source)`: realtime's own ingest path and reconnect
+behaviour, and the preferred stream settings, are to be filled in from the
+scv2_realtime docs.
 
 ## Client-side network requirements
 
-The deployment host must reach every camera's RTSP port. Cameras do not need
+The deployment host must reach every camera on TCP 554 (or 8554 where the camera uses the alternate port). Cameras do not need
 to reach the host. No host port is published for this flow. See
 [site requirements](../network/site-requirements.md).
 

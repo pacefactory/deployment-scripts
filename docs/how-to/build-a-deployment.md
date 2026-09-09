@@ -1,5 +1,5 @@
 ---
-title: Build a deployment
+title: "Build a deployment"
 type: how-to
 derived_from:
   - build.sh

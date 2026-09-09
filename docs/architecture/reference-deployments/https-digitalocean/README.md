@@ -1,5 +1,5 @@
 ---
-title: Reference deployment: HTTPS via DigitalOcean
+title: "Reference deployment: HTTPS via DigitalOcean"
 type: reference
 derived_from:
   - docs/architecture/reference-deployments/https-digitalocean/docker-compose.built.yml
@@ -9,12 +9,12 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/deployments.tsv
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Reference deployment: HTTPS via DigitalOcean
 
-Internet-facing variant: Let's Encrypt certificate provisioned through the DigitalOcean DNS API for `<SERVER_NAME>.pacefactory.dev`, MQTTS published on 8883, plain MQTT (1883) not published.
+Internet-facing variant: Let's Encrypt certificate provisioned through the DigitalOcean DNS API for `<SERVER_NAME>.pacefactory.dev`, MQTTS published on 8883 alongside plain MQTT on 1883.
 
 Requires `credentials/digitalocean/credentials.ini` on the host.
 
@@ -30,12 +30,12 @@ From the repository root, with mikefarah `yq` v4 and the docker compose plugin i
 The wrapper copies the recorded [`.env`](.env) and [`.settings`](.settings) into the repo root, runs `./build.sh -q -n deployment-scripts`, and normalises host paths to the canonical checkout `/home/pacefactory/scv2/git_clones/deployment-scripts`. The `docker compose config` command build.sh assembled on the last run is recorded in [`build-command.txt`](build-command.txt):
 
 ```bash
-docker compose --project-name deployment-scripts --env-file .env --profile base --profile expresso-010 --profile https-digitalocean --profile mqtts-public --profile node-red --profile rdb --profile social --profile tools -f compose/docker-compose.base.yml -f compose/docker-compose.expresso-010.yml -f compose/docker-compose.https-digitalocean.yml -f compose/docker-compose.mqtts-public.yml -f compose/docker-compose.node-red.yml -f compose/docker-compose.rdb.yml -f compose/docker-compose.social.yml -f compose/docker-compose.tools.yml config
+docker compose --project-name deployment-scripts --env-file .env --profile base --profile mqtt-public --profile expresso-010 --profile https-digitalocean --profile mqtts-public --profile node-red --profile rdb --profile social --profile tools -f compose/docker-compose.base.yml -f compose/docker-compose.mqtt-public.yml -f compose/docker-compose.expresso-010.yml -f compose/docker-compose.https-digitalocean.yml -f compose/docker-compose.mqtts-public.yml -f compose/docker-compose.node-red.yml -f compose/docker-compose.rdb.yml -f compose/docker-compose.social.yml -f compose/docker-compose.tools.yml config
 ```
 
 ## Recorded inputs
 
-Notable overrides: `SERVER_NAME=site-example`, `LETSENCRYPT_EMAIL=ops@example.com` (placeholders); `mqtt-public` disabled.
+Notable overrides: `SERVER_NAME=site-example`, `LETSENCRYPT_EMAIL=ops@example.com` (placeholders).
 
 `.env`:
 
@@ -51,7 +51,7 @@ MQTTS_FQDN_SUFFIX=.pacefactory.dev
 `.settings`:
 
 ```bash
-declare -A SCV2_PROFILES=([custom]="true" [https-digitalocean]="true" [rdb]="true" [mqtt-public]="false" [expresso-010]="true" [base]="true" [social]="true" [node-red]="true" [mqtts-public]="true" [tools]="true" )
+declare -A SCV2_PROFILES=([custom]="true" [https-digitalocean]="true" [rdb]="true" [mqtt-public]="true" [expresso-010]="true" [base]="true" [social]="true" [node-red]="true" [mqtts-public]="true" [tools]="true" )
 declare -- PROJECT_NAME="deployment-scripts"
 ```
 
@@ -62,6 +62,7 @@ declare -- PROJECT_NAME="deployment-scripts"
 | `base` | forced (build.sh) | [base](../../profiles/base.md) |
 | `expresso-010` | forced (build.sh) | [expresso-010](../../profiles/expresso-010.md) |
 | `https-digitalocean` | prompted, default off | [https-digitalocean](../../profiles/https-digitalocean.md) |
+| `mqtt-public` | sub-profile of base, default on | [mqtt-public](../../profiles/mqtt-public.md) |
 | `mqtts-public` | sub-profile of https-digitalocean, https-godaddy, https-manual, https-no-certbot, default on | [mqtts-public](../../profiles/mqtts-public.md) |
 | `node-red` | prompted, default on | [node-red](../../profiles/node-red.md) |
 | `rdb` | prompted, default on | [rdb](../../profiles/rdb.md) |
@@ -86,7 +87,7 @@ Profiles marked true in `.settings` but without a fragment in this checkout (for
 | `mongo` | `mongo` | `mongo:4.2.3-bionic` | [`base`](../../profiles/base.md) | internal_network | none |  |
 | `mongo_exp` | `mongo_exp` | `mongodb/mongodb-community-server:8.2.1-ubi8` | [`expresso-010`](../../profiles/expresso-010.md) | expresso_network | none |  |
 | `nodered` | `nodered` | `nodered/node-red:4.0.5-22` | [`node-red`](../../profiles/node-red.md) | external_network | 1880->1880 |  |
-| `pf_mosquitto` | `pf_mosquitto` | `pacefactory/pf_mosquitto:latest` | [`base`](../../profiles/base.md) | external_network | 8883->8883 |  |
+| `pf_mosquitto` | `pf_mosquitto` | `pacefactory/pf_mosquitto:latest` | [`base`](../../profiles/base.md) | external_network | 1883->1883, 8883->8883 |  |
 | `realtime` | `realtime` | `pacefactory/realtime:latest` | [`base`](../../profiles/base.md) | external_network | none |  |
 | `record_video` | `record_video` | `pacefactory/realtime:latest` | [`tools`](../../profiles/tools.md) | default | none | on demand (compose profile); restart: no |
 | `redis` | `redis` | `redis:8.2.1-alpine` | [`expresso-010`](../../profiles/expresso-010.md) | expresso_network | none |  |
@@ -105,6 +106,7 @@ Profiles marked true in `.settings` but without a fragment in this checkout (for
 | 80 | `apigateway:80` | tcp |  |
 | 443 | `apigateway:443` | tcp |  |
 | 1880 | `nodered:1880` | tcp |  |
+| 1883 | `pf_mosquitto:1883` | tcp |  |
 | 8883 | `pf_mosquitto:8883` | tcp |  |
 | 8282 | `relational_dbserver:8282` | tcp |  |
 | 9999 | `social_video_server:9999` | tcp |  |
@@ -184,14 +186,15 @@ One row per directed flow (standard §7a). Node IDs are defined in the [glossary
 | `ext_web_clients` | `social_video_server` | in | HTTP | host port SOCIAL_VIDEO_PUBLIC_PORT (default 9999) | video streams | on demand | social | source: `compose/docker-compose.social.yml:43-44`; [link](https://github.com/pacefactory/social_video_server/blob/main/docs/architecture/README.md) |
 | `apigateway` | `social_video_server` | internal | HTTP | social_video_server:9999 (/api/video) | proxied API calls | on demand | social | source: `compose/docker-compose.social.yml:56`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
 | `apigateway` | `social_web_app` | internal | HTTP | social_web_app (port TODO(source); served at /) | proxied UI | on demand | social | source: `compose/docker-compose.social.yml:57`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `relational_dbserver` | `ext_client_sql` | bidi | SQL | client database host and driver TODO(source) | client records TODO(source) | on demand | rdb | source: `compose/docker-compose.rdb.yml:5-7`; [link](https://github.com/pacefactory/relational-dbserver/blob/main/docs/architecture/README.md) |
-| `ext_web_clients` | `relational_dbserver` | in | HTTP | host port RDB_PUBLIC_PORT (default 8282) | API calls | on demand | rdb | source: `compose/docker-compose.rdb.yml:22-23`; [link](https://github.com/pacefactory/relational-dbserver/blob/main/docs/architecture/README.md) |
+| `relational_dbserver` | `ext_client_sql` | bidi | SQL | client database host and driver TODO(source) | client records TODO(source) | on demand | rdb | source: `compose/docker-compose.rdb.yml:5-7`; [link](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/architecture/README.md) |
+| `ext_web_clients` | `relational_dbserver` | in | HTTP | host port RDB_PUBLIC_PORT (default 8282) | API calls | on demand | rdb | source: `compose/docker-compose.rdb.yml:22-23`; [link](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/architecture/README.md) |
 | `apigateway` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 (/api/rdb) | proxied API calls | on demand | rdb | source: `compose/docker-compose.rdb.yml:34-35`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
 | `service_audit_processing` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 | relational lookups during audit processing | on demand | rdb | source: `compose/docker-compose.rdb.yml:43`; [link](https://github.com/pacefactory/scv3_services_processing/blob/main/docs/architecture/README.md) |
 | `expresso_server` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 | relational lookups | on demand | rdb | source: `compose/docker-compose.rdb.yml:47`; [link](https://github.com/pacefactory/expresso_server/blob/main/docs/architecture/README.md) |
 | `ext_web_clients` | `nodered` | in | HTTP | host port NODERED_PORT (default 1880) | Node-RED editor and HTTP-in nodes | on demand | node-red | source: `compose/docker-compose.node-red.yml:23-24`; [link](https://nodered.org/docs/) |
 | `apigateway` | `nodered` | internal | HTTP | nodered:1880 | proxied UI | on demand | node-red | source: `compose/docker-compose.node-red.yml:35-36`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
 | `nodered` | `ext_nodered_endpoints` | bidi | varies | configured per site in flows | site-specific TODO(source) | varies | node-red | source: `compose/docker-compose.node-red.yml (no endpoints in compose)`; [link](https://nodered.org/docs/) |
+| `ext_mqtt_clients` | `pf_mosquitto` | in | MQTT | host port PF_MOSQUITTO_PUBLIC_PORT (default 1883) | MQTT publish/subscribe (credentials in pf_mosquitto repo) | continuous | mqtt-public | source: `compose/docker-compose.mqtt-public.yml:16-18`; [link](https://github.com/pacefactory/pf_mosquitto/blob/main/docs/architecture/README.md) |
 | `ext_mqtt_clients` | `pf_mosquitto` | in | MQTTS | host port MQTTS_PUBLIC_PORT (default 8883) | MQTT over TLS using the https-* certificate | continuous | mqtts-public | source: `compose/docker-compose.mqtts-public.yml:18-24`; [link](https://github.com/pacefactory/pf_mosquitto/blob/main/docs/architecture/README.md) |
 | `ext_host_fs` | `pf_mosquitto` | in | file | MQTTS_CERT_SOURCE mounted at /etc/mosquitto-tls (ro) | TLS certificate and key | on demand (container start) | mqtts-public | source: `compose/docker-compose.mqtts-public.yml:21-22`; [link](https://github.com/pacefactory/pf_mosquitto/blob/main/docs/architecture/README.md) |
 | `certbot` | `ext_acme` | out | HTTPS | acme-v02.api.letsencrypt.org TODO(source) | ACME certificate order | on demand | https-digitalocean | source: `compose/docker-compose.https-digitalocean.yml:32-51`; [link](https://eff-certbot.readthedocs.io/) |
@@ -251,6 +254,7 @@ flowchart LR
   port_80[/"host :80"/] -->|"tcp -> apigateway:80"| apigateway
   port_443[/"host :443"/] -->|"tcp -> apigateway:443"| apigateway
   port_1880[/"host :1880"/] -->|"tcp -> nodered:1880"| nodered
+  port_1883[/"host :1883"/] -->|"tcp -> pf_mosquitto:1883"| pf_mosquitto
   port_8883[/"host :8883"/] -->|"tcp -> pf_mosquitto:8883"| pf_mosquitto
   port_8282[/"host :8282"/] -->|"tcp -> relational_dbserver:8282"| relational_dbserver
   port_9999[/"host :9999"/] -->|"tcp -> social_video_server:9999"| social_video_server
@@ -400,6 +404,7 @@ flowchart LR
   ext_web_clients -->|"HTTP: Node-RED editor and HTTP-in nodes"| nodered
   apigateway -->|"HTTP: proxied UI"| nodered
   nodered <-->|"varies: site-specific TODO(source)"| ext_nodered_endpoints
+  ext_mqtt_clients -->|"MQTT: MQTT publish/subscribe (credentials in pf_mosquitto repo)"| pf_mosquitto
   ext_mqtt_clients -->|"MQTTS: MQTT over TLS using the https-* certificate"| pf_mosquitto
   ext_host_fs -->|"file: TLS certificate and key"| pf_mosquitto
   certbot -->|"HTTPS: ACME certificate order"| ext_acme
@@ -433,5 +438,4 @@ sequenceDiagram
   ext_web_clients->>apigateway: HTTPS 443: GET /scv3/
   apigateway-->>ext_web_clients: HTTPS: proxied UI and APIs (see default build for the internal path)
   ext_mqtt_clients->>pf_mosquitto: MQTTS 8883: publish/subscribe (same certificate)
-  Note over pf_mosquitto: plain MQTT 1883 is not published in this deployment
 ```

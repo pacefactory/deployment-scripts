@@ -1,5 +1,5 @@
 ---
-title: Install CUDA support
+title: "Install CUDA support"
 type: how-to
 derived_from:
   - compose/docker-compose.cuda.yml

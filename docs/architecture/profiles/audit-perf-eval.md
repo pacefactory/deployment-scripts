@@ -1,5 +1,5 @@
 ---
-title: Profile: audit-perf-eval
+title: "Profile: audit-perf-eval"
 type: reference
 derived_from:
   - compose/docker-compose.audit-perf-eval.yml
@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Profile: `audit-perf-eval`
@@ -32,8 +32,8 @@ Runs a second audit-processing container that reads source data from the product
 | Service | Node ID | Image | Owning repo | Purpose |
 |---|---|---|---|---|
 | `perf_eval_mongo` | `perf_eval_mongo` | `mongo:4.2.3-bionic` | [mongo](https://hub.docker.com/_/mongo) (third-party) | Scratch mongo for the audit perf-eval shadow instance |
-| `perf_eval_dbserver` | `perf_eval_dbserver` | `pacefactory/dbserver:${PERF_EVAL_DBSERVER_TAG:-latest}` | [scv2_dbserver](https://github.com/pacefactory/scv2_dbserver) (named) | Scratch dbserver for the audit perf-eval shadow instance |
-| `service_audit_processing_perf_eval` | `service_audit_processing_perf_eval` | `pacefactory/service-audit-processing:${PERF_EVAL_AUDIT_PROCESSING_TAG:-latest}` | [scv3_services_processing](https://github.com/pacefactory/scv3_services_processing) (named) | Shadow audit processing instance for A/B benchmarking |
+| `perf_eval_dbserver` | `perf_eval_dbserver` | `pacefactory/dbserver:${PERF_EVAL_DBSERVER_TAG:-latest}` | [scv2_dbserver](https://github.com/pacefactory/scv2_dbserver) (internal) | Scratch dbserver for the audit perf-eval shadow instance |
+| `service_audit_processing_perf_eval` | `service_audit_processing_perf_eval` | `pacefactory/service-audit-processing:${PERF_EVAL_AUDIT_PROCESSING_TAG:-latest}` | [scv3_services_processing](https://github.com/pacefactory/scv3_services_processing) (internal) | Shadow audit processing instance for A/B benchmarking |
 
 ## Services modified from other profiles
 

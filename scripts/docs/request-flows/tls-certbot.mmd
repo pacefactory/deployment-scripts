@@ -17,4 +17,3 @@ sequenceDiagram
   ext_web_clients->>apigateway: HTTPS 443: GET /scv3/
   apigateway-->>ext_web_clients: HTTPS: proxied UI and APIs (see default build for the internal path)
   ext_mqtt_clients->>pf_mosquitto: MQTTS 8883: publish/subscribe (same certificate)
-  Note over pf_mosquitto: plain MQTT 1883 is not published in this deployment

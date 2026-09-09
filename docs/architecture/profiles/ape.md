@@ -1,5 +1,5 @@
 ---
-title: Profile: ape
+title: "Profile: ape"
 type: reference
 derived_from:
   - compose/docker-compose.ape.yml
@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Profile: `ape`
@@ -31,8 +31,8 @@ The Alert Processing Engine produces realtime alerts from MQTT object data.
 
 | Service | Node ID | Image | Owning repo | Purpose |
 |---|---|---|---|---|
-| `alert_processing_engine` | `alert_processing_engine` | `pacefactory/alert_processing_engine:${APE_TAG:-latest}` | [alert_processing_engine](https://github.com/pacefactory/alert_processing_engine) (inferred) | Alert Processing Engine: real-time alerts from MQTT object data |
-| `ape_frame_playback` | `ape_frame_playback` | `pacefactory/alert_processing_engine:${APE_TAG:-latest}` | [alert_processing_engine](https://github.com/pacefactory/alert_processing_engine) (inferred) | Frame playback HTTP service for APE recordings |
+| `alert_processing_engine` | `alert_processing_engine` | `pacefactory/alert_processing_engine:${APE_TAG:-latest}` | [alert_processing_engine](https://github.com/pacefactory/alert_processing_engine) (internal) | Alert Processing Engine: real-time alerts from MQTT object data |
+| `ape_frame_playback` | `ape_frame_playback` | `pacefactory/alert_processing_engine:${APE_TAG:-latest}` | [alert_processing_engine](https://github.com/pacefactory/alert_processing_engine) (internal) | Frame playback HTTP service for APE recordings |
 | `ape_timescaledb` | `ape_timescaledb` | `timescale/timescaledb:latest-pg16` | [timescaledb](https://hub.docker.com/r/timescale/timescaledb) (third-party) | TimescaleDB (PostgreSQL 16) event store used by APE, Expresso and data_interconnector |
 
 ## Services modified from other profiles

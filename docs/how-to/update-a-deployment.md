@@ -1,5 +1,5 @@
 ---
-title: Update a deployment
+title: "Update a deployment"
 type: how-to
 derived_from:
   - update.sh
@@ -56,6 +56,9 @@ The run must print `Deployment complete`. Then:
 docker compose ps
 docker ps -a --filter label=com.docker.compose.project=<PROJECT_NAME> --format '{{.Names}}\t{{.Status}}'
 ```
+
+Replace `<PROJECT_NAME>` with the name of the project (default:
+`deployment-scripts`; the value recorded in `.settings`).
 
 Every container is `Up` and none says `(unhealthy)`. A pull failure skips the
 `up` step but still exits 0; the absence of `Deployment complete` is the signal.

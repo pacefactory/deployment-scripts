@@ -1,5 +1,5 @@
 ---
-title: MQTT clients
+title: "MQTT clients"
 type: reference
 derived_from:
   - compose/docker-compose.base.yml
@@ -46,9 +46,8 @@ Listener details: [MQTT broker listeners reference](../../reference/mqtt-broker-
 
 ## Client-side network requirements
 
-Open host ports 1883 and/or 8883 to the clients that need them; internet-facing
-sites should disable `mqtt-public` and use MQTTS only
-(`compose/docker-compose.mqtt-public.yml:5-9`). See [site requirements](../network/site-requirements.md).
+Open host ports 1883 and/or 8883 to the clients that need them. See
+[site requirements](../network/site-requirements.md).
 
 ## Payload summary
 

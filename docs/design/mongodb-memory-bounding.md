@@ -1,5 +1,5 @@
 ---
-title: Design note: MongoDB memory bounding and single-node replica set
+title: "Design note: MongoDB memory bounding and single-node replica set"
 type: other
 derived_from:
   - compose/docker-compose.base.yml

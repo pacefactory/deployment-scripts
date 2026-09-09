@@ -1,5 +1,5 @@
 ---
-title: Tune MongoDB performance
+title: "Tune MongoDB performance"
 type: how-to
 derived_from:
   - compose/docker-compose.base.yml

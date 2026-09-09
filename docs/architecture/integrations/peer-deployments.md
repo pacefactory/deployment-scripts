@@ -1,5 +1,5 @@
 ---
-title: Peer Pacefactory deployments
+title: "Peer Pacefactory deployments"
 type: reference
 derived_from:
   - compose/docker-compose.expresso-010.yml

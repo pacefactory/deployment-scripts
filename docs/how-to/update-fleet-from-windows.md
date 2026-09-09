@@ -1,5 +1,5 @@
 ---
-title: Update the fleet from Windows
+title: "Update the fleet from Windows"
 type: how-to
 derived_from:
   - scripts/remote/update-fleet.ps1

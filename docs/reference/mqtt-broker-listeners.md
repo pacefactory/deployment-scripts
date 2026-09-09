@@ -1,5 +1,5 @@
 ---
-title: MQTT broker listeners
+title: "MQTT broker listeners"
 type: reference
 derived_from:
   - compose/docker-compose.base.yml

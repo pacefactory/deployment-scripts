@@ -1,5 +1,5 @@
 ---
-title: Node-RED flow endpoints
+title: "Node-RED flow endpoints"
 type: reference
 derived_from:
   - compose/docker-compose.node-red.yml

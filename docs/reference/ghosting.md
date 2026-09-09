@@ -1,5 +1,5 @@
 ---
-title: Ghosting configuration
+title: "Ghosting configuration"
 type: reference
 derived_from:
   - compose/docker-compose.base.yml

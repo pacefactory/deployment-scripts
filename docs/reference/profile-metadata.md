@@ -1,5 +1,5 @@
 ---
-title: Profile metadata (x-pf-info)
+title: "Profile metadata (x-pf-info)"
 type: reference
 derived_from:
   - build.sh

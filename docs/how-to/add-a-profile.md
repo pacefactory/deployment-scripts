@@ -1,5 +1,5 @@
 ---
-title: Add a profile
+title: "Add a profile"
 type: how-to
 derived_from:
   - build.sh

@@ -1,5 +1,5 @@
 ---
-title: Restore volumes
+title: "Restore volumes"
 type: how-to
 derived_from:
   - scripts/backup_restore/restore_volume.sh

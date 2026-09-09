@@ -1,5 +1,5 @@
 ---
-title: Build and update scripts
+title: "Build and update scripts"
 type: reference
 derived_from:
   - build.sh

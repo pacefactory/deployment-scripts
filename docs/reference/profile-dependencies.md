@@ -1,11 +1,11 @@
 ---
-title: Profile dependencies
+title: "Profile dependencies"
 type: reference
 derived_from:
   - compose/docker-compose.*.yml
   - build.sh
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Profile dependencies
@@ -76,8 +76,8 @@ flowchart TD
 | [`audit-perf-eval`](../architecture/profiles/audit-perf-eval.md) | prompted, default off | none | none | none | none | none found |
 | [`autozone`](../architecture/profiles/autozone.md) | prompted, default off | none | none | none | none | none found |
 | [`base`](../architecture/profiles/base.md) | forced (build.sh) | none | [`cuda`](../architecture/profiles/cuda.md), [`mqtt-public`](../architecture/profiles/mqtt-public.md) | none | none | none found |
-| [`cuda`](../architecture/profiles/cuda.md) | sub-profile of , default off | none | none | none | none | none found |
-| [`expresso-010`](../architecture/profiles/expresso-010.md) | forced (build.sh) | none | [`expresso-020-cuda`](../architecture/profiles/expresso-020-cuda.md), [`expresso-030-trainer`](../architecture/profiles/expresso-030-trainer.md) | none | none | none found |
+| [`cuda`](../architecture/profiles/cuda.md) | sub-profile of base, default off | [`base`](../architecture/profiles/base.md) | none | none | none | none found |
+| [`expresso-010`](../architecture/profiles/expresso-010.md) | forced (build.sh) | none | [`expresso-020-cuda`](../architecture/profiles/expresso-020-cuda.md), [`expresso-030-trainer`](../architecture/profiles/expresso-030-trainer.md) | none | [`ape`](../architecture/profiles/ape.md) | none found |
 | [`expresso-020-cuda`](../architecture/profiles/expresso-020-cuda.md) | sub-profile of expresso-010, default off | [`expresso-010`](../architecture/profiles/expresso-010.md) | none | none | none | none found |
 | [`expresso-030-trainer`](../architecture/profiles/expresso-030-trainer.md) | sub-profile of expresso-010, default off | [`expresso-010`](../architecture/profiles/expresso-010.md) | none | none | none | none found |
 | [`https-digitalocean`](../architecture/profiles/https-digitalocean.md) | prompted, default off | none | [`mqtts-public`](../architecture/profiles/mqtts-public.md) | none | none | `https-godaddy` (same container name certbot; same host port 443)<br>`https-manual` (same container name certbot; same host port 443)<br>`https-no-certbot` (same host port 443) |

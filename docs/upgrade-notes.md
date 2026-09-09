@@ -1,5 +1,5 @@
 ---
-title: Upgrade notes
+title: "Upgrade notes"
 type: other
 derived_from:
   - compose/docker-compose.base.yml

@@ -1,5 +1,5 @@
 ---
-title: Client SQL database
+title: "Client SQL database"
 type: reference
 derived_from:
   - compose/docker-compose.rdb.yml

@@ -86,7 +86,7 @@ enabled_profiles() {
 # YAML doc header
 doc_header() { # title type derived_from...
   local title="$1" type="$2"; shift 2
-  printf -- '---\ntitle: %s\ntype: %s\nderived_from:\n' "$title" "$type"
+  printf -- '---\ntitle: "%s"\ntype: %s\nderived_from:\n' "${title//\"/\\\"}" "$type"
   local d; for d in "$@"; do printf '  - %s\n' "$d"; done
   printf 'last_verified: %s\nverified_against: %s\n---\n' "$TODAY" "$GIT_SHA"
 }

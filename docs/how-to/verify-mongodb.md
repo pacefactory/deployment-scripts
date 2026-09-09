@@ -1,5 +1,5 @@
 ---
-title: Verify MongoDB state
+title: "Verify MongoDB state"
 type: how-to
 derived_from:
   - compose/docker-compose.base.yml

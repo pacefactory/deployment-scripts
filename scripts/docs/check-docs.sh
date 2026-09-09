@@ -21,6 +21,7 @@ while IFS= read -r f; do
   case "$f" in
     *.md)
       head -1 "$f" | grep -q '^---$' || fail "$f: no YAML header"
+      yq --front-matter=extract '.title' "$f" >/dev/null 2>"$FAILS.yq" || fail "$f: front matter does not parse as YAML: $(head -1 "$FAILS.yq")"
       for k in title type derived_from last_verified verified_against; do
         sed -n '2,/^---$/p' "$f" | grep -q "^$k:" || fail "$f: header missing '$k'"
       done
@@ -66,6 +67,6 @@ if [[ "${1:-}" == "--mermaid" ]]; then
   rm -rf "$tmp"
   fi
 fi
-rc=0; [[ -s "$FAILS" ]] && rc=1; rm -f "$FAILS"
+rc=0; [[ -s "$FAILS" ]] && rc=1; rm -f "$FAILS" "$FAILS.yq"
 echo "result: rc=$rc"
 exit $rc

@@ -1,5 +1,5 @@
 ---
-title: Profile: offline
+title: "Profile: offline"
 type: reference
 derived_from:
   - compose/docker-compose.offline.yml
@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Profile: `offline`

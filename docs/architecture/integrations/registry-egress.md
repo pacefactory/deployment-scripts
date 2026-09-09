@@ -1,5 +1,5 @@
 ---
-title: Container registry and GitHub egress
+title: "Container registry and GitHub egress"
 type: reference
 derived_from:
   - update.sh
@@ -32,7 +32,8 @@ No compose service. Host-side tooling:
 - `scripts/installYq.sh` and `scripts/Dockerfile.build` download `yq` and the
   compose plugin from GitHub releases.
 - `scripts/offline/makeofflineinstall.sh` pulls images and downloads docker
-  binaries to build an offline install set.
+  binaries to build an offline install set. The script is broken against
+  current software versions (see [Create an offline install](../../how-to/create-an-offline-install.md)).
 - `scripts/remote/update-server.sh` runs `git pull --ff-only` on each server
   (`scripts/remote/update-server.sh:86-92`).
 
@@ -46,8 +47,8 @@ stored on the host account.
 
 Allow-list `registry-1.docker.io`, `auth.docker.io`, `production.cloudflare.docker.com`
 (Docker Hub pull path; `TODO(source)`: confirm current hostnames),
-`github.com` and `objects.githubusercontent.com`. Sites with no egress use the
-[offline install](../../how-to/create-an-offline-install.md).
+`github.com` and `objects.githubusercontent.com`. Sites with no egress would need the
+[offline install](../../how-to/create-an-offline-install.md), which is currently broken.
 
 ## Payload summary
 

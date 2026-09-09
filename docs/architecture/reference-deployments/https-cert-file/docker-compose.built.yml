@@ -451,6 +451,10 @@ services:
       external_network: null
     ports:
       - mode: ingress
+        target: 1883
+        published: "1883"
+        protocol: tcp
+      - mode: ingress
         target: 8883
         published: "8883"
         protocol: tcp
@@ -804,6 +808,8 @@ x-pf-info:
     PF_IDLE_ARCHIVE_ENABLED:
       default: true
       description: Enable the scheduled idle-object snapshot archiving task (true/false). Per-site kill switch; disabled means the task exits immediately without calling gifwrapper.
+    PF_MOSQUITTO_PUBLIC_PORT:
+      default: 1883
     PF_MOSQUITTO_TAG:
       default: latest
     PF_PROCESS_BLOCK_DURATION_MINUTES:

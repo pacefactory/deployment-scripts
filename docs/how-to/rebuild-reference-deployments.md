@@ -1,5 +1,5 @@
 ---
-title: Rebuild the reference deployments and regenerate docs
+title: "Rebuild the reference deployments and regenerate docs"
 type: how-to
 derived_from:
   - scripts/docs/build-reference-deployment.sh

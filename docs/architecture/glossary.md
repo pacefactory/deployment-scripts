@@ -1,5 +1,5 @@
 ---
-title: Glossary
+title: "Glossary"
 type: reference
 derived_from:
   - scripts/docs/services.tsv
@@ -7,7 +7,7 @@ derived_from:
   - build.sh
   - compose/docker-compose.*.yml
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Glossary
@@ -50,48 +50,47 @@ mount or shared volume).
 ## Services
 
 Node ID is the Mermaid ID used in every diagram in this repo. Owner kind:
-`named` = the repo is named in this repository's files; `confirmed` = confirmed
-by the technical lead; `inferred` = derived from the image name and not yet
-verified; `third-party` = not a Pacefactory image (configuration is owned here).
-Links to service-repo architecture docs follow the standard path
-`docs/architecture/README.md` and may not exist yet in that repo.
+`internal` = a Pacefactory repository (every repository listed was reviewed by
+the technical lead); `third-party` = not a Pacefactory image, only its
+configuration is owned here. Links to service-repo architecture docs follow the
+standard path `docs/architecture/README.md` and may not exist yet in that repo.
 
 | Service | Node ID | Image | Home profile | Owning repo | Owner kind | Purpose |
 |---|---|---|---|---|---|---|
 | `mongo` | `mongo` | `mongo` | [`base`](profiles/base.md) | [mongo](https://hub.docker.com/_/mongo) | third-party | Primary MongoDB 4.2 store behind dbserver and data_interconnector, run as a single-node replica set |
-| `dbserver` | `dbserver` | `pacefactory/dbserver` | [`base`](profiles/base.md) | [scv2_dbserver](https://github.com/pacefactory/scv2_dbserver) | named | HTTP data API over mongo; owns the snapshot/object data volume |
-| `pf_mosquitto` | `pf_mosquitto` | `pacefactory/pf_mosquitto` | [`base`](profiles/base.md) | [pf_mosquitto](https://github.com/pacefactory/pf_mosquitto) | confirmed | MQTT broker used by every real-time producer and consumer in the deployment |
-| `data_interconnector` | `data_interconnector` | `pacefactory/data_interconnector` | [`base`](profiles/base.md) | [data_interconnector](https://github.com/pacefactory/data_interconnector) | named | Ingests MQTT object data into mongo (and TimescaleDB when ape is enabled) |
-| `realtime` | `realtime` | `pacefactory/realtime` | [`base`](profiles/base.md) | [scv2_realtime](https://github.com/pacefactory/scv2_realtime) | named | Camera ingest and real-time processing; publishes to MQTT and writes to dbserver |
-| `auditgui` | `auditgui` | `pacefactory/scv3_webgui` | [`base`](profiles/base.md) | [scv3_webgui](https://github.com/pacefactory/scv3_webgui) | inferred | Audit web UI and the uiserver API other services read audit config from |
-| `service_gifwrapper` | `service_gifwrapper` | `pacefactory/service-gifwrapper` | [`base`](profiles/base.md) | [scv2_services_gifwrapper](https://github.com/pacefactory/scv2_services_gifwrapper) | confirmed | Renders ghosted snapshot images and GIFs from the dbserver data volume |
-| `service_dtreeserver` | `service_dtreeserver` | `pacefactory/service-dtreeserver` | [`base`](profiles/base.md) | [scv2_services_dtreeserver](https://github.com/pacefactory/scv2_services_dtreeserver) | confirmed | Decision-tree classifier service used by audit processing |
-| `service_audit_processing` | `service_audit_processing` | `pacefactory/service-audit-processing` | [`base`](profiles/base.md) | [scv3_services_processing](https://github.com/pacefactory/scv3_services_processing) | named | Batch audit processing over dbserver data; exports segments over MQTT |
-| `apigateway` | `apigateway` | `pacefactory/apigateway` | [`base`](profiles/base.md) | [scv2_apigateway](https://github.com/pacefactory/scv2_apigateway) | confirmed | nginx reverse proxy; the only HTTP(S) entry point to the deployment |
-| `record_video` | `record_video` | `pacefactory/realtime` | [`tools`](profiles/tools.md) | [deployment-scripts](https://github.com/pacefactory/deployment-scripts) | named | On-demand tool: records an RTSP camera stream to the host (record_cli.py) |
-| `stitch_videos` | `stitch_videos` | `pacefactory/realtime` | [`tools`](profiles/tools.md) | [deployment-scripts](https://github.com/pacefactory/deployment-scripts) | named | On-demand tool: stitches recorded segments into one file per camera (stitch_cli.py) |
-| `expresso_server` | `expresso_server` | `pacefactory/expresso_server` | [`expresso-010`](profiles/expresso-010.md) | [expresso_server](https://github.com/pacefactory/expresso_server) | inferred | Expresso API server (stations config, training dispatch, APE events integration) |
-| `expresso_ui` | `expresso_ui` | `pacefactory/expresso_ui` | [`expresso-010`](profiles/expresso-010.md) | [expresso_ui](https://github.com/pacefactory/expresso_ui) | inferred | Expresso web UI served behind the apigateway at /expresso |
-| `celery_worker` | `celery_worker` | `pacefactory/expresso_server` | [`expresso-010`](profiles/expresso-010.md) | [expresso_server](https://github.com/pacefactory/expresso_server) | inferred | Expresso background worker (periodic publishing, idle-object archiving) |
-| `celery_beat` | `celery_beat` | `pacefactory/expresso_server` | [`expresso-010`](profiles/expresso-010.md) | [expresso_server](https://github.com/pacefactory/expresso_server) | inferred | Expresso scheduler; singleton |
+| `dbserver` | `dbserver` | `pacefactory/dbserver` | [`base`](profiles/base.md) | [scv2_dbserver](https://github.com/pacefactory/scv2_dbserver) | internal | HTTP data API over mongo; owns the snapshot/object data volume |
+| `pf_mosquitto` | `pf_mosquitto` | `pacefactory/pf_mosquitto` | [`base`](profiles/base.md) | [pf_mosquitto](https://github.com/pacefactory/pf_mosquitto) | internal | MQTT broker used by every real-time producer and consumer in the deployment |
+| `data_interconnector` | `data_interconnector` | `pacefactory/data_interconnector` | [`base`](profiles/base.md) | [data_interconnector](https://github.com/pacefactory/data_interconnector) | internal | Ingests MQTT object data into mongo (and TimescaleDB when ape is enabled) |
+| `realtime` | `realtime` | `pacefactory/realtime` | [`base`](profiles/base.md) | [scv2_realtime](https://github.com/pacefactory/scv2_realtime) | internal | Camera ingest and real-time processing; publishes to MQTT and writes to dbserver |
+| `auditgui` | `auditgui` | `pacefactory/scv3_webgui` | [`base`](profiles/base.md) | [scv3_webgui](https://github.com/pacefactory/scv3_webgui) | internal | Audit web UI and the uiserver API other services read audit config from |
+| `service_gifwrapper` | `service_gifwrapper` | `pacefactory/service-gifwrapper` | [`base`](profiles/base.md) | [scv2_services_gifwrapper](https://github.com/pacefactory/scv2_services_gifwrapper) | internal | Renders ghosted snapshot images and GIFs from the dbserver data volume |
+| `service_dtreeserver` | `service_dtreeserver` | `pacefactory/service-dtreeserver` | [`base`](profiles/base.md) | [scv2_services_dtreeserver](https://github.com/pacefactory/scv2_services_dtreeserver) | internal | Decision-tree classifier service used by audit processing |
+| `service_audit_processing` | `service_audit_processing` | `pacefactory/service-audit-processing` | [`base`](profiles/base.md) | [scv3_services_processing](https://github.com/pacefactory/scv3_services_processing) | internal | Batch audit processing over dbserver data; exports segments over MQTT |
+| `apigateway` | `apigateway` | `pacefactory/apigateway` | [`base`](profiles/base.md) | [scv2_apigateway](https://github.com/pacefactory/scv2_apigateway) | internal | nginx reverse proxy; the only HTTP(S) entry point to the deployment |
+| `record_video` | `record_video` | `pacefactory/realtime` | [`tools`](profiles/tools.md) | [deployment-scripts](https://github.com/pacefactory/deployment-scripts) | internal | On-demand tool: records an RTSP camera stream to the host (record_cli.py) |
+| `stitch_videos` | `stitch_videos` | `pacefactory/realtime` | [`tools`](profiles/tools.md) | [deployment-scripts](https://github.com/pacefactory/deployment-scripts) | internal | On-demand tool: stitches recorded segments into one file per camera (stitch_cli.py) |
+| `expresso_server` | `expresso_server` | `pacefactory/expresso_server` | [`expresso-010`](profiles/expresso-010.md) | [expresso_server](https://github.com/pacefactory/expresso_server) | internal | Expresso API server (stations config, training dispatch, APE events integration) |
+| `expresso_ui` | `expresso_ui` | `pacefactory/expresso_ui` | [`expresso-010`](profiles/expresso-010.md) | [expresso_ui](https://github.com/pacefactory/expresso_ui) | internal | Expresso web UI served behind the apigateway at /expresso |
+| `celery_worker` | `celery_worker` | `pacefactory/expresso_server` | [`expresso-010`](profiles/expresso-010.md) | [expresso_server](https://github.com/pacefactory/expresso_server) | internal | Expresso background worker (periodic publishing, idle-object archiving) |
+| `celery_beat` | `celery_beat` | `pacefactory/expresso_server` | [`expresso-010`](profiles/expresso-010.md) | [expresso_server](https://github.com/pacefactory/expresso_server) | internal | Expresso scheduler; singleton |
 | `redis` | `redis` | `redis` | [`expresso-010`](profiles/expresso-010.md) | [redis](https://hub.docker.com/_/redis) | third-party | Celery broker/result store for Expresso |
 | `mongo_exp` | `mongo_exp` | `mongodb/mongodb-community-server` | [`expresso-010`](profiles/expresso-010.md) | [mongodb-community-server](https://hub.docker.com/r/mongodb/mongodb-community-server) | third-party | MongoDB 8 store for Expresso |
-| `trainer` | `trainer` | `pacefactory/trainer` | [`expresso-030-trainer`](profiles/expresso-030-trainer.md) | [trainer](https://github.com/pacefactory/trainer) | inferred | GPU Celery worker for model training and synthetic data generation |
-| `social_web_app` | `social_web_app` | `pacefactory/social_web_app` | [`social`](profiles/social.md) | [social_web_app](https://github.com/pacefactory/social_web_app) | inferred | Video-based social web app served behind the apigateway |
-| `social_video_server` | `social_video_server` | `pacefactory/social_video_server` | [`social`](profiles/social.md) | [social_video_server](https://github.com/pacefactory/social_video_server) | inferred | Video server for the social web app |
-| `relational_dbserver` | `relational_dbserver` | `pacefactory/relational-dbserver` | [`rdb`](profiles/rdb.md) | [relational-dbserver](https://github.com/pacefactory/relational-dbserver) | inferred | Bridge between the deployment and a client's existing SQL database |
+| `trainer` | `trainer` | `pacefactory/trainer` | [`expresso-030-trainer`](profiles/expresso-030-trainer.md) | [trainer](https://github.com/pacefactory/trainer) | internal | GPU Celery worker for model training and synthetic data generation |
+| `social_web_app` | `social_web_app` | `pacefactory/social_web_app` | [`social`](profiles/social.md) | [social_web_app](https://github.com/pacefactory/social_web_app) | internal | Video-based social web app served behind the apigateway |
+| `social_video_server` | `social_video_server` | `pacefactory/social_video_server` | [`social`](profiles/social.md) | [social_video_server](https://github.com/pacefactory/social_video_server) | internal | Video server for the social web app |
+| `relational_dbserver` | `relational_dbserver` | `pacefactory/relational-dbserver` | [`rdb`](profiles/rdb.md) | [scv2_relational_dbserver](https://github.com/pacefactory/scv2_relational_dbserver) | internal | Bridge between the deployment and a client's existing SQL database |
 | `nodered` | `nodered` | `nodered/node-red` | [`node-red`](profiles/node-red.md) | [node-red](https://hub.docker.com/r/nodered/node-red) | third-party | Node-RED flow engine for site-specific integrations |
 | `ntfy` | `ntfy` | `binwiederhier/ntfy` | [`ntfy`](profiles/ntfy.md) | [ntfy](https://hub.docker.com/r/binwiederhier/ntfy) | third-party | Push notification server |
-| `alert_processing_engine` | `alert_processing_engine` | `pacefactory/alert_processing_engine` | [`ape`](profiles/ape.md) | [alert_processing_engine](https://github.com/pacefactory/alert_processing_engine) | inferred | Alert Processing Engine: real-time alerts from MQTT object data |
-| `ape_frame_playback` | `ape_frame_playback` | `pacefactory/alert_processing_engine` | [`ape`](profiles/ape.md) | [alert_processing_engine](https://github.com/pacefactory/alert_processing_engine) | inferred | Frame playback HTTP service for APE recordings |
+| `alert_processing_engine` | `alert_processing_engine` | `pacefactory/alert_processing_engine` | [`ape`](profiles/ape.md) | [alert_processing_engine](https://github.com/pacefactory/alert_processing_engine) | internal | Alert Processing Engine: real-time alerts from MQTT object data |
+| `ape_frame_playback` | `ape_frame_playback` | `pacefactory/alert_processing_engine` | [`ape`](profiles/ape.md) | [alert_processing_engine](https://github.com/pacefactory/alert_processing_engine) | internal | Frame playback HTTP service for APE recordings |
 | `ape_timescaledb` | `ape_timescaledb` | `timescale/timescaledb` | [`ape`](profiles/ape.md) | [timescaledb](https://hub.docker.com/r/timescale/timescaledb) | third-party | TimescaleDB (PostgreSQL 16) event store used by APE, Expresso and data_interconnector |
-| `autozone` | `autozone` | `pacefactory/autozone` | [`autozone`](profiles/autozone.md) | [autozone](https://github.com/pacefactory/autozone) | inferred | Detects activity zones from tracked object hulls |
-| `autozone_api` | `autozone_api` | `pacefactory/autozone_api` | [`autozone`](profiles/autozone.md) | [autozone](https://github.com/pacefactory/autozone) | inferred | API in front of autozone results |
+| `autozone` | `autozone` | `pacefactory/autozone` | [`autozone`](profiles/autozone.md) | [autozone](https://github.com/pacefactory/autozone) | internal | Detects activity zones from tracked object hulls |
+| `autozone_api` | `autozone_api` | `pacefactory/autozone_api` | [`autozone`](profiles/autozone.md) | [autozone](https://github.com/pacefactory/autozone) | internal | API in front of autozone results |
 | `autozone_mongo` | `autozone_mongo` | `mongo` | [`autozone`](profiles/autozone.md) | [mongo](https://hub.docker.com/_/mongo) | third-party | MongoDB 7 store for autozone |
 | `perf_eval_mongo` | `perf_eval_mongo` | `mongo` | [`audit-perf-eval`](profiles/audit-perf-eval.md) | [mongo](https://hub.docker.com/_/mongo) | third-party | Scratch mongo for the audit perf-eval shadow instance |
-| `perf_eval_dbserver` | `perf_eval_dbserver` | `pacefactory/dbserver` | [`audit-perf-eval`](profiles/audit-perf-eval.md) | [scv2_dbserver](https://github.com/pacefactory/scv2_dbserver) | named | Scratch dbserver for the audit perf-eval shadow instance |
-| `service_audit_processing_perf_eval` | `service_audit_processing_perf_eval` | `pacefactory/service-audit-processing` | [`audit-perf-eval`](profiles/audit-perf-eval.md) | [scv3_services_processing](https://github.com/pacefactory/scv3_services_processing) | named | Shadow audit processing instance for A/B benchmarking |
-| `swift-labeler` | `swift_labeler` | `pacefactory/swift-labeler` | [`swift-labeler`](profiles/swift-labeler.md) | [swift-labeler](https://github.com/pacefactory/swift-labeler) | inferred | Swift Labeler labelling UI and API |
+| `perf_eval_dbserver` | `perf_eval_dbserver` | `pacefactory/dbserver` | [`audit-perf-eval`](profiles/audit-perf-eval.md) | [scv2_dbserver](https://github.com/pacefactory/scv2_dbserver) | internal | Scratch dbserver for the audit perf-eval shadow instance |
+| `service_audit_processing_perf_eval` | `service_audit_processing_perf_eval` | `pacefactory/service-audit-processing` | [`audit-perf-eval`](profiles/audit-perf-eval.md) | [scv3_services_processing](https://github.com/pacefactory/scv3_services_processing) | internal | Shadow audit processing instance for A/B benchmarking |
+| `swift-labeler` | `swift_labeler` | `pacefactory/swift-labeler` | [`swift-labeler`](profiles/swift-labeler.md) | [swift-labeler](https://github.com/pacefactory/swift-labeler) | internal | Swift Labeler labelling UI and API |
 | `certbot` | `certbot` | `certbot/certbot` | [`https-digitalocean`](profiles/https-digitalocean.md) | [certbot](https://hub.docker.com/r/certbot/certbot) | third-party | On-demand Let's Encrypt client (image varies by https-* profile) |
 
 ## External integration types
@@ -111,7 +110,7 @@ Links to service-repo architecture docs follow the standard path
 | Node-RED flow endpoints | `ext_nodered_endpoints` | varies | bidi | [node-red-flows.md](integrations/node-red-flows.md) | Whatever a site's Node-RED flows connect to |
 | Corporate proxy | `ext_proxy` | HTTP CONNECT | out | [corporate-proxy.md](integrations/corporate-proxy.md) | Egress proxy configured by ~/connect-to-proxy.sh on the host |
 | Fleet operator workstation | `ext_fleet_operator` | SSH | in | [fleet-ssh.md](integrations/fleet-ssh.md) | Windows workstation running scripts/remote over ssh |
-| Deployment host filesystem | `ext_host_fs` | file | bidi | [web-clients.md](integrations/web-clients.md) | Host paths bind-mounted into containers (credentials, recorded videos, CLI scripts) |
+| Deployment host filesystem | `ext_host_fs` | file | bidi | [host-filesystem.md](integrations/host-filesystem.md) | Host paths bind-mounted into containers (credentials, recorded videos, CLI scripts) |
 
 ## Other node IDs
 

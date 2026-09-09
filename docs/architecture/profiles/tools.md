@@ -1,5 +1,5 @@
 ---
-title: Profile: tools
+title: "Profile: tools"
 type: reference
 derived_from:
   - compose/docker-compose.tools.yml
@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Profile: `tools`
@@ -31,8 +31,8 @@ Tools profile contains useful utilities that can be run on-demand with `docker c
 
 | Service | Node ID | Image | Owning repo | Purpose |
 |---|---|---|---|---|
-| `record_video` | `record_video` | `pacefactory/realtime:${REALTIME_TAG:-latest}` | [deployment-scripts](https://github.com/pacefactory/deployment-scripts) (named) | On-demand tool: records an RTSP camera stream to the host (record_cli.py) |
-| `stitch_videos` | `stitch_videos` | `pacefactory/realtime:${REALTIME_TAG:-latest}` | [deployment-scripts](https://github.com/pacefactory/deployment-scripts) (named) | On-demand tool: stitches recorded segments into one file per camera (stitch_cli.py) |
+| `record_video` | `record_video` | `pacefactory/realtime:${REALTIME_TAG:-latest}` | [deployment-scripts](https://github.com/pacefactory/deployment-scripts) (internal) | On-demand tool: records an RTSP camera stream to the host (record_cli.py) |
+| `stitch_videos` | `stitch_videos` | `pacefactory/realtime:${REALTIME_TAG:-latest}` | [deployment-scripts](https://github.com/pacefactory/deployment-scripts) (internal) | On-demand tool: stitches recorded segments into one file per camera (stitch_cli.py) |
 
 ## Services modified from other profiles
 

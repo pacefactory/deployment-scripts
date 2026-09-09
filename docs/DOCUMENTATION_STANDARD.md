@@ -1,5 +1,5 @@
 ---
-title: Pacefactory Documentation Standard (Service Repos)
+title: "Pacefactory Documentation Standard (Service Repos)"
 type: standard
 derived_from:
   - docs/
@@ -110,7 +110,7 @@ Every Markdown file under `docs/` begins with this block:
 
 ```markdown
 ---
-title: <Title>
+title: "<Title>"
 type: reference | how-to | example | standard | other
 derived_from:
   - <repo-relative path or glob the content is derived from>
@@ -119,6 +119,7 @@ verified_against: <git short SHA or tag>
 ---
 ```
 
+- `title` is always double-quoted: a bare colon in a title breaks YAML parsing.
 - `derived_from` is mandatory and must list real paths or globs. A doc with no
   derivable source (e.g., a design note) lists the files it *explains*. A
   standard lists the tree it governs.

@@ -1,5 +1,5 @@
 ---
-title: Environment variable reference
+title: "Environment variable reference"
 type: reference
 derived_from:
   - build.sh
@@ -7,7 +7,7 @@ derived_from:
   - scripts/common/runYq.sh
   - compose/docker-compose.*.yml
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Environment variable reference

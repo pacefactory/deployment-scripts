@@ -1,5 +1,5 @@
 ---
-title: Import a TLS certificate from a PKCS#12 bundle
+title: "Import a TLS certificate from a PKCS#12 bundle"
 type: how-to
 derived_from:
   - scripts/import-ssl-cert.sh

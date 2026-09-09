@@ -1,5 +1,5 @@
 ---
-title: Profile: expresso-030-trainer
+title: "Profile: expresso-030-trainer"
 type: reference
 derived_from:
   - compose/docker-compose.expresso-030-trainer.yml
@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Profile: `expresso-030-trainer`
@@ -31,7 +31,7 @@ Adds a GPU-backed Celery worker that runs model training and synthetic data gene
 
 | Service | Node ID | Image | Owning repo | Purpose |
 |---|---|---|---|---|
-| `trainer` | `trainer` | `pacefactory/trainer:${TRAINER_TAG:-latest}` | [trainer](https://github.com/pacefactory/trainer) (inferred) | GPU Celery worker for model training and synthetic data generation |
+| `trainer` | `trainer` | `pacefactory/trainer:${TRAINER_TAG:-latest}` | [trainer](https://github.com/pacefactory/trainer) (internal) | GPU Celery worker for model training and synthetic data generation |
 
 ## Services modified from other profiles
 

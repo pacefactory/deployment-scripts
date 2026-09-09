@@ -1,5 +1,5 @@
 ---
-title: Profile: base
+title: "Profile: base"
 type: reference
 derived_from:
   - compose/docker-compose.base.yml
@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Profile: `base`
@@ -32,15 +32,15 @@ TODO(source): no `x-pf-info.description` in the fragment.
 | Service | Node ID | Image | Owning repo | Purpose |
 |---|---|---|---|---|
 | `mongo` | `mongo` | `mongo:4.2.3-bionic` | [mongo](https://hub.docker.com/_/mongo) (third-party) | Primary MongoDB 4.2 store behind dbserver and data_interconnector, run as a single-node replica set |
-| `dbserver` | `dbserver` | `pacefactory/dbserver:${DBSERVER_TAG:-latest}` | [scv2_dbserver](https://github.com/pacefactory/scv2_dbserver) (named) | HTTP data API over mongo; owns the snapshot/object data volume |
-| `pf_mosquitto` | `pf_mosquitto` | `pacefactory/pf_mosquitto:${PF_MOSQUITTO_TAG:-latest}` | [pf_mosquitto](https://github.com/pacefactory/pf_mosquitto) (confirmed) | MQTT broker used by every real-time producer and consumer in the deployment |
-| `data_interconnector` | `data_interconnector` | `pacefactory/data_interconnector:${DATA_INTERCONNECTOR_TAG:-latest}` | [data_interconnector](https://github.com/pacefactory/data_interconnector) (named) | Ingests MQTT object data into mongo (and TimescaleDB when ape is enabled) |
-| `realtime` | `realtime` | `pacefactory/realtime:${REALTIME_TAG:-${REALTIME_TAG_DEFAULT_GPU:-latest}}` | [scv2_realtime](https://github.com/pacefactory/scv2_realtime) (named) | Camera ingest and real-time processing; publishes to MQTT and writes to dbserver |
-| `auditgui` | `auditgui` | `pacefactory/scv3_webgui:${AUDITGUI_TAG:-latest}` | [scv3_webgui](https://github.com/pacefactory/scv3_webgui) (inferred) | Audit web UI and the uiserver API other services read audit config from |
-| `service_gifwrapper` | `service_gifwrapper` | `pacefactory/service-gifwrapper:${GIFWRAPPER_TAG:-latest}` | [scv2_services_gifwrapper](https://github.com/pacefactory/scv2_services_gifwrapper) (confirmed) | Renders ghosted snapshot images and GIFs from the dbserver data volume |
-| `service_dtreeserver` | `service_dtreeserver` | `pacefactory/service-dtreeserver:${DTREESERVER_TAG:-latest}` | [scv2_services_dtreeserver](https://github.com/pacefactory/scv2_services_dtreeserver) (confirmed) | Decision-tree classifier service used by audit processing |
-| `service_audit_processing` | `service_audit_processing` | `pacefactory/service-audit-processing:${AUDIT_PROCESSING_TAG:-latest}` | [scv3_services_processing](https://github.com/pacefactory/scv3_services_processing) (named) | Batch audit processing over dbserver data; exports segments over MQTT |
-| `apigateway` | `apigateway` | `pacefactory/apigateway:${APIGATEWAY_TAG:-latest}` | [scv2_apigateway](https://github.com/pacefactory/scv2_apigateway) (confirmed) | nginx reverse proxy; the only HTTP(S) entry point to the deployment |
+| `dbserver` | `dbserver` | `pacefactory/dbserver:${DBSERVER_TAG:-latest}` | [scv2_dbserver](https://github.com/pacefactory/scv2_dbserver) (internal) | HTTP data API over mongo; owns the snapshot/object data volume |
+| `pf_mosquitto` | `pf_mosquitto` | `pacefactory/pf_mosquitto:${PF_MOSQUITTO_TAG:-latest}` | [pf_mosquitto](https://github.com/pacefactory/pf_mosquitto) (internal) | MQTT broker used by every real-time producer and consumer in the deployment |
+| `data_interconnector` | `data_interconnector` | `pacefactory/data_interconnector:${DATA_INTERCONNECTOR_TAG:-latest}` | [data_interconnector](https://github.com/pacefactory/data_interconnector) (internal) | Ingests MQTT object data into mongo (and TimescaleDB when ape is enabled) |
+| `realtime` | `realtime` | `pacefactory/realtime:${REALTIME_TAG:-${REALTIME_TAG_DEFAULT_GPU:-latest}}` | [scv2_realtime](https://github.com/pacefactory/scv2_realtime) (internal) | Camera ingest and real-time processing; publishes to MQTT and writes to dbserver |
+| `auditgui` | `auditgui` | `pacefactory/scv3_webgui:${AUDITGUI_TAG:-latest}` | [scv3_webgui](https://github.com/pacefactory/scv3_webgui) (internal) | Audit web UI and the uiserver API other services read audit config from |
+| `service_gifwrapper` | `service_gifwrapper` | `pacefactory/service-gifwrapper:${GIFWRAPPER_TAG:-latest}` | [scv2_services_gifwrapper](https://github.com/pacefactory/scv2_services_gifwrapper) (internal) | Renders ghosted snapshot images and GIFs from the dbserver data volume |
+| `service_dtreeserver` | `service_dtreeserver` | `pacefactory/service-dtreeserver:${DTREESERVER_TAG:-latest}` | [scv2_services_dtreeserver](https://github.com/pacefactory/scv2_services_dtreeserver) (internal) | Decision-tree classifier service used by audit processing |
+| `service_audit_processing` | `service_audit_processing` | `pacefactory/service-audit-processing:${AUDIT_PROCESSING_TAG:-latest}` | [scv3_services_processing](https://github.com/pacefactory/scv3_services_processing) (internal) | Batch audit processing over dbserver data; exports segments over MQTT |
+| `apigateway` | `apigateway` | `pacefactory/apigateway:${APIGATEWAY_TAG:-latest}` | [scv2_apigateway](https://github.com/pacefactory/scv2_apigateway) (internal) | nginx reverse proxy; the only HTTP(S) entry point to the deployment |
 
 ## Services modified from other profiles
 

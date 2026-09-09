@@ -1,5 +1,5 @@
 ---
-title: Record and stitch camera video
+title: "Record and stitch camera video"
 type: how-to
 derived_from:
   - compose/docker-compose.tools.yml

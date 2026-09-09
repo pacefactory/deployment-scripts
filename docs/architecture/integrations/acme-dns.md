@@ -1,5 +1,5 @@
 ---
-title: Let's Encrypt and DNS provider APIs
+title: "Let's Encrypt and DNS provider APIs"
 type: reference
 derived_from:
   - compose/docker-compose.https-digitalocean.yml

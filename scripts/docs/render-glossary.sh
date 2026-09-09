@@ -48,11 +48,10 @@ mount or shared volume).
 ## Services
 
 Node ID is the Mermaid ID used in every diagram in this repo. Owner kind:
-`named` = the repo is named in this repository's files; `confirmed` = confirmed
-by the technical lead; `inferred` = derived from the image name and not yet
-verified; `third-party` = not a Pacefactory image (configuration is owned here).
-Links to service-repo architecture docs follow the standard path
-`docs/architecture/README.md` and may not exist yet in that repo.
+`internal` = a Pacefactory repository (every repository listed was reviewed by
+the technical lead); `third-party` = not a Pacefactory image, only its
+configuration is owned here. Links to service-repo architecture docs follow the
+standard path `docs/architecture/README.md` and may not exist yet in that repo.
 
 | Service | Node ID | Image | Home profile | Owning repo | Owner kind | Purpose |
 |---|---|---|---|---|---|---|

@@ -1,5 +1,5 @@
 ---
-title: Enable HTTPS
+title: "Enable HTTPS"
 type: how-to
 derived_from:
   - compose/docker-compose.https-digitalocean.yml
@@ -40,20 +40,19 @@ of the four `https-*` profiles.
 
    Enter `SERVER_NAME`, `LETSENCRYPT_EMAIL` (certbot profiles) and keep
    `HTTPS_PORT` at 443 unless the site requires otherwise. The `mqtts-public`
-   sub-profile is offered right after (default yes). On internet-facing sites
-   also answer `n` to "Expose plain MQTT on port 1883?" under `base`.
+   sub-profile is offered right after (default yes).
 
 2. Certbot profiles only: obtain the certificate. The `certbot` service is on
-   demand (a compose profile) and exits when done:
+   demand (a compose profile) and exits when done; run it interactively so
+   certbot can prompt (required for `https-manual`, where you create the DNS
+   TXT record by hand when asked):
 
    ```bash
-   docker compose run --rm certbot
+   docker compose run -it --rm certbot
    ```
 
-   `TODO(source)`: this is the invocation implied by the service definition
-   (`command: certonly …`, `profiles: [<HTTPS_PROFILE>]`); no script in this
-   repository wraps it, and no renewal schedule exists. For `https-manual`,
-   follow certbot's prompts to create the DNS TXT record.
+   No renewal schedule exists in this repository; re-run the command before
+   the certificate expires (`TODO(source)`: renewal procedure).
 
 3. Launch or relaunch:
 

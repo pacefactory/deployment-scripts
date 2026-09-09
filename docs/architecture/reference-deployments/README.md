@@ -1,12 +1,12 @@
 ---
-title: Reference deployments
+title: "Reference deployments"
 type: reference
 derived_from:
   - scripts/docs/deployments.tsv
   - docs/architecture/reference-deployments/*/.settings
   - docs/architecture/reference-deployments/*/.env
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Reference deployments
@@ -24,7 +24,7 @@ mongo sized for the 16 GB host tier. Rebuild with
 |---|---|---|---|---|
 | [Default build](default-build/README.md) | What `./build.sh -q` produces on a fresh checkout with no `.settings` and no `.env`: the forced profiles plus every default-on profile. | `base`, `expresso-010`, `mqtt-public`, `mqtts-public`, `node-red`, `rdb`, `social`, `tools` | mongo sizing pinned to the 16 GB host tier | [topology](default-build/topology.mmd), [data flows](default-build/data-flows.mmd), [request flows](default-build/request-flows.mmd) |
 | [GPU variant](gpu/README.md) | The default build with CUDA enabled for realtime and Expresso, plus the Expresso trainer worker. Requires an NVIDIA GPU and the nvidia container runtime on the host. | `base`, `cuda`, `expresso-010`, `expresso-020-cuda`, `expresso-030-trainer`, `mqtt-public`, `mqtts-public`, `node-red`, `rdb`, `social`, `tools` | `REALTIME_TAG_DEFAULT_GPU` and `EXPRESSO_SERVER_TAG_DEFAULT_GPU` set to `latest-gpu` by the hidden settings of the CUDA sub-profiles | [topology](gpu/topology.mmd), [data flows](gpu/data-flows.mmd), [request flows](gpu/request-flows.mmd) |
-| [HTTPS via DigitalOcean](https-digitalocean/README.md) | Internet-facing variant: Let's Encrypt certificate provisioned through the DigitalOcean DNS API for `<SERVER_NAME>.pacefactory.dev`, MQTTS published on 8883, plain MQTT (1883) not published. | `base`, `expresso-010`, `https-digitalocean`, `mqtts-public`, `node-red`, `rdb`, `social`, `tools` | `SERVER_NAME=site-example`, `LETSENCRYPT_EMAIL=ops@example.com` (placeholders); `mqtt-public` disabled | [topology](https-digitalocean/topology.mmd), [data flows](https-digitalocean/data-flows.mmd), [request flows](https-digitalocean/request-flows.mmd) |
-| [HTTPS via TLS cert file](https-cert-file/README.md) | Internet- or intranet-facing variant using a certificate file the site provides (no certbot), MQTTS published on 8883, plain MQTT (1883) not published. | `base`, `expresso-010`, `https-no-certbot`, `mqtts-public`, `node-red`, `rdb`, `social`, `tools` | `SERVER_NAME=site.example.com` (placeholder); `mqtt-public` disabled | [topology](https-cert-file/topology.mmd), [data flows](https-cert-file/data-flows.mmd), [request flows](https-cert-file/request-flows.mmd) |
+| [HTTPS via DigitalOcean](https-digitalocean/README.md) | Internet-facing variant: Let's Encrypt certificate provisioned through the DigitalOcean DNS API for `<SERVER_NAME>.pacefactory.dev`, MQTTS published on 8883 alongside plain MQTT on 1883. | `base`, `expresso-010`, `https-digitalocean`, `mqtt-public`, `mqtts-public`, `node-red`, `rdb`, `social`, `tools` | `SERVER_NAME=site-example`, `LETSENCRYPT_EMAIL=ops@example.com` (placeholders) | [topology](https-digitalocean/topology.mmd), [data flows](https-digitalocean/data-flows.mmd), [request flows](https-digitalocean/request-flows.mmd) |
+| [HTTPS via TLS cert file](https-cert-file/README.md) | Internet- or intranet-facing variant using a certificate file the site provides (no certbot), MQTTS published on 8883 alongside plain MQTT on 1883. | `base`, `expresso-010`, `https-no-certbot`, `mqtt-public`, `mqtts-public`, `node-red`, `rdb`, `social`, `tools` | `SERVER_NAME=site.example.com` (placeholder) | [topology](https-cert-file/topology.mmd), [data flows](https-cert-file/data-flows.mmd), [request flows](https-cert-file/request-flows.mmd) |
 | [Full alerting](alerting/README.md) | The default build plus the Alert Processing Engine, which force-enables `rdb` and `expresso-010`. Autozone is deliberately not included. | `ape`, `base`, `expresso-010`, `mqtt-public`, `mqtts-public`, `node-red`, `rdb`, `social`, `tools` | none beyond the default build | [topology](alerting/topology.mmd), [data flows](alerting/data-flows.mmd), [request flows](alerting/request-flows.mmd) |
 | [Offline processing](offline-processing/README.md) | The default build with the `offline` profile: dbserver autodelete disabled and audit processing in offline mode, for running recorded video through the Offline Processing tool. | `base`, `expresso-010`, `mqtt-public`, `mqtts-public`, `node-red`, `offline`, `rdb`, `social`, `tools` | none beyond the default build | [topology](offline-processing/topology.mmd), [data flows](offline-processing/data-flows.mmd), [request flows](offline-processing/request-flows.mmd) |

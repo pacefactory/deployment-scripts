@@ -1,5 +1,5 @@
 ---
-title: Backup and restore CLI
+title: "Backup and restore CLI"
 type: reference
 derived_from:
   - scripts/backup_restore/backup_volume.sh
@@ -36,7 +36,8 @@ Options of the two volume scripts, from their `usage()` text. Procedures:
 Not covered: `mosquitto-data`, `data_interconnector-data`,
 `service_dtreeserver-data`, `audit_processing-data`, `expresso-data`,
 `mongodata_exp`, `autozone*`, `perf_eval-*`, `ntfy-*`, `swift-labeler-*`,
-`certbot`. `TODO(source)`: whether these omissions are intentional.
+`certbot`. These omissions are not intentional; tracked in
+[#207](https://github.com/pacefactory/deployment-scripts/issues/207).
 
 Both scripts stop the compose project before touching volumes
 (`scripts/common/backup_utils.sh:56-66`, `docker compose stop --timeout 600`)
@@ -79,4 +80,5 @@ Usage: restore_volume.sh [OPTIONS]
 ## Deprecated scripts
 
 `scripts/online/backup.sh` and `scripts/online/restore.sh` exit immediately
-with "Script outdated. Do not use." (`scripts/online/backup.sh:3-4`).
+with "Script outdated. Do not use." (`scripts/online/backup.sh:3-4`). Their
+removal is tracked in [#208](https://github.com/pacefactory/deployment-scripts/issues/208).

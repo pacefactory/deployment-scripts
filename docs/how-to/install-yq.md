@@ -1,5 +1,5 @@
 ---
-title: Install yq
+title: "Install yq"
 type: how-to
 derived_from:
   - scripts/installYq.sh
@@ -23,31 +23,38 @@ instead of pulling a container for every query.
 
 ## Steps
 
-> **Ubuntu:** the snap is the shortest path:
+On every host, install the binary from mikefarah's GitHub releases. It is
+markedly faster than the snap build.
+
+1. Run the repository script, which downloads the latest release for your
+   architecture to `~/bin/yq` and adds `~/bin` to your PATH in the shell rc
+   file when needed:
+
+   ```bash
+   ./scripts/installYq.sh
+   ```
+
+   Equivalent by hand:
+
+   ```bash
+   mkdir -p ~/bin
+   wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O ~/bin/yq
+   chmod +x ~/bin/yq
+   echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc
+   ```
+
+   Requires egress to `github.com` and `objects.githubusercontent.com`, via the
+   corporate proxy where the site uses one.
+
+> **Ubuntu:** the snap is an alternative when GitHub is unreachable, at the
+> cost of slower `build.sh` runs:
 >
 > ```bash
 > sudo snap install yq
 > ```
 
-> **RHEL:** and any host without snap: install the binary from GitHub to `~/bin`
-> and add it to PATH. The repository script does this for your architecture
-> and updates your shell rc file when needed:
->
-> ```bash
-> ./scripts/installYq.sh
-> ```
->
-> Equivalent by hand, pinning a version:
->
-> ```bash
-> mkdir -p ~/bin
-> wget https://github.com/mikefarah/yq/releases/download/v4.50.1/yq_linux_amd64 -O ~/bin/yq
-> chmod +x ~/bin/yq
-> echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc
-> ```
-
 Without `yq`, `build.sh` falls back to `docker run mikefarah/yq:latest` for
-every query (`scripts/common/runYq.sh:26-32`), which is much slower and needs
+every query (`scripts/common/runYq.sh:26-32`), which is slower still and needs
 Docker Hub access.
 
 ## Verify

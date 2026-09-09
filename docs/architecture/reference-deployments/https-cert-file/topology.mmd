@@ -1,6 +1,6 @@
 %% derived_from: docs/architecture/reference-deployments/https-cert-file/docker-compose.built.yml
 %% derived_from: scripts/docs/services.tsv
-%% last_verified: 2026-09-09 (ccf3768)
+%% last_verified: 2026-09-09 (def9139)
 flowchart LR
   classDef optional stroke-dasharray: 5 5
   classDef ondemand stroke-width:1px,font-style:italic
@@ -45,6 +45,7 @@ flowchart LR
   port_80[/"host :80"/] -->|"tcp -> apigateway:80"| apigateway
   port_443[/"host :443"/] -->|"tcp -> apigateway:443"| apigateway
   port_1880[/"host :1880"/] -->|"tcp -> nodered:1880"| nodered
+  port_1883[/"host :1883"/] -->|"tcp -> pf_mosquitto:1883"| pf_mosquitto
   port_8883[/"host :8883"/] -->|"tcp -> pf_mosquitto:8883"| pf_mosquitto
   port_8282[/"host :8282"/] -->|"tcp -> relational_dbserver:8282"| relational_dbserver
   port_9999[/"host :9999"/] -->|"tcp -> social_video_server:9999"| social_video_server

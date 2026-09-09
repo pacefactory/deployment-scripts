@@ -1,5 +1,5 @@
 ---
-title: ntfy subscribers
+title: "ntfy subscribers"
 type: reference
 derived_from:
   - compose/docker-compose.ntfy.yml
@@ -9,6 +9,9 @@ verified_against: ccf3768
 ---
 
 # ntfy subscribers
+
+> **Deprecated.** ntfy is being removed from the deployment and from these docs;
+> tracked in [#203](https://github.com/pacefactory/deployment-scripts/issues/203).
 
 ## What it connects to
 

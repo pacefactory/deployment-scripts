@@ -1,5 +1,5 @@
 ---
-title: Profile: social
+title: "Profile: social"
 type: reference
 derived_from:
   - compose/docker-compose.social.yml
@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Profile: `social`
@@ -31,8 +31,8 @@ The social profile enables the video-based social media web app and video server
 
 | Service | Node ID | Image | Owning repo | Purpose |
 |---|---|---|---|---|
-| `social_web_app` | `social_web_app` | `pacefactory/social_web_app:${SOCIAL_WEB_APP_TAG:-latest}` | [social_web_app](https://github.com/pacefactory/social_web_app) (inferred) | Video-based social web app served behind the apigateway |
-| `social_video_server` | `social_video_server` | `pacefactory/social_video_server:${SOCIAL_VIDEO_SERVER_TAG:-latest}` | [social_video_server](https://github.com/pacefactory/social_video_server) (inferred) | Video server for the social web app |
+| `social_web_app` | `social_web_app` | `pacefactory/social_web_app:${SOCIAL_WEB_APP_TAG:-latest}` | [social_web_app](https://github.com/pacefactory/social_web_app) (internal) | Video-based social web app served behind the apigateway |
+| `social_video_server` | `social_video_server` | `pacefactory/social_video_server:${SOCIAL_VIDEO_SERVER_TAG:-latest}` | [social_video_server](https://github.com/pacefactory/social_video_server) (internal) | Video server for the social web app |
 
 ## Services modified from other profiles
 

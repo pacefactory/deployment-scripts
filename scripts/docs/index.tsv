@@ -13,7 +13,8 @@ docs/architecture/integrations/client-sql.md	A client's SQL database behind rela
 docs/architecture/integrations/acme-dns.md	Let's Encrypt and the DigitalOcean / GoDaddy DNS APIs used by certbot
 docs/architecture/integrations/peer-deployments.md	Remote-training exchange between Pacefactory deployments
 docs/architecture/integrations/registry-egress.md	Docker Hub and GitHub egress from the host tooling
-docs/architecture/integrations/web-clients.md	Published HTTP(S) ports and host bind mounts
+docs/architecture/integrations/web-clients.md	Published HTTP(S) ports and the clients that use them
+docs/architecture/integrations/host-filesystem.md	Host paths bind-mounted into containers
 docs/architecture/integrations/push-clients.md	ntfy push notification subscribers
 docs/architecture/integrations/node-red-flows.md	Endpoints reached by a site's Node-RED flows
 docs/architecture/integrations/corporate-proxy.md	Egress proxy hook on the deployment host

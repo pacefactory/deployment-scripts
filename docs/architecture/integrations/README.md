@@ -1,5 +1,5 @@
 ---
-title: Integration types
+title: "Integration types"
 type: reference
 derived_from:
   - scripts/docs/externals.tsv
@@ -28,7 +28,8 @@ script in this repository evidences them. Add a row to
 | Let's Encrypt and DNS provider APIs | `ext_acme`, `ext_dns_api` | HTTPS | out | certbot (https-digitalocean, https-godaddy, https-manual) | [acme-dns.md](acme-dns.md) |
 | Peer Pacefactory deployment | `ext_peer_deployment` | HTTPS | bidi | expresso_server, apigateway (expresso-010) | [peer-deployments.md](peer-deployments.md) |
 | Container registry and GitHub | `ext_registry`, `ext_github` | HTTPS | out | host tooling: update.sh, runYq.sh, scripts/offline, scripts/remote | [registry-egress.md](registry-egress.md) |
-| Web browsers and API clients; host filesystem | `ext_web_clients`, `ext_host_fs` | HTTP, HTTPS, file | in / bidi | apigateway and every service with a published port; bind mounts | [web-clients.md](web-clients.md) |
+| Web browsers and API clients | `ext_web_clients` | HTTP, HTTPS | in | apigateway and every service with a published port | [web-clients.md](web-clients.md) |
+| Deployment host filesystem | `ext_host_fs` | file | bidi | record_video, stitch_videos (tools); certbot (https-digitalocean, https-godaddy); apigateway, pf_mosquitto (https-no-certbot, mqtts-public) | [host-filesystem.md](host-filesystem.md) |
 | ntfy subscribers | `ext_ntfy_clients` | HTTP | in | ntfy (ntfy) | [push-clients.md](push-clients.md) |
 | Node-RED flow endpoints | `ext_nodered_endpoints` | varies | bidi | nodered (node-red) | [node-red-flows.md](node-red-flows.md) |
 | Corporate proxy | `ext_proxy` | HTTP CONNECT | out | host shell (`~/connect-to-proxy.sh`) | [corporate-proxy.md](corporate-proxy.md) |

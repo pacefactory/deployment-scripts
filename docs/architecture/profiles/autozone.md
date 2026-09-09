@@ -1,5 +1,5 @@
 ---
-title: Profile: autozone
+title: "Profile: autozone"
 type: reference
 derived_from:
   - compose/docker-compose.autozone.yml
@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Profile: `autozone`
@@ -31,8 +31,8 @@ Autozone detects activity zones from tracked object hulls by creating heatmaps a
 
 | Service | Node ID | Image | Owning repo | Purpose |
 |---|---|---|---|---|
-| `autozone` | `autozone` | `pacefactory/autozone:${AUTOZONE_TAG:-latest}` | [autozone](https://github.com/pacefactory/autozone) (inferred) | Detects activity zones from tracked object hulls |
-| `autozone_api` | `autozone_api` | `pacefactory/autozone_api:${AUTOZONE_TAG:-latest}` | [autozone](https://github.com/pacefactory/autozone) (inferred) | API in front of autozone results |
+| `autozone` | `autozone` | `pacefactory/autozone:${AUTOZONE_TAG:-latest}` | [autozone](https://github.com/pacefactory/autozone) (internal) | Detects activity zones from tracked object hulls |
+| `autozone_api` | `autozone_api` | `pacefactory/autozone_api:${AUTOZONE_TAG:-latest}` | [autozone](https://github.com/pacefactory/autozone) (internal) | API in front of autozone results |
 | `autozone_mongo` | `autozone_mongo` | `mongo:7.0` | [mongo](https://hub.docker.com/_/mongo) (third-party) | MongoDB 7 store for autozone |
 
 ## Services modified from other profiles

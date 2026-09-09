@@ -1,5 +1,5 @@
 ---
-title: Fleet operator workstation (SSH)
+title: "Fleet operator workstation (SSH)"
 type: reference
 derived_from:
   - scripts/remote/update-fleet.ps1

@@ -1,5 +1,5 @@
 ---
-title: Add an environment variable
+title: "Add an environment variable"
 type: how-to
 derived_from:
   - build.sh

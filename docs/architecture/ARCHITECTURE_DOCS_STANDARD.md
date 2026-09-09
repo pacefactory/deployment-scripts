@@ -1,5 +1,5 @@
 ---
-title: Pacefactory Cross-Repo Architecture Documentation Standard
+title: "Pacefactory Cross-Repo Architecture Documentation Standard"
 type: standard
 derived_from:
   - docs/architecture/
@@ -413,7 +413,7 @@ integration:
 
 ```markdown
 ---
-title: <Integration type>
+title: "<Integration type>"
 type: reference
 derived_from:
   - <fragments that enable it>
@@ -531,23 +531,3 @@ reference deployment against its committed output and exits non-zero on
 drift; `git diff --exit-code docs` after `regenerate.sh` catches every other
 generated file. This is designed to be automatable in CI; for now it is a
 manual PR step (see [rebuild-reference-deployments](../how-to/rebuild-reference-deployments.md)).
-
----
-
-## 11. AI assistant instructions (`CLAUDE.md` addition for this repo)
-
-```markdown
-## Architecture documentation
-- Follow `docs/architecture/ARCHITECTURE_DOCS_STANDARD.md`. It extends the service-repo standard.
-- System-level diagrams are derived from *built* compose output, never from fragments. To update one, run `scripts/docs/build-reference-deployment.sh <name>` (it runs build.sh with the deployment's recorded `.env` / `.settings`), then `scripts/docs/regenerate.sh`.
-- `build.sh` is universal. Never create per-deployment build scripts; the only wrapper is `scripts/docs/build-reference-deployment.sh`. Record inputs instead.
-- Generated docs (profile pages and catalog, glossary, environment variable reference, profile dependencies, reference deployment pages and diagrams) are never hand-edited. Edit the generator or its data file in `scripts/docs/` and regenerate.
-- Every service in a topology diagram must also appear in the flow table and `data-flows.mmd` with at least one input or output. If you cannot find any, add a `flows.tsv` row with `TODO(source)` rather than omitting the service.
-- External systems use `ext_*` IDs from `scripts/docs/externals.tsv`. If an integration type has no ID, add the row and a skeleton `integrations/<type>.md` first.
-- Record flows at the network level (direction, protocol, channel) with the fragment line that evidences them. Link to the service repo for payload schemas and integration internals; do not copy them here.
-- Use the Mermaid node IDs in `docs/architecture/glossary.md`. Do not invent IDs. If a service has no ID, add it to `services.tsv` first.
-- Every arrow in a system-level diagram is labelled with protocol and purpose. Validate diagrams with `scripts/docs/check-docs.sh --mermaid`.
-- Do not describe service internals here. Link to `<service repo>/docs/architecture/README.md`.
-- Optional-profile services are drawn dashed and labelled with their home profile.
-- `build.sh` needs mikefarah `yq` v4 on PATH; the Python `yq` wrapper silently breaks the profile loop.
-```

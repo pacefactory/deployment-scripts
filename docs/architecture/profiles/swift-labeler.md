@@ -1,5 +1,5 @@
 ---
-title: Profile: swift-labeler
+title: "Profile: swift-labeler"
 type: reference
 derived_from:
   - compose/docker-compose.swift-labeler.yml
@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Profile: `swift-labeler`
@@ -31,7 +31,7 @@ Should Swift Labeler be enabled?
 
 | Service | Node ID | Image | Owning repo | Purpose |
 |---|---|---|---|---|
-| `swift-labeler` | `swift_labeler` | `pacefactory/swift-labeler:${SWIFT_LABELER_TAG:-latest}` | [swift-labeler](https://github.com/pacefactory/swift-labeler) (inferred) | Swift Labeler labelling UI and API |
+| `swift-labeler` | `swift_labeler` | `pacefactory/swift-labeler:${SWIFT_LABELER_TAG:-latest}` | [swift-labeler](https://github.com/pacefactory/swift-labeler) (internal) | Swift Labeler labelling UI and API |
 
 ## Services modified from other profiles
 

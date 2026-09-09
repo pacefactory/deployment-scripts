@@ -1,5 +1,5 @@
 ---
-title: Corporate proxy
+title: "Corporate proxy"
 type: reference
 derived_from:
   - scripts/remote/update-server.sh

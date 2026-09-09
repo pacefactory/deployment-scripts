@@ -1,5 +1,5 @@
 ---
-title: Create an offline install set
+title: "Create an offline install set"
 type: how-to
 derived_from:
   - scripts/offline/makeofflineinstall.sh
@@ -14,6 +14,11 @@ verified_against: ccf3768
 
 Package Docker, docker compose, the images of a built compose file and an
 installer into `install/<label>/` for a host with no internet access.
+
+> **Warning:** this procedure and `scripts/offline/makeofflineinstall.sh` are
+> untested against current versions of the software and are known to be
+> broken (pinned Docker 20.10.9 and compose v2.0.1, Python-yq syntax). Treat
+> this page as a record of what the script does, not as a working runbook.
 
 ## Prerequisites
 

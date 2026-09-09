@@ -1,5 +1,5 @@
 ---
-title: Profile: expresso-010
+title: "Profile: expresso-010"
 type: reference
 derived_from:
   - compose/docker-compose.expresso-010.yml
@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Profile: `expresso-010`
@@ -31,11 +31,11 @@ The Expresso profile provides expresso_server and the Expresso UI
 
 | Service | Node ID | Image | Owning repo | Purpose |
 |---|---|---|---|---|
-| `expresso_server` | `expresso_server` | `pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-${EXPRESSO_SERVER_TAG_DEFAULT_GPU:-latest}}` | [expresso_server](https://github.com/pacefactory/expresso_server) (inferred) | Expresso API server (stations config, training dispatch, APE events integration) |
-| `expresso_ui` | `expresso_ui` | `pacefactory/expresso_ui:${EXPRESSO_UI_TAG:-latest}` | [expresso_ui](https://github.com/pacefactory/expresso_ui) (inferred) | Expresso web UI served behind the apigateway at /expresso |
+| `expresso_server` | `expresso_server` | `pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-${EXPRESSO_SERVER_TAG_DEFAULT_GPU:-latest}}` | [expresso_server](https://github.com/pacefactory/expresso_server) (internal) | Expresso API server (stations config, training dispatch, APE events integration) |
+| `expresso_ui` | `expresso_ui` | `pacefactory/expresso_ui:${EXPRESSO_UI_TAG:-latest}` | [expresso_ui](https://github.com/pacefactory/expresso_ui) (internal) | Expresso web UI served behind the apigateway at /expresso |
 | `redis` | `redis` | `redis:8.2.1-alpine` | [redis](https://hub.docker.com/_/redis) (third-party) | Celery broker/result store for Expresso |
-| `celery_worker` | `celery_worker` | `pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-${EXPRESSO_SERVER_TAG_DEFAULT_GPU:-latest}}` | [expresso_server](https://github.com/pacefactory/expresso_server) (inferred) | Expresso background worker (periodic publishing, idle-object archiving) |
-| `celery_beat` | `celery_beat` | `pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-${EXPRESSO_SERVER_TAG_DEFAULT_GPU:-latest}}` | [expresso_server](https://github.com/pacefactory/expresso_server) (inferred) | Expresso scheduler; singleton |
+| `celery_worker` | `celery_worker` | `pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-${EXPRESSO_SERVER_TAG_DEFAULT_GPU:-latest}}` | [expresso_server](https://github.com/pacefactory/expresso_server) (internal) | Expresso background worker (periodic publishing, idle-object archiving) |
+| `celery_beat` | `celery_beat` | `pacefactory/expresso_server:${EXPRESSO_SERVER_TAG:-${EXPRESSO_SERVER_TAG_DEFAULT_GPU:-latest}}` | [expresso_server](https://github.com/pacefactory/expresso_server) (internal) | Expresso scheduler; singleton |
 | `mongo_exp` | `mongo_exp` | `mongodb/mongodb-community-server:8.2.1-ubi8` | [mongodb-community-server](https://hub.docker.com/r/mongodb/mongodb-community-server) (third-party) | MongoDB 8 store for Expresso |
 
 ## Services modified from other profiles

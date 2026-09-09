@@ -1,5 +1,5 @@
 ---
-title: Roll back the MongoDB replica set
+title: "Roll back the MongoDB replica set"
 type: how-to
 derived_from:
   - compose/docker-compose.base.yml

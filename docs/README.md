@@ -1,11 +1,11 @@
 ---
-title: Documentation index
+title: "Documentation index"
 type: other
 derived_from:
   - scripts/docs/index.tsv
   - docs/
 last_verified: 2026-09-09
-verified_against: ccf3768
+verified_against: def9139
 ---
 
 # Documentation index
@@ -33,7 +33,8 @@ Read the two standards first:
 | [architecture/integrations/acme-dns.md](architecture/integrations/acme-dns.md) | Let's Encrypt and the DigitalOcean / GoDaddy DNS APIs used by certbot |
 | [architecture/integrations/peer-deployments.md](architecture/integrations/peer-deployments.md) | Remote-training exchange between Pacefactory deployments |
 | [architecture/integrations/registry-egress.md](architecture/integrations/registry-egress.md) | Docker Hub and GitHub egress from the host tooling |
-| [architecture/integrations/web-clients.md](architecture/integrations/web-clients.md) | Published HTTP(S) ports and host bind mounts |
+| [architecture/integrations/web-clients.md](architecture/integrations/web-clients.md) | Published HTTP(S) ports and the clients that use them |
+| [architecture/integrations/host-filesystem.md](architecture/integrations/host-filesystem.md) | Host paths bind-mounted into containers |
 | [architecture/integrations/push-clients.md](architecture/integrations/push-clients.md) | ntfy push notification subscribers |
 | [architecture/integrations/node-red-flows.md](architecture/integrations/node-red-flows.md) | Endpoints reached by a site's Node-RED flows |
 | [architecture/integrations/corporate-proxy.md](architecture/integrations/corporate-proxy.md) | Egress proxy hook on the deployment host |
