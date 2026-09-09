@@ -1,0 +1,17 @@
+%% derived_from: compose/docker-compose.expresso-030-trainer.yml
+%% derived_from: scripts/docs/flows.tsv
+%% derived_from: scripts/docs/services.tsv
+%% derived_from: scripts/docs/externals.tsv
+%% last_verified: 2026-09-09 (def9139)
+flowchart LR
+  classDef optional stroke-dasharray: 5 5
+  subgraph deployment["services touched by profile expresso-030-trainer"]
+    trainer["trainer (profile: expresso-030-trainer)"]
+    redis["redis"]
+    mongo_exp["mongo_exp"]
+    expresso_server["expresso_server"]
+  end
+  trainer -->|"Redis: Celery training tasks"| redis
+  trainer -->|"MongoDB wire: Expresso documents"| mongo_exp
+  trainer -->|"HTTP: training results TODO(source)"| expresso_server
+  class trainer optional

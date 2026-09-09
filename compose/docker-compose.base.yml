@@ -55,7 +55,7 @@ x-pf-info:
     DATA_INTERCONNECTOR_TAG:
       default: latest
     MONGO_MEMORY_LIMIT:
-      description: Hard memory limit for the mongo container, with units (e.g. 3g). Default scales with host RAM; see MONGODB.md for sizing guidance
+      description: Hard memory limit for the mongo container, with units (e.g. 3g). Default scales with host RAM; see docs/reference/mongodb.md for sizing guidance
       default: 3g
       default_var: MONGO_MEMORY_LIMIT_DEFAULT
     MONGO_WIREDTIGER_CACHE_GB:
@@ -74,7 +74,7 @@ services:
     hostname: ${PROJECT_PREFIX:-}mongo
     image: mongo:4.2.3-bionic
     restart: always
-    # Memory bounding + single-node replica set (see MONGODB.md for details)
+    # Memory bounding + single-node replica set (see docs/reference/mongodb.md for details)
     # - wiredTigerCacheSizeGB must be set explicitly, since mongod 4.2 cannot
     #   detect container memory limits and would otherwise size its cache
     #   from the *host* RAM (unbounded growth -> host OOM killer events)

@@ -1,0 +1,2 @@
+declare -A SCV2_PROFILES=([custom]="true" [expresso-020-cuda]="true" [rdb]="true" [mqtt-public]="true" [expresso-010]="true" [base]="true" [social]="true" [node-red]="true" [expresso-030-trainer]="true" [cuda]="true" [mqtts-public]="true" [tools]="true" )
+declare -- PROJECT_NAME="deployment-scripts"

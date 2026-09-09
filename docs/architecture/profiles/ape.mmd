@@ -1,0 +1,30 @@
+%% derived_from: compose/docker-compose.ape.yml
+%% derived_from: scripts/docs/flows.tsv
+%% derived_from: scripts/docs/services.tsv
+%% derived_from: scripts/docs/externals.tsv
+%% last_verified: 2026-09-09 (def9139)
+flowchart LR
+  classDef optional stroke-dasharray: 5 5
+  subgraph deployment["services touched by profile ape"]
+    alert_processing_engine["alert_processing_engine (profile: ape)"]
+    pf_mosquitto["pf_mosquitto"]
+    dbserver["dbserver"]
+    ape_frame_playback["ape_frame_playback (profile: ape)"]
+    apigateway["apigateway"]
+    expresso_server["expresso_server"]
+    ape_timescaledb["ape_timescaledb (profile: ape)"]
+    data_interconnector["data_interconnector"]
+  end
+  ext_web_clients{{"Web browsers and API clients"}}
+  alert_processing_engine -->|"MQTT: object data in; alerts and debug messages out"| pf_mosquitto
+  alert_processing_engine -->|"HTTP: object and snapshot queries"| dbserver
+  ape_frame_playback -->|"MQTT: frame recording triggers TODO(source)"| pf_mosquitto
+  ape_frame_playback -->|"HTTP: snapshot queries"| dbserver
+  apigateway -->|"HTTP: proxied API calls"| alert_processing_engine
+  apigateway -->|"HTTP: proxied playback"| ape_frame_playback
+  ext_web_clients -->|"HTTP: direct API access"| alert_processing_engine
+  ext_web_clients -->|"HTTP: direct playback access"| ape_frame_playback
+  expresso_server -->|"HTTP: APE events integration"| alert_processing_engine
+  expresso_server -->|"PostgreSQL: event queries"| ape_timescaledb
+  data_interconnector -->|"PostgreSQL: ingested object records (PF_TIMESCALE_ENABLED=1)"| ape_timescaledb
+  class ape_frame_playback,ape_timescaledb,alert_processing_engine optional

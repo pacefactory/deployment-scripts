@@ -1,0 +1,16 @@
+%% derived_from: compose/docker-compose.tools.yml
+%% derived_from: scripts/docs/flows.tsv
+%% derived_from: scripts/docs/services.tsv
+%% derived_from: scripts/docs/externals.tsv
+%% last_verified: 2026-09-09 (def9139)
+flowchart LR
+  classDef optional stroke-dasharray: 5 5
+  subgraph deployment["services touched by profile tools"]
+    record_video["record_video"]
+    stitch_videos["stitch_videos"]
+  end
+  ext_cameras{{"IP cameras"}}
+  ext_host_fs{{"Deployment host filesystem"}}
+  ext_cameras -->|"RTSP: H.264/H.265 video"| record_video
+  record_video -->|"file: recorded video segments"| ext_host_fs
+  stitch_videos <-->|"file: stitched MP4 per camera"| ext_host_fs

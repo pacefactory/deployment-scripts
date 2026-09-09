@@ -1,0 +1,19 @@
+sequenceDiagram
+  autonumber
+  participant ext_web_clients as Web browser
+  participant apigateway
+  participant certbot
+  participant ext_dns_api as DNS provider API
+  participant ext_acme as Let's Encrypt
+  participant pf_mosquitto
+  participant ext_mqtt_clients as MQTT client
+  Note over certbot: run on demand: docker compose run --rm certbot
+  certbot->>ext_dns_api: HTTPS: create DNS-01 TXT record
+  certbot->>ext_acme: HTTPS: order certificate for SERVER_NAME
+  ext_acme-->>certbot: HTTPS: issued certificate and key
+  Note over certbot,apigateway: certbot volume mounted read-only at /etc/nginx/ssl and /etc/mosquitto-tls
+  ext_web_clients->>apigateway: HTTP 80: GET /scv3/
+  apigateway-->>ext_web_clients: HTTP 307: Location https://SERVER_NAME/scv3/
+  ext_web_clients->>apigateway: HTTPS 443: GET /scv3/
+  apigateway-->>ext_web_clients: HTTPS: proxied UI and APIs (see default build for the internal path)
+  ext_mqtt_clients->>pf_mosquitto: MQTTS 8883: publish/subscribe (same certificate)

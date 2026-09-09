@@ -1,0 +1,21 @@
+%% derived_from: compose/docker-compose.autozone.yml
+%% derived_from: scripts/docs/flows.tsv
+%% derived_from: scripts/docs/services.tsv
+%% derived_from: scripts/docs/externals.tsv
+%% last_verified: 2026-09-09 (def9139)
+flowchart LR
+  classDef optional stroke-dasharray: 5 5
+  subgraph deployment["services touched by profile autozone"]
+    autozone["autozone (profile: autozone)"]
+    autozone_mongo["autozone_mongo (profile: autozone)"]
+    dbserver["dbserver"]
+    autozone_api["autozone_api (profile: autozone)"]
+    apigateway["apigateway"]
+    service_audit_processing["service_audit_processing"]
+  end
+  autozone -->|"MongoDB wire: heatmaps and zones"| autozone_mongo
+  autozone -->|"HTTP: tracked object hulls"| dbserver
+  autozone_api -->|"MongoDB wire: zone results"| autozone_mongo
+  apigateway -->|"HTTP: proxied API calls"| autozone_api
+  service_audit_processing -->|"HTTP: autozone entry lookups"| autozone_api
+  class autozone_api,autozone_mongo,autozone optional

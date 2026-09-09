@@ -1,0 +1,33 @@
+%% derived_from: docs/architecture/reference-deployments/default-build/docker-compose.built.yml
+%% derived_from: scripts/docs/request-flows/default.mmd
+%% last_verified: 2026-09-09 (def9139)
+sequenceDiagram
+  autonumber
+  participant ext_cameras as IP cameras
+  participant realtime
+  participant pf_mosquitto
+  participant data_interconnector
+  participant mongo
+  participant dbserver
+  participant service_audit_processing
+  participant auditgui
+  participant apigateway
+  participant ext_web_clients as Web browser
+  ext_cameras->>realtime: RTSP: video stream (continuous)
+  Note over realtime: detection and tracking (see scv2_realtime docs)
+  realtime->>pf_mosquitto: MQTT 1883: real-time object data
+  realtime->>dbserver: HTTP 8050: object metadata and snapshots
+  pf_mosquitto-->>data_interconnector: MQTT 1883: subscribed object data
+  data_interconnector->>mongo: MongoDB 27017: ingested records
+  dbserver->>mongo: MongoDB 27017: reads and writes
+  loop every processing block (PF_PROCESS_BLOCK_DURATION_MINUTES)
+    service_audit_processing->>auditgui: HTTP 80: read audit config
+    service_audit_processing->>dbserver: HTTP 8050: read source objects
+    service_audit_processing->>dbserver: HTTP 8050: write uistore segments and trends
+    service_audit_processing->>pf_mosquitto: MQTT 1883: export segments
+  end
+  ext_web_clients->>apigateway: HTTP 80: GET /scv3/
+  apigateway->>auditgui: HTTP 80: proxied UI and /api/uiserver
+  apigateway->>dbserver: HTTP 8050: proxied /api/dbserver
+  apigateway->>pf_mosquitto: WS 7575: proxied /api/mqtt
+  apigateway-->>ext_web_clients: HTTP: page, data and live MQTT over WebSocket

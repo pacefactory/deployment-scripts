@@ -1,0 +1,13 @@
+%% derived_from: compose/docker-compose.ntfy.yml
+%% derived_from: scripts/docs/flows.tsv
+%% derived_from: scripts/docs/services.tsv
+%% derived_from: scripts/docs/externals.tsv
+%% last_verified: 2026-09-09 (def9139)
+flowchart LR
+  classDef optional stroke-dasharray: 5 5
+  subgraph deployment["services touched by profile ntfy"]
+    ntfy["ntfy (profile: ntfy)"]
+  end
+  ext_ntfy_clients{{"ntfy subscribers"}}
+  ext_ntfy_clients -->|"HTTP: push notification publish and subscribe"| ntfy
+  class ntfy optional

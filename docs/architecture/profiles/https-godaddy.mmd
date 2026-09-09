@@ -1,0 +1,20 @@
+%% derived_from: compose/docker-compose.https-godaddy.yml
+%% derived_from: scripts/docs/flows.tsv
+%% derived_from: scripts/docs/services.tsv
+%% derived_from: scripts/docs/externals.tsv
+%% last_verified: 2026-09-09 (def9139)
+flowchart LR
+  classDef optional stroke-dasharray: 5 5
+  subgraph deployment["services touched by profile https-godaddy"]
+    certbot["certbot (profile: https-digitalocean)"]
+    vol_certbot[("volume: certbot")]
+    apigateway["apigateway"]
+  end
+  ext_acme{{"Let's Encrypt (ACME)"}}
+  ext_dns_api{{"DNS provider API (DigitalOcean, GoDaddy)"}}
+  ext_web_clients{{"Web browsers and API clients"}}
+  certbot -->|"HTTPS: ACME certificate order"| ext_acme
+  certbot -->|"HTTPS: DNS-01 TXT record"| ext_dns_api
+  certbot -->|"file: issued certificate and key"| vol_certbot
+  ext_web_clients -->|"HTTPS: web UI and API traffic (TLS)"| apigateway
+  class certbot optional

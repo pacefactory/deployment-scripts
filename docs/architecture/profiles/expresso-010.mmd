@@ -1,0 +1,45 @@
+%% derived_from: compose/docker-compose.expresso-010.yml
+%% derived_from: scripts/docs/flows.tsv
+%% derived_from: scripts/docs/services.tsv
+%% derived_from: scripts/docs/externals.tsv
+%% last_verified: 2026-09-09 (def9139)
+flowchart LR
+  classDef optional stroke-dasharray: 5 5
+  subgraph deployment["services touched by profile expresso-010"]
+    expresso_server["expresso_server"]
+    redis["redis"]
+    mongo_exp["mongo_exp"]
+    realtime["realtime"]
+    dbserver["dbserver"]
+    vol_dbserver_data[("volume: dbserver_data")]
+    auditgui["auditgui"]
+    social_video_server["social_video_server (profile: social)"]
+    apigateway["apigateway"]
+    celery_worker["celery_worker"]
+    pf_mosquitto["pf_mosquitto"]
+    service_gifwrapper["service_gifwrapper"]
+    celery_beat["celery_beat"]
+    expresso_ui["expresso_ui"]
+  end
+  ext_peer_deployment{{"Peer Pacefactory deployment"}}
+  expresso_server -->|"Redis: Celery task queue"| redis
+  expresso_server -->|"MongoDB wire: Expresso documents"| mongo_exp
+  expresso_server -->|"HTTP: control-server API calls"| realtime
+  expresso_server -->|"HTTP: object and snapshot queries"| dbserver
+  expresso_server -->|"file: snapshot JPEGs read directly"| vol_dbserver_data
+  expresso_server -->|"HTTP: uiserver reads"| auditgui
+  expresso_server -->|"HTTP: user-engagement metrics"| social_video_server
+  expresso_server -->|"HTTPS: remote training job dispatch"| ext_peer_deployment
+  ext_peer_deployment -->|"HTTPS: remote training callbacks (proxied to expresso_server)"| apigateway
+  celery_worker -->|"Redis: Celery tasks"| redis
+  celery_worker -->|"MongoDB wire: Expresso documents"| mongo_exp
+  celery_worker -->|"HTTP: control-server API calls"| realtime
+  celery_worker -->|"HTTP: object and snapshot queries"| dbserver
+  celery_worker -->|"MQTT: site-reliability snapshots"| pf_mosquitto
+  celery_worker -->|"HTTP: idle-object snapshot archiving requests"| service_gifwrapper
+  celery_worker -->|"HTTP: audit app version info for site-reliability snapshot"| auditgui
+  celery_beat -->|"Redis: scheduled task enqueue"| redis
+  celery_beat -->|"MongoDB wire: schedule state TODO(source)"| mongo_exp
+  apigateway -->|"HTTP: proxied API calls"| expresso_server
+  apigateway -->|"HTTP: proxied UI"| expresso_ui
+  class social_video_server optional

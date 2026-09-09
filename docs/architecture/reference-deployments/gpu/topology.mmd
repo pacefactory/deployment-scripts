@@ -1,0 +1,90 @@
+%% derived_from: docs/architecture/reference-deployments/gpu/docker-compose.built.yml
+%% derived_from: scripts/docs/services.tsv
+%% last_verified: 2026-09-09 (def9139)
+flowchart LR
+  classDef optional stroke-dasharray: 5 5
+  classDef ondemand stroke-width:1px,font-style:italic
+  subgraph deployment["Reference deployment: gpu (project deployment-scripts)"]
+    subgraph net_default["network: default"]
+      record_video["record_video (on demand)"]
+    end
+    subgraph net_expresso_network["network: expresso_network"]
+      celery_beat["celery_beat"]
+      celery_worker["celery_worker (GPU)"]
+      expresso_server["expresso_server"]
+      mongo_exp["mongo_exp"]
+      redis["redis"]
+      trainer["trainer (profile: expresso-030-trainer) (GPU)"]
+    end
+    subgraph net_external_network["network: external_network"]
+      apigateway["apigateway"]
+      auditgui["auditgui"]
+      data_interconnector["data_interconnector"]
+      dbserver["dbserver"]
+      expresso_ui["expresso_ui"]
+      nodered["nodered (profile: node-red)"]
+      pf_mosquitto["pf_mosquitto"]
+      realtime["realtime (GPU)"]
+      relational_dbserver["relational_dbserver (profile: rdb)"]
+      service_audit_processing["service_audit_processing"]
+      service_dtreeserver["service_dtreeserver"]
+      service_gifwrapper["service_gifwrapper"]
+      social_video_server["social_video_server (profile: social)"]
+      social_web_app["social_web_app (profile: social)"]
+    end
+    subgraph net_internal_network["network: internal_network"]
+      mongo["mongo"]
+    end
+    subgraph net_none["no network (network_mode: none)"]
+      stitch_videos["stitch_videos (on demand)"]
+    end
+  end
+  celery_worker -.-|"also joins"| net_external_network
+  data_interconnector -.-|"also joins"| net_internal_network
+  dbserver -.-|"also joins"| net_internal_network
+  expresso_server -.-|"also joins"| net_external_network
+  trainer -.-|"also joins"| net_external_network
+  port_80[/"host :80"/] -->|"tcp -> apigateway:80"| apigateway
+  port_1880[/"host :1880"/] -->|"tcp -> nodered:1880"| nodered
+  port_1883[/"host :1883"/] -->|"tcp -> pf_mosquitto:1883"| pf_mosquitto
+  port_8282[/"host :8282"/] -->|"tcp -> relational_dbserver:8282"| relational_dbserver
+  port_9999[/"host :9999"/] -->|"tcp -> social_video_server:9999"| social_video_server
+  vol_webgui_data[("volume: webgui-data")]
+  auditgui -->|"/home/scv2/volume (rw)"| vol_webgui_data
+  vol_expresso_data[("volume: expresso-data")]
+  celery_worker -->|"/home/scv2/volume (rw)"| vol_expresso_data
+  vol_data_interconnector_data[("volume: data_interconnector-data")]
+  data_interconnector -->|"/home/scv2/volume (rw)"| vol_data_interconnector_data
+  vol_dbserver_data[("volume: dbserver-data")]
+  dbserver -->|"/home/scv2/volume (rw)"| vol_dbserver_data
+  expresso_server -->|"/home/scv2/volume (rw)"| vol_expresso_data
+  expresso_server -->|"/home/scv2/dbserver_volume (ro)"| vol_dbserver_data
+  vol_mongodata[("volume: mongodata")]
+  mongo -->|"/data/db (rw)"| vol_mongodata
+  vol_mongodata_exp[("volume: mongodata_exp")]
+  mongo_exp -->|"/data/db (rw)"| vol_mongodata_exp
+  vol_nodered_data[("volume: nodered-data")]
+  nodered -->|"/data (rw)"| vol_nodered_data
+  vol_mosquitto_data[("volume: mosquitto-data")]
+  pf_mosquitto -->|"/mosquitto (rw)"| vol_mosquitto_data
+  vol_realtime_data[("volume: realtime-data")]
+  realtime -->|"/home/scv2/locations (rw)"| vol_realtime_data
+  realtime -->|"/home/scv2/dbserver_volume (rw)"| vol_dbserver_data
+  record_video -->|"/home/scv2/locations (rw)"| vol_realtime_data
+  ext_host_fs{{"Deployment host filesystem"}}
+  ext_host_fs -->|"bind /home/pacefactory/scv2/git_clones/deployment-scripts/record_cli.py -> /home/scv2/record_cli.py (rw)"| record_video
+  ext_host_fs -->|"bind /home/pacefactory/scv2/videos -> /output_videos (rw)"| record_video
+  vol_relational_dbserver_data[("volume: relational_dbserver-data")]
+  relational_dbserver -->|"/home/scv2/volume (rw)"| vol_relational_dbserver_data
+  vol_audit_processing_data[("volume: audit_processing-data")]
+  service_audit_processing -->|"/home/scv2/volume (rw)"| vol_audit_processing_data
+  vol_service_dtreeserver_data[("volume: service_dtreeserver-data")]
+  service_dtreeserver -->|"/home/scv2/volume (rw)"| vol_service_dtreeserver_data
+  service_gifwrapper -->|"/home/scv2/volume (ro)"| vol_dbserver_data
+  vol_social_video_server_data[("volume: social_video_server-data")]
+  social_video_server -->|"/home/scv2/volume (rw)"| vol_social_video_server_data
+  ext_host_fs -->|"bind /home/pacefactory/scv2/git_clones/deployment-scripts/stitch_cli.py -> /home/scv2/stitch_cli.py (rw)"| stitch_videos
+  ext_host_fs -->|"bind /home/pacefactory/scv2/videos -> /output_videos (rw)"| stitch_videos
+  trainer -->|"/home/scv2/volume (rw)"| vol_expresso_data
+  class nodered,relational_dbserver,social_video_server,social_web_app,trainer optional
+  class record_video,stitch_videos ondemand
