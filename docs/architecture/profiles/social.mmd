@@ -1,0 +1,19 @@
+%% derived_from: compose/docker-compose.social.yml
+%% derived_from: scripts/docs/flows.tsv
+%% derived_from: scripts/docs/services.tsv
+%% derived_from: scripts/docs/externals.tsv
+%% last_verified: 2026-09-09 (ccf3768)
+flowchart LR
+  classDef optional stroke-dasharray: 5 5
+  subgraph deployment["services touched by profile social"]
+    social_video_server["social_video_server (profile: social)"]
+    auditgui["auditgui"]
+    apigateway["apigateway"]
+    social_web_app["social_web_app (profile: social)"]
+  end
+  ext_web_clients{{"Web browsers and API clients"}}
+  social_video_server -->|"HTTP: uiserver reads"| auditgui
+  ext_web_clients -->|"HTTP: video streams"| social_video_server
+  apigateway -->|"HTTP: proxied API calls"| social_video_server
+  apigateway -->|"HTTP: proxied UI"| social_web_app
+  class social_web_app,social_video_server optional

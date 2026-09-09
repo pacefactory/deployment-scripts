@@ -117,7 +117,7 @@ then
     source .env
 fi
 
-# Scale the default mongo memory settings with the host's RAM (see MONGODB.md).
+# Scale the default mongo memory settings with the host's RAM (see docs/reference/mongodb.md).
 # Exported so 'docker compose config' can resolve the compose-file fallbacks;
 # explicit MONGO_* values in .env always take precedence over these.
 host_ram_gb=$(awk '/^MemTotal:/ { printf "%d", $2 / 1048576 }' /proc/meminfo 2>/dev/null || true)

@@ -1,0 +1,20 @@
+%% derived_from: docs/architecture/reference-deployments/https-cert-file/docker-compose.built.yml
+%% derived_from: scripts/docs/request-flows/tls-file.mmd
+%% last_verified: 2026-09-09 (ccf3768)
+sequenceDiagram
+  autonumber
+  participant ext_host_fs as Host filesystem
+  participant apigateway
+  participant pf_mosquitto
+  participant ext_web_clients as Web browser
+  participant ext_mqtt_clients as MQTT client
+  Note over ext_host_fs: credentials/ssl/live/SERVER_NAME/fullchain.pem, privkey.pem (and optional privkey.pass) placed by the site or scripts/import-ssl-cert.sh
+  ext_host_fs->>apigateway: file: bind mount at /etc/nginx/ssl (ro)
+  ext_host_fs->>pf_mosquitto: file: bind mount at /etc/mosquitto-tls (ro)
+  Note over apigateway: serves a temporary self-signed certificate until the files exist
+  ext_web_clients->>apigateway: HTTP 80: GET /scv3/
+  apigateway-->>ext_web_clients: HTTP 307: Location https://SERVER_NAME/scv3/
+  ext_web_clients->>apigateway: HTTPS 443: GET /scv3/
+  apigateway-->>ext_web_clients: HTTPS: proxied UI and APIs (see default build for the internal path)
+  ext_mqtt_clients->>pf_mosquitto: MQTTS 8883: publish/subscribe (same certificate)
+  Note over pf_mosquitto: plain MQTT 1883 is not published in this deployment

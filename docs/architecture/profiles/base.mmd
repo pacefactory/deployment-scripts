@@ -1,0 +1,45 @@
+%% derived_from: compose/docker-compose.base.yml
+%% derived_from: scripts/docs/flows.tsv
+%% derived_from: scripts/docs/services.tsv
+%% derived_from: scripts/docs/externals.tsv
+%% last_verified: 2026-09-09 (ccf3768)
+flowchart LR
+  classDef optional stroke-dasharray: 5 5
+  subgraph deployment["services touched by profile base"]
+    realtime["realtime"]
+    dbserver["dbserver"]
+    pf_mosquitto["pf_mosquitto"]
+    vol_dbserver_data[("volume: dbserver_data")]
+    data_interconnector["data_interconnector"]
+    mongo["mongo"]
+    auditgui["auditgui"]
+    service_gifwrapper["service_gifwrapper"]
+    service_dtreeserver["service_dtreeserver"]
+    service_audit_processing["service_audit_processing"]
+    apigateway["apigateway"]
+  end
+  ext_cameras{{"IP cameras"}}
+  ext_web_clients{{"Web browsers and API clients"}}
+  ext_cameras -->|"RTSP: H.264/H.265 video"| realtime
+  realtime -->|"HTTP: object metadata and snapshots TODO(source)"| dbserver
+  realtime -->|"MQTT: real-time object data"| pf_mosquitto
+  realtime -->|"file: snapshot files TODO(source)"| vol_dbserver_data
+  data_interconnector -->|"MQTT: real-time object data"| pf_mosquitto
+  data_interconnector -->|"MongoDB wire: ingested object records"| mongo
+  data_interconnector -->|"HTTP: audit config reads (currently disabled)"| auditgui
+  dbserver -->|"MongoDB wire: object, snapshot and uistore records"| mongo
+  service_gifwrapper -->|"HTTP: snapshot and object queries"| dbserver
+  service_gifwrapper -->|"file: snapshot JPEGs read directly when DBSERVER_DISABLE_SNAPSHOT_IMAGES=true"| vol_dbserver_data
+  service_dtreeserver -->|"HTTP: object data for classification"| dbserver
+  service_audit_processing -->|"HTTP: source object reads; uistore segment and trend writes"| dbserver
+  service_audit_processing -->|"HTTP: audit config reads"| auditgui
+  service_audit_processing -->|"HTTP: classification requests"| service_dtreeserver
+  service_audit_processing -->|"MQTT: segment export messages"| pf_mosquitto
+  apigateway -->|"HTTP: proxied API calls"| dbserver
+  apigateway -->|"HTTP: proxied API calls"| service_dtreeserver
+  apigateway -->|"HTTP: proxied API calls"| service_gifwrapper
+  apigateway -->|"HTTP: proxied control-server API calls"| realtime
+  apigateway -->|"HTTP: proxied UI and API calls"| auditgui
+  apigateway -->|"HTTP: proxied status API calls"| service_audit_processing
+  apigateway -->|"WS: MQTT over WebSocket for browsers"| pf_mosquitto
+  ext_web_clients -->|"HTTP: web UI and API traffic (307 redirect to HTTPS when an https-* profile is enabled)"| apigateway

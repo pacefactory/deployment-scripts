@@ -18,3 +18,6 @@ credentials/ssl/live/*/privkey.pem
 credentials/ssl/live/*/privkey.pass
 *.pfx
 *.p12
+# Reference deployment inputs are committed on purpose (docs/architecture/ARCHITECTURE_DOCS_STANDARD.md §4)
+!docs/architecture/reference-deployments/*/.env
+!docs/architecture/reference-deployments/*/.settings

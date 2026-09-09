@@ -1,0 +1,16 @@
+# node_id	display	protocols	direction	page	description
+# direction is from the deployment's point of view
+ext_cameras	IP cameras	RTSP	in	cameras-rtsp.md	Site cameras streaming video into realtime (and record_video)
+ext_mqtt_clients	MQTT clients	MQTT, MQTTS, MQTT over WebSocket	in	mqtt-clients.md	Third-party MQTT consumers and publishers connecting to the deployment's own broker
+ext_client_sql	Client SQL database	SQL (driver TODO(source))	bidi	client-sql.md	A client's existing relational database reached through relational_dbserver
+ext_acme	Let's Encrypt (ACME)	HTTPS	out	acme-dns.md	Certificate authority contacted by certbot
+ext_dns_api	DNS provider API (DigitalOcean, GoDaddy)	HTTPS	out	acme-dns.md	DNS API used by certbot for DNS-01 challenges
+ext_peer_deployment	Peer Pacefactory deployment	HTTPS	bidi	peer-deployments.md	Another Pacefactory deployment acting as a remote trainer or dispatcher
+ext_registry	Container registry (Docker Hub)	HTTPS	out	registry-egress.md	Image pulls by update.sh and the offline-install tooling
+ext_github	GitHub	HTTPS	out	registry-egress.md	Source of this repository and of the yq and compose binaries
+ext_web_clients	Web browsers and API clients	HTTP, HTTPS	in	web-clients.md	People and scripts using the published HTTP(S) ports
+ext_ntfy_clients	ntfy subscribers	HTTP	in	push-clients.md	Devices subscribing to the ntfy push server
+ext_nodered_endpoints	Node-RED flow endpoints	varies	bidi	node-red-flows.md	Whatever a site's Node-RED flows connect to
+ext_proxy	Corporate proxy	HTTP CONNECT	out	corporate-proxy.md	Egress proxy configured by ~/connect-to-proxy.sh on the host
+ext_fleet_operator	Fleet operator workstation	SSH	in	fleet-ssh.md	Windows workstation running scripts/remote over ssh
+ext_host_fs	Deployment host filesystem	file	bidi	web-clients.md	Host paths bind-mounted into containers (credentials, recorded videos, CLI scripts)

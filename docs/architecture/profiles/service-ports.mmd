@@ -1,0 +1,14 @@
+%% derived_from: compose/docker-compose.service-ports.yml
+%% derived_from: scripts/docs/flows.tsv
+%% derived_from: scripts/docs/services.tsv
+%% derived_from: scripts/docs/externals.tsv
+%% last_verified: 2026-09-09 (ccf3768)
+flowchart LR
+  classDef optional stroke-dasharray: 5 5
+  subgraph deployment["services touched by profile service-ports"]
+    service_gifwrapper["service_gifwrapper"]
+    service_dtreeserver["service_dtreeserver"]
+  end
+  ext_web_clients{{"Web browsers and API clients"}}
+  ext_web_clients -->|"HTTP: utility interface"| service_gifwrapper
+  ext_web_clients -->|"HTTP: utility interface"| service_dtreeserver

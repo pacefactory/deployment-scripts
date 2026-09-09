@@ -75,7 +75,7 @@ services:
     image: mongo:4.2.3-bionic
     restart: always
     # Mirrors the production mongo setup (memory bounding + single-node replica set; see
-    # MONGODB.md and the base profile for rationale), scaled down: the scratch instance only
+    # docs/reference/mongodb.md and the base profile for rationale), scaled down: the scratch instance only
     # ever holds the shadow run's uistore segments + trend bins.
     command:
       - "mongod"

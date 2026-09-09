@@ -1,0 +1,23 @@
+%% derived_from: compose/docker-compose.audit-perf-eval.yml
+%% derived_from: scripts/docs/flows.tsv
+%% derived_from: scripts/docs/services.tsv
+%% derived_from: scripts/docs/externals.tsv
+%% last_verified: 2026-09-09 (ccf3768)
+flowchart LR
+  classDef optional stroke-dasharray: 5 5
+  subgraph deployment["services touched by profile audit-perf-eval"]
+    perf_eval_dbserver["perf_eval_dbserver (profile: audit-perf-eval)"]
+    perf_eval_mongo["perf_eval_mongo (profile: audit-perf-eval)"]
+    service_audit_processing_perf_eval["service_audit_processing_perf_eval (profile: audit-perf-eval)"]
+    dbserver["dbserver"]
+    auditgui["auditgui"]
+    service_dtreeserver["service_dtreeserver"]
+  end
+  ext_web_clients{{"Web browsers and API clients"}}
+  perf_eval_dbserver -->|"MongoDB wire: scratch uistore records"| perf_eval_mongo
+  service_audit_processing_perf_eval -->|"HTTP: source object reads"| dbserver
+  service_audit_processing_perf_eval -->|"HTTP: uistore writes"| perf_eval_dbserver
+  service_audit_processing_perf_eval -->|"HTTP: audit config reads"| auditgui
+  service_audit_processing_perf_eval -->|"HTTP: classification requests"| service_dtreeserver
+  ext_web_clients -->|"HTTP: /service/status and /service/perf metrics"| service_audit_processing_perf_eval
+  class perf_eval_mongo,service_audit_processing_perf_eval,perf_eval_dbserver optional

@@ -1,0 +1,21 @@
+%% derived_from: compose/docker-compose.rdb.yml
+%% derived_from: scripts/docs/flows.tsv
+%% derived_from: scripts/docs/services.tsv
+%% derived_from: scripts/docs/externals.tsv
+%% last_verified: 2026-09-09 (ccf3768)
+flowchart LR
+  classDef optional stroke-dasharray: 5 5
+  subgraph deployment["services touched by profile rdb"]
+    relational_dbserver["relational_dbserver (profile: rdb)"]
+    apigateway["apigateway"]
+    service_audit_processing["service_audit_processing"]
+    expresso_server["expresso_server"]
+  end
+  ext_client_sql{{"Client SQL database"}}
+  ext_web_clients{{"Web browsers and API clients"}}
+  relational_dbserver <-->|"SQL: client records TODO(source)"| ext_client_sql
+  ext_web_clients -->|"HTTP: API calls"| relational_dbserver
+  apigateway -->|"HTTP: proxied API calls"| relational_dbserver
+  service_audit_processing -->|"HTTP: relational lookups during audit processing"| relational_dbserver
+  expresso_server -->|"HTTP: relational lookups"| relational_dbserver
+  class relational_dbserver optional

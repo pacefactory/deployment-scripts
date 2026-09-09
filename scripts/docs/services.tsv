@@ -1,0 +1,37 @@
+# service	node_id	display	image	owner_repo	owner_kind	purpose
+# owner_kind: named = repo named in this repository's files; confirmed = confirmed by the technical lead; inferred = derived from the image name; third-party = not a Pacefactory image
+mongo	mongo	mongo	mongo	https://hub.docker.com/_/mongo	third-party	Primary MongoDB 4.2 store behind dbserver and data_interconnector, run as a single-node replica set
+dbserver	dbserver	dbserver	pacefactory/dbserver	https://github.com/pacefactory/scv2_dbserver	named	HTTP data API over mongo; owns the snapshot/object data volume
+pf_mosquitto	pf_mosquitto	pf_mosquitto	pacefactory/pf_mosquitto	https://github.com/pacefactory/pf_mosquitto	confirmed	MQTT broker used by every real-time producer and consumer in the deployment
+data_interconnector	data_interconnector	data_interconnector	pacefactory/data_interconnector	https://github.com/pacefactory/data_interconnector	named	Ingests MQTT object data into mongo (and TimescaleDB when ape is enabled)
+realtime	realtime	realtime	pacefactory/realtime	https://github.com/pacefactory/scv2_realtime	named	Camera ingest and real-time processing; publishes to MQTT and writes to dbserver
+auditgui	auditgui	auditgui	pacefactory/scv3_webgui	https://github.com/pacefactory/scv3_webgui	inferred	Audit web UI and the uiserver API other services read audit config from
+service_gifwrapper	service_gifwrapper	service_gifwrapper	pacefactory/service-gifwrapper	https://github.com/pacefactory/scv2_services_gifwrapper	confirmed	Renders ghosted snapshot images and GIFs from the dbserver data volume
+service_dtreeserver	service_dtreeserver	service_dtreeserver	pacefactory/service-dtreeserver	https://github.com/pacefactory/scv2_services_dtreeserver	confirmed	Decision-tree classifier service used by audit processing
+service_audit_processing	service_audit_processing	service_audit_processing	pacefactory/service-audit-processing	https://github.com/pacefactory/scv3_services_processing	named	Batch audit processing over dbserver data; exports segments over MQTT
+apigateway	apigateway	apigateway	pacefactory/apigateway	https://github.com/pacefactory/scv2_apigateway	confirmed	nginx reverse proxy; the only HTTP(S) entry point to the deployment
+record_video	record_video	record_video	pacefactory/realtime	https://github.com/pacefactory/deployment-scripts	named	On-demand tool: records an RTSP camera stream to the host (record_cli.py)
+stitch_videos	stitch_videos	stitch_videos	pacefactory/realtime	https://github.com/pacefactory/deployment-scripts	named	On-demand tool: stitches recorded segments into one file per camera (stitch_cli.py)
+expresso_server	expresso_server	expresso_server	pacefactory/expresso_server	https://github.com/pacefactory/expresso_server	inferred	Expresso API server (stations config, training dispatch, APE events integration)
+expresso_ui	expresso_ui	expresso_ui	pacefactory/expresso_ui	https://github.com/pacefactory/expresso_ui	inferred	Expresso web UI served behind the apigateway at /expresso
+celery_worker	celery_worker	celery_worker	pacefactory/expresso_server	https://github.com/pacefactory/expresso_server	inferred	Expresso background worker (periodic publishing, idle-object archiving)
+celery_beat	celery_beat	celery_beat	pacefactory/expresso_server	https://github.com/pacefactory/expresso_server	inferred	Expresso scheduler; singleton
+redis	redis	redis	redis	https://hub.docker.com/_/redis	third-party	Celery broker/result store for Expresso
+mongo_exp	mongo_exp	mongo_exp	mongodb/mongodb-community-server	https://hub.docker.com/r/mongodb/mongodb-community-server	third-party	MongoDB 8 store for Expresso
+trainer	trainer	trainer	pacefactory/trainer	https://github.com/pacefactory/trainer	inferred	GPU Celery worker for model training and synthetic data generation
+social_web_app	social_web_app	social_web_app	pacefactory/social_web_app	https://github.com/pacefactory/social_web_app	inferred	Video-based social web app served behind the apigateway
+social_video_server	social_video_server	social_video_server	pacefactory/social_video_server	https://github.com/pacefactory/social_video_server	inferred	Video server for the social web app
+relational_dbserver	relational_dbserver	relational_dbserver	pacefactory/relational-dbserver	https://github.com/pacefactory/relational-dbserver	inferred	Bridge between the deployment and a client's existing SQL database
+nodered	nodered	nodered	nodered/node-red	https://hub.docker.com/r/nodered/node-red	third-party	Node-RED flow engine for site-specific integrations
+ntfy	ntfy	ntfy	binwiederhier/ntfy	https://hub.docker.com/r/binwiederhier/ntfy	third-party	Push notification server
+alert_processing_engine	alert_processing_engine	alert_processing_engine	pacefactory/alert_processing_engine	https://github.com/pacefactory/alert_processing_engine	inferred	Alert Processing Engine: real-time alerts from MQTT object data
+ape_frame_playback	ape_frame_playback	ape_frame_playback	pacefactory/alert_processing_engine	https://github.com/pacefactory/alert_processing_engine	inferred	Frame playback HTTP service for APE recordings
+ape_timescaledb	ape_timescaledb	ape_timescaledb	timescale/timescaledb	https://hub.docker.com/r/timescale/timescaledb	third-party	TimescaleDB (PostgreSQL 16) event store used by APE, Expresso and data_interconnector
+autozone	autozone	autozone	pacefactory/autozone	https://github.com/pacefactory/autozone	inferred	Detects activity zones from tracked object hulls
+autozone_api	autozone_api	autozone_api	pacefactory/autozone_api	https://github.com/pacefactory/autozone	inferred	API in front of autozone results
+autozone_mongo	autozone_mongo	autozone_mongo	mongo	https://hub.docker.com/_/mongo	third-party	MongoDB 7 store for autozone
+perf_eval_mongo	perf_eval_mongo	perf_eval_mongo	mongo	https://hub.docker.com/_/mongo	third-party	Scratch mongo for the audit perf-eval shadow instance
+perf_eval_dbserver	perf_eval_dbserver	perf_eval_dbserver	pacefactory/dbserver	https://github.com/pacefactory/scv2_dbserver	named	Scratch dbserver for the audit perf-eval shadow instance
+service_audit_processing_perf_eval	service_audit_processing_perf_eval	service_audit_processing_perf_eval	pacefactory/service-audit-processing	https://github.com/pacefactory/scv3_services_processing	named	Shadow audit processing instance for A/B benchmarking
+swift-labeler	swift_labeler	swift-labeler	pacefactory/swift-labeler	https://github.com/pacefactory/swift-labeler	inferred	Swift Labeler labelling UI and API
+certbot	certbot	certbot	certbot/certbot	https://hub.docker.com/r/certbot/certbot	third-party	On-demand Let's Encrypt client (image varies by https-* profile)

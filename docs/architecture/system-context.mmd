@@ -1,0 +1,43 @@
+%% derived_from: scripts/docs/externals.tsv
+%% derived_from: scripts/docs/flows.tsv
+%% derived_from: compose/docker-compose.*.yml
+%% derived_from: scripts/remote/update-server.sh
+%% derived_from: update.sh
+%% last_verified: 2026-09-09 (ccf3768)
+flowchart LR
+  ext_cameras{{"IP cameras"}}
+  ext_web_clients{{"Web browsers and API clients"}}
+  ext_mqtt_clients{{"MQTT clients"}}
+  ext_ntfy_clients{{"ntfy subscribers"}}
+  ext_fleet_operator{{"Fleet operator workstation"}}
+  user_operator(["Site operator"])
+  subgraph site["Client site"]
+    subgraph host["Deployment host (Linux, docker compose)"]
+      deployment["Pacefactory deployment (one compose project)"]
+      ext_host_fs{{"Host filesystem: credentials/, ~/scv2/videos"}}
+    end
+    ext_client_sql{{"Client SQL database"}}
+    ext_nodered_endpoints{{"Node-RED flow endpoints"}}
+    ext_proxy{{"Corporate proxy"}}
+  end
+  ext_acme{{"Let's Encrypt (ACME)"}}
+  ext_dns_api{{"DNS provider API (DigitalOcean, GoDaddy)"}}
+  ext_registry{{"Container registry (Docker Hub)"}}
+  ext_github{{"GitHub"}}
+  ext_peer_deployment{{"Peer Pacefactory deployment"}}
+  ext_cameras -->|"RTSP: video (profile base)"| deployment
+  ext_web_clients -->|"HTTP/HTTPS: web UI and APIs"| deployment
+  ext_mqtt_clients -->|"MQTT 1883 / MQTTS 8883 / WS via gateway"| deployment
+  ext_ntfy_clients -->|"HTTP: push notifications (profile ntfy)"| deployment
+  deployment <-->|"SQL: client records (profile rdb)"| ext_client_sql
+  deployment <-->|"varies: site flows (profile node-red)"| ext_nodered_endpoints
+  deployment -->|"HTTPS: certificate orders (https-* with certbot)"| ext_acme
+  deployment -->|"HTTPS: DNS-01 records (https-digitalocean, https-godaddy)"| ext_dns_api
+  deployment <-->|"HTTPS: remote training dispatch and callbacks (expresso-010)"| ext_peer_deployment
+  ext_host_fs -->|"file: TLS material, CLI scripts"| deployment
+  deployment -->|"file: recorded videos (tools)"| ext_host_fs
+  host -->|"HTTPS: image pulls (update.sh)"| ext_registry
+  host -->|"HTTPS: git pull, yq and compose binaries"| ext_github
+  host -.-|"HTTP CONNECT: egress via ~/connect-to-proxy.sh when present"| ext_proxy
+  ext_fleet_operator -->|"SSH: git pull, build.sh -q, update.sh -q"| host
+  user_operator -->|"shell: build.sh, update.sh, tools"| host

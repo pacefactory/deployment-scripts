@@ -1,0 +1,103 @@
+%% derived_from: docs/architecture/reference-deployments/https-cert-file/docker-compose.built.yml
+%% derived_from: docs/architecture/reference-deployments/https-cert-file/.settings
+%% derived_from: scripts/docs/flows.tsv
+%% derived_from: scripts/docs/services.tsv
+%% derived_from: scripts/docs/externals.tsv
+%% last_verified: 2026-09-09 (ccf3768)
+flowchart LR
+  classDef optional stroke-dasharray: 5 5
+  subgraph deployment["https-cert-file"]
+    realtime["realtime"]
+    dbserver["dbserver"]
+    pf_mosquitto["pf_mosquitto"]
+    vol_dbserver_data[("volume: dbserver_data")]
+    data_interconnector["data_interconnector"]
+    mongo["mongo"]
+    auditgui["auditgui"]
+    service_gifwrapper["service_gifwrapper"]
+    service_dtreeserver["service_dtreeserver"]
+    service_audit_processing["service_audit_processing"]
+    apigateway["apigateway"]
+    record_video["record_video"]
+    stitch_videos["stitch_videos"]
+    expresso_server["expresso_server"]
+    redis["redis"]
+    mongo_exp["mongo_exp"]
+    social_video_server["social_video_server (profile: social)"]
+    celery_worker["celery_worker"]
+    celery_beat["celery_beat"]
+    expresso_ui["expresso_ui"]
+    social_web_app["social_web_app (profile: social)"]
+    relational_dbserver["relational_dbserver (profile: rdb)"]
+    nodered["nodered (profile: node-red)"]
+  end
+  ext_cameras{{"IP cameras"}}
+  ext_web_clients{{"Web browsers and API clients"}}
+  ext_host_fs{{"Deployment host filesystem"}}
+  ext_peer_deployment{{"Peer Pacefactory deployment"}}
+  ext_client_sql{{"Client SQL database"}}
+  ext_nodered_endpoints{{"Node-RED flow endpoints"}}
+  ext_mqtt_clients{{"MQTT clients"}}
+  ext_cameras -->|"RTSP: H.264/H.265 video"| realtime
+  realtime -->|"HTTP: object metadata and snapshots TODO(source)"| dbserver
+  realtime -->|"MQTT: real-time object data"| pf_mosquitto
+  realtime -->|"file: snapshot files TODO(source)"| vol_dbserver_data
+  data_interconnector -->|"MQTT: real-time object data"| pf_mosquitto
+  data_interconnector -->|"MongoDB wire: ingested object records"| mongo
+  data_interconnector -->|"HTTP: audit config reads (currently disabled)"| auditgui
+  dbserver -->|"MongoDB wire: object, snapshot and uistore records"| mongo
+  service_gifwrapper -->|"HTTP: snapshot and object queries"| dbserver
+  service_gifwrapper -->|"file: snapshot JPEGs read directly when DBSERVER_DISABLE_SNAPSHOT_IMAGES=true"| vol_dbserver_data
+  service_dtreeserver -->|"HTTP: object data for classification"| dbserver
+  service_audit_processing -->|"HTTP: source object reads; uistore segment and trend writes"| dbserver
+  service_audit_processing -->|"HTTP: audit config reads"| auditgui
+  service_audit_processing -->|"HTTP: classification requests"| service_dtreeserver
+  service_audit_processing -->|"MQTT: segment export messages"| pf_mosquitto
+  apigateway -->|"HTTP: proxied API calls"| dbserver
+  apigateway -->|"HTTP: proxied API calls"| service_dtreeserver
+  apigateway -->|"HTTP: proxied API calls"| service_gifwrapper
+  apigateway -->|"HTTP: proxied control-server API calls"| realtime
+  apigateway -->|"HTTP: proxied UI and API calls"| auditgui
+  apigateway -->|"HTTP: proxied status API calls"| service_audit_processing
+  apigateway -->|"WS: MQTT over WebSocket for browsers"| pf_mosquitto
+  ext_web_clients -->|"HTTP: web UI and API traffic (307 redirect to HTTPS when an https-* profile is enabled)"| apigateway
+  ext_cameras -->|"RTSP: H.264/H.265 video"| record_video
+  record_video -->|"file: recorded video segments"| ext_host_fs
+  stitch_videos <-->|"file: stitched MP4 per camera"| ext_host_fs
+  expresso_server -->|"Redis: Celery task queue"| redis
+  expresso_server -->|"MongoDB wire: Expresso documents"| mongo_exp
+  expresso_server -->|"HTTP: control-server API calls"| realtime
+  expresso_server -->|"HTTP: object and snapshot queries"| dbserver
+  expresso_server -->|"file: snapshot JPEGs read directly"| vol_dbserver_data
+  expresso_server -->|"HTTP: uiserver reads"| auditgui
+  expresso_server -->|"HTTP: user-engagement metrics"| social_video_server
+  expresso_server -->|"HTTPS: remote training job dispatch"| ext_peer_deployment
+  ext_peer_deployment -->|"HTTPS: remote training callbacks (proxied to expresso_server)"| apigateway
+  celery_worker -->|"Redis: Celery tasks"| redis
+  celery_worker -->|"MongoDB wire: Expresso documents"| mongo_exp
+  celery_worker -->|"HTTP: control-server API calls"| realtime
+  celery_worker -->|"HTTP: object and snapshot queries"| dbserver
+  celery_worker -->|"MQTT: site-reliability snapshots"| pf_mosquitto
+  celery_worker -->|"HTTP: idle-object snapshot archiving requests"| service_gifwrapper
+  celery_worker -->|"HTTP: audit app version info for site-reliability snapshot"| auditgui
+  celery_beat -->|"Redis: scheduled task enqueue"| redis
+  celery_beat -->|"MongoDB wire: schedule state TODO(source)"| mongo_exp
+  apigateway -->|"HTTP: proxied API calls"| expresso_server
+  apigateway -->|"HTTP: proxied UI"| expresso_ui
+  social_video_server -->|"HTTP: uiserver reads"| auditgui
+  ext_web_clients -->|"HTTP: video streams"| social_video_server
+  apigateway -->|"HTTP: proxied API calls"| social_video_server
+  apigateway -->|"HTTP: proxied UI"| social_web_app
+  relational_dbserver <-->|"SQL: client records TODO(source)"| ext_client_sql
+  ext_web_clients -->|"HTTP: API calls"| relational_dbserver
+  apigateway -->|"HTTP: proxied API calls"| relational_dbserver
+  service_audit_processing -->|"HTTP: relational lookups during audit processing"| relational_dbserver
+  expresso_server -->|"HTTP: relational lookups"| relational_dbserver
+  ext_web_clients -->|"HTTP: Node-RED editor and HTTP-in nodes"| nodered
+  apigateway -->|"HTTP: proxied UI"| nodered
+  nodered <-->|"varies: site-specific TODO(source)"| ext_nodered_endpoints
+  ext_mqtt_clients -->|"MQTTS: MQTT over TLS using the https-* certificate"| pf_mosquitto
+  ext_host_fs -->|"file: TLS certificate and key"| pf_mosquitto
+  ext_host_fs -->|"file: TLS certificate, key and optional privkey.pass"| apigateway
+  ext_web_clients -->|"HTTPS: web UI and API traffic (TLS)"| apigateway
+  class social_web_app,nodered,social_video_server,relational_dbserver optional

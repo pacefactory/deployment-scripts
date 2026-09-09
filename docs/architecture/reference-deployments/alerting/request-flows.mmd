@@ -1,0 +1,26 @@
+%% derived_from: docs/architecture/reference-deployments/alerting/docker-compose.built.yml
+%% derived_from: scripts/docs/request-flows/alerting.mmd
+%% last_verified: 2026-09-09 (ccf3768)
+sequenceDiagram
+  autonumber
+  participant realtime
+  participant pf_mosquitto
+  participant alert_processing_engine as APE
+  participant dbserver
+  participant data_interconnector
+  participant ape_timescaledb as TimescaleDB
+  participant expresso_server
+  participant apigateway
+  participant ext_web_clients as Web browser
+  realtime->>pf_mosquitto: MQTT 1883: real-time object data
+  pf_mosquitto-->>alert_processing_engine: MQTT 1883: subscribed object data
+  alert_processing_engine->>dbserver: HTTP 8050: enrich with object and snapshot data
+  alert_processing_engine->>pf_mosquitto: MQTT 1883: alert messages (and debug messages when PUBLISH_DEBUG_MSGS=true)
+  pf_mosquitto-->>data_interconnector: MQTT 1883: subscribed data
+  data_interconnector->>ape_timescaledb: PostgreSQL 5432: ingested records (PF_TIMESCALE_ENABLED=1)
+  ext_web_clients->>apigateway: HTTPS/HTTP: Expresso UI event views
+  apigateway->>expresso_server: HTTP 8456: proxied /api/expresso
+  expresso_server->>alert_processing_engine: HTTP 5380: APE events integration
+  expresso_server->>ape_timescaledb: PostgreSQL 5432: event queries
+  expresso_server-->>apigateway: HTTP: response
+  apigateway-->>ext_web_clients: HTTPS/HTTP: response

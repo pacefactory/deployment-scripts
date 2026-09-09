@@ -1,0 +1,52 @@
+# path	purpose   (hand-maintained entries for docs/README.md; generated trees are appended automatically by render-docs-index.sh)
+docs/DOCUMENTATION_STANDARD.md	Canonical documentation standard for every Pacefactory service repository
+docs/architecture/ARCHITECTURE_DOCS_STANDARD.md	Standard for the cross-repo architecture docs in this folder; extends the service-repo standard
+docs/architecture/README.md	Index of every diagram in this repo: what it shows, derived from, last verified
+docs/architecture/glossary.md	Authoritative vocabulary, service node IDs, owning repos and external integration IDs (generated)
+docs/architecture/system-context.mmd	Pacefactory deployment as one box with every external actor and system
+docs/architecture/profiles/README.md	Profile catalog: every build profile with class, services, integrations, dependencies (generated)
+docs/architecture/reference-deployments/README.md	Catalogue of the six named reference deployments (generated)
+docs/architecture/integrations/README.md	Catalogue of external integration types
+docs/architecture/integrations/cameras-rtsp.md	IP cameras streaming RTSP into realtime and record_video
+docs/architecture/integrations/mqtt-clients.md	Third-party MQTT clients of the deployment's own broker
+docs/architecture/integrations/client-sql.md	A client's SQL database behind relational_dbserver
+docs/architecture/integrations/acme-dns.md	Let's Encrypt and the DigitalOcean / GoDaddy DNS APIs used by certbot
+docs/architecture/integrations/peer-deployments.md	Remote-training exchange between Pacefactory deployments
+docs/architecture/integrations/registry-egress.md	Docker Hub and GitHub egress from the host tooling
+docs/architecture/integrations/web-clients.md	Published HTTP(S) ports and host bind mounts
+docs/architecture/integrations/push-clients.md	ntfy push notification subscribers
+docs/architecture/integrations/node-red-flows.md	Endpoints reached by a site's Node-RED flows
+docs/architecture/integrations/corporate-proxy.md	Egress proxy hook on the deployment host
+docs/architecture/integrations/fleet-ssh.md	Fleet operator workstation updating hosts over SSH
+docs/architecture/network/site-requirements.md	Client site network requirements evidenced by this repo (carve-out, to be completed)
+docs/architecture/network/site-network.mmd	On-premises network diagram of the evidenced elements
+docs/reference/build-script.md	Flags, inputs, outputs and pitfalls of build.sh and update.sh
+docs/reference/environment-variables.md	Every variable build.sh reads or a fragment interpolates, with defaults and destinations (generated)
+docs/reference/profile-dependencies.md	Sub-profile, requires and inferred-conflict graph of the build profiles (generated)
+docs/reference/profile-metadata.md	The x-pf-info schema build.sh reads from fragments
+docs/reference/mqtt-broker-listeners.md	Which pf_mosquitto listeners each profile publishes
+docs/reference/ghosting.md	Ghosting enforcement variables and modes
+docs/reference/mongodb.md	How the main mongo service is sized and run as a single-node replica set
+docs/reference/backup-restore-cli.md	Options of the volume backup and restore scripts and the volumes they cover
+docs/design/mongodb-memory-bounding.md	Why mongo runs memory-bounded as a single-node replica set
+docs/how-to/build-a-deployment.md	Choose profiles and settings and produce docker-compose.yml
+docs/how-to/update-a-deployment.md	Pull images and relaunch the compose project
+docs/how-to/add-a-profile.md	Add a compose fragment and its derived docs
+docs/how-to/add-an-environment-variable.md	Expose a new build-time variable to a service
+docs/how-to/rebuild-reference-deployments.md	Rebuild the committed reference outputs and regenerate all derived docs
+docs/how-to/record-and-stitch-video.md	Record an RTSP camera to disk and stitch the segments
+docs/how-to/import-ssl-certificate.md	Convert a .pfx bundle into the cert files the https-no-certbot profile serves
+docs/how-to/enable-https.md	Enable one of the https-* profiles and obtain a certificate
+docs/how-to/back-up-volumes.md	Archive the data volumes locally or to another server
+docs/how-to/restore-volumes.md	Load volume archives into a deployment
+docs/how-to/migrate-to-a-new-server.md	Move a deployment's volumes to a new host
+docs/how-to/update-fleet-from-windows.md	Update many servers over ssh from a Windows workstation
+docs/how-to/install-yq.md	Install mikefarah yq v4 for build.sh
+docs/how-to/install-cuda-support.md	Prepare a host for the GPU sub-profiles (placeholder)
+docs/how-to/verify-mongodb.md	Check replica set state, cache size and OOM history of mongo
+docs/how-to/tune-mongodb-performance.md	Diagnose slow writes and adjust one knob at a time
+docs/how-to/roll-back-mongodb-replica-set.md	Return mongo to a standalone mongod
+docs/how-to/create-an-offline-install.md	Package Docker, images and an installer for a host without internet
+docs/upgrade-notes.md	Behaviour changes operators need to know about per release
+scripts/remote/README.md	Pointer to the fleet update how-to (colocated with the scripts)
+scv2_base_images/README.md	How the shared base images are built and pushed (colocated with their Dockerfiles)
