@@ -7,7 +7,7 @@ derived_from:
   - build.sh
   - compose/docker-compose.*.yml
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 08482b3
 ---
 
 # Glossary
@@ -66,7 +66,7 @@ standard path `docs/architecture/README.md` and may not exist yet in that repo.
 | `service_gifwrapper` | `service_gifwrapper` | `pacefactory/service-gifwrapper` | [`base`](profiles/base.md) | [scv2_services_gifwrapper](https://github.com/pacefactory/scv2_services_gifwrapper) | internal | Renders ghosted snapshot images and GIFs from the dbserver data volume |
 | `service_dtreeserver` | `service_dtreeserver` | `pacefactory/service-dtreeserver` | [`base`](profiles/base.md) | [scv2_services_dtreeserver](https://github.com/pacefactory/scv2_services_dtreeserver) | internal | Decision-tree classifier service used by audit processing |
 | `service_audit_processing` | `service_audit_processing` | `pacefactory/service-audit-processing` | [`base`](profiles/base.md) | [scv3_services_processing](https://github.com/pacefactory/scv3_services_processing) | internal | Batch audit processing over dbserver data; exports segments over MQTT |
-| `apigateway` | `apigateway` | `pacefactory/apigateway` | [`base`](profiles/base.md) | [scv2_apigateway](https://github.com/pacefactory/scv2_apigateway) | internal | nginx reverse proxy; the only HTTP(S) entry point to the deployment |
+| `apigateway` | `apigateway` | `pacefactory/apigateway` | [`base`](profiles/base.md) | [scv2_apigateway](https://github.com/pacefactory/scv2_apigateway) | internal | nginx reverse proxy in front of every web UI and /api/* path; serves HTTP on 80 and, with an https-* profile, HTTPS on 443 |
 | `record_video` | `record_video` | `pacefactory/realtime` | [`tools`](profiles/tools.md) | [deployment-scripts](https://github.com/pacefactory/deployment-scripts) | internal | On-demand tool: records an RTSP camera stream to the host (record_cli.py) |
 | `stitch_videos` | `stitch_videos` | `pacefactory/realtime` | [`tools`](profiles/tools.md) | [deployment-scripts](https://github.com/pacefactory/deployment-scripts) | internal | On-demand tool: stitches recorded segments into one file per camera (stitch_cli.py) |
 | `expresso_server` | `expresso_server` | `pacefactory/expresso_server` | [`expresso-010`](profiles/expresso-010.md) | [expresso_server](https://github.com/pacefactory/expresso_server) | internal | Expresso API server (stations config, training dispatch, APE events integration) |

@@ -9,7 +9,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/deployments.tsv
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 08482b3
 ---
 
 # Reference deployment: Full alerting
@@ -150,15 +150,15 @@ One row per directed flow (standard §7a). Node IDs are defined in the [glossary
 | `service_audit_processing` | `auditgui` | internal | HTTP | auditgui:80 | audit config reads | polling | base | source: `compose/docker-compose.base.yml:325`; [link](https://github.com/pacefactory/scv3_services_processing/blob/main/docs/architecture/README.md) |
 | `service_audit_processing` | `service_dtreeserver` | internal | HTTP | service_dtreeserver:7272 | classification requests | on event | base | source: `compose/docker-compose.base.yml:326`; [link](https://github.com/pacefactory/scv3_services_processing/blob/main/docs/architecture/README.md) |
 | `service_audit_processing` | `pf_mosquitto` | internal | MQTT | pf_mosquitto:1883 (PF_MQTT_URL) | segment export messages | on event | base | source: `compose/docker-compose.base.yml:327`; [link](https://github.com/pacefactory/scv3_services_processing/blob/main/docs/architecture/README.md) |
-| `apigateway` | `dbserver` | internal | HTTP | dbserver:8050 (/api/dbserver) | proxied API calls | on demand | base | source: `compose/docker-compose.base.yml:347-348`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `service_dtreeserver` | internal | HTTP | service_dtreeserver:7272 | proxied API calls | on demand | base | source: `compose/docker-compose.base.yml:349-350`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `service_gifwrapper` | internal | HTTP | service_gifwrapper:7171 (/api/gif) | proxied API calls | on demand | base | source: `compose/docker-compose.base.yml:351-352`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `realtime` | internal | HTTP | realtime:8181 | proxied control-server API calls | on demand | base | source: `compose/docker-compose.base.yml:353-354`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `auditgui` | internal | HTTP | auditgui:80 (/scv3, /api/uiserver) | proxied UI and API calls | on demand | base | source: `compose/docker-compose.base.yml:355-356`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `service_audit_processing` | internal | HTTP | service_audit_processing:3005 | proxied status API calls | on demand | base | source: `compose/docker-compose.base.yml:357-358`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `apigateway` | `dbserver` | internal | HTTP | dbserver:8050 (/api/dbserver/) | proxied API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix | on demand | base | source: `compose/docker-compose.base.yml:347-348`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `service_dtreeserver` | internal | HTTP | service_dtreeserver:7272 (/api/dtree_classifier/) | proxied API calls | on demand | base | source: `compose/docker-compose.base.yml:349-350`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `service_gifwrapper` | internal | HTTP | service_gifwrapper:7171 (/api/gif/) | proxied API calls | on demand | base | source: `compose/docker-compose.base.yml:351-352`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `realtime` | internal | HTTP | realtime:8181 (/api/realtime/) | proxied control-server API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix | on demand | base | source: `compose/docker-compose.base.yml:353-354`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `auditgui` | internal | HTTP | auditgui:80 (/scv3/, /api/uiserver/; / answers 302 to scv3/) | proxied UI and API calls | on demand | base | source: `compose/docker-compose.base.yml:355-356`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `service_audit_processing` | internal | HTTP | service_audit_processing:3005 (/api/proc/) | proxied status API calls | on demand | base | source: `compose/docker-compose.base.yml:357-358`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 | `apigateway` | `pf_mosquitto` | internal | WS | pf_mosquitto:7575 (/api/mqtt) | MQTT over WebSocket for browsers (listener 7575, protocol websockets; anonymous read, admin publish) | continuous | base | source: `compose/docker-compose.base.yml:359-361`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
 | `pf_mosquitto` | `vol_mosquitto_data` | internal | file | /mosquitto (rw mount of mosquitto-data): persistence at /mosquitto/data/, config at /mosquitto/config/ | persistence database; password, ACL and mosquitto.conf files that shadow the image copies | continuous | base | source: `compose/docker-compose.base.yml:191`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
-| `ext_web_clients` | `apigateway` | in | HTTP | host port HTTP_PORT (default 80) | web UI and API traffic (307 redirect to HTTPS when an https-* profile is enabled) | on demand | base | source: `compose/docker-compose.base.yml:369-370`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `ext_web_clients` | `apigateway` | in | HTTP | host port HTTP_PORT (default 80) | web UI and API traffic (/ redirects 302 to /scv3/; 307 redirect to HTTPS when an https-* profile is enabled) | on demand | base | source: `compose/docker-compose.base.yml:369-370`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md#listeners) |
 | `ext_cameras` | `record_video` | in | RTSP | rtsp:// URL of the selected camera | H.264/H.265 video | on demand | tools | source: `record_cli.py:96-134`; record_cli.py |
 | `record_video` | `ext_host_fs` | out | file | ~/scv2/videos/<date>/<camera>/ | recorded video segments | on demand | tools | source: `compose/docker-compose.tools.yml:23; record_cli.py`; record_cli.py |
 | `stitch_videos` | `ext_host_fs` | bidi | file | ~/scv2/videos/<date>/ | stitched MP4 per camera | on demand | tools | source: `compose/docker-compose.tools.yml:42; stitch_cli.py`; stitch_cli.py |
@@ -180,26 +180,26 @@ One row per directed flow (standard §7a). Node IDs are defined in the [glossary
 | `celery_worker` | `auditgui` | internal | HTTP | auditgui:80 | audit app version info for site-reliability snapshot | polling | expresso-010 | source: `compose/docker-compose.expresso-010.yml:204-205`; [link](https://github.com/pacefactory/expresso_server/blob/main/docs/architecture/README.md) |
 | `celery_beat` | `redis` | internal | Redis | redis | scheduled task enqueue | polling (schedule) | expresso-010 | source: `compose/docker-compose.expresso-010.yml:227`; [link](https://github.com/pacefactory/expresso_server/blob/main/docs/architecture/README.md) |
 | `celery_beat` | `mongo_exp` | internal | MongoDB wire | mongo_exp:27017 | schedule state TODO(source) | polling | expresso-010 | source: `compose/docker-compose.expresso-010.yml:228`; [link](https://github.com/pacefactory/expresso_server/blob/main/docs/architecture/README.md) |
-| `apigateway` | `expresso_server` | internal | HTTP | expresso_server:8456 (/api/expresso) | proxied API calls | on demand | expresso-010 | source: `compose/docker-compose.expresso-010.yml:253-254`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `expresso_ui` | internal | HTTP | expresso_ui:80 (/expresso) | proxied UI | on demand | expresso-010 | source: `compose/docker-compose.expresso-010.yml:255-256`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `apigateway` | `expresso_server` | internal | HTTP | expresso_server:8456 (/api/expresso/) | proxied API calls, WebSocket upgrade passed through | on demand | expresso-010 | source: `compose/docker-compose.expresso-010.yml:253-254`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `expresso_ui` | internal | HTTP | expresso_ui:80 (/expresso/) | proxied UI, WebSocket upgrade passed through | on demand | expresso-010 | source: `compose/docker-compose.expresso-010.yml:255-256`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 | `social_video_server` | `auditgui` | internal | HTTP | auditgui:80 | uiserver reads | on demand | social | source: `compose/docker-compose.social.yml:42`; [link](https://github.com/pacefactory/social_video_server/blob/main/docs/architecture/README.md) |
 | `ext_web_clients` | `social_video_server` | in | HTTP | host port SOCIAL_VIDEO_PUBLIC_PORT (default 9999) | video streams | on demand | social | source: `compose/docker-compose.social.yml:43-44`; [link](https://github.com/pacefactory/social_video_server/blob/main/docs/architecture/README.md) |
-| `apigateway` | `social_video_server` | internal | HTTP | social_video_server:9999 (/api/video) | proxied API calls | on demand | social | source: `compose/docker-compose.social.yml:56`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `social_web_app` | internal | HTTP | social_web_app (port TODO(source); served at /) | proxied UI | on demand | social | source: `compose/docker-compose.social.yml:57`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `apigateway` | `social_video_server` | internal | HTTP | social_video_server:9999 (/api/video/) | proxied API calls | on demand | social | source: `compose/docker-compose.social.yml:56`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `social_web_app` | internal | HTTP | social_web_app:80 (/; SOCIAL_VIDO_APP_HOST carries no port, so nginx uses the http default 80) | proxied UI (replaces the base 302 to /scv3/) | on demand | social | source: `compose/docker-compose.social.yml:57; scv2_apigateway etc/nginx/templates.social/locations/root.conf.template`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 | `relational_dbserver` | `ext_client_sql` | bidi | SQL | client database host and driver TODO(source) | client records TODO(source) | on demand | rdb | source: `compose/docker-compose.rdb.yml:5-7`; [link](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/architecture/README.md) |
 | `ext_web_clients` | `relational_dbserver` | in | HTTP | host port RDB_PUBLIC_PORT (default 8282) | API calls | on demand | rdb | source: `compose/docker-compose.rdb.yml:22-23`; [link](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/architecture/README.md) |
-| `apigateway` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 (/api/rdb) | proxied API calls | on demand | rdb | source: `compose/docker-compose.rdb.yml:34-35`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `apigateway` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 (/api/rdb/) | proxied API calls | on demand | rdb | source: `compose/docker-compose.rdb.yml:34-35`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 | `service_audit_processing` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 | relational lookups during audit processing | on demand | rdb | source: `compose/docker-compose.rdb.yml:43`; [link](https://github.com/pacefactory/scv3_services_processing/blob/main/docs/architecture/README.md) |
 | `expresso_server` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 | relational lookups | on demand | rdb | source: `compose/docker-compose.rdb.yml:47`; [link](https://github.com/pacefactory/expresso_server/blob/main/docs/architecture/README.md) |
 | `ext_web_clients` | `nodered` | in | HTTP | host port NODERED_PORT (default 1880) | Node-RED editor and HTTP-in nodes | on demand | node-red | source: `compose/docker-compose.node-red.yml:23-24`; [link](https://nodered.org/docs/) |
-| `apigateway` | `nodered` | internal | HTTP | nodered:1880 | proxied UI | on demand | node-red | source: `compose/docker-compose.node-red.yml:35-36`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `apigateway` | `nodered` | internal | HTTP | nodered:1880 (/api/nodered/, /dashboard/) | proxied editor, HTTP nodes and dashboard; WebSocket upgrade passed through | on demand | node-red | source: `compose/docker-compose.node-red.yml:35-36`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 | `nodered` | `ext_nodered_endpoints` | bidi | varies | configured per site in flows | site-specific TODO(source) | varies | node-red | source: `compose/docker-compose.node-red.yml (no endpoints in compose)`; [link](https://nodered.org/docs/) |
 | `alert_processing_engine` | `pf_mosquitto` | internal | MQTT | mqtt://pf_mosquitto:1883 | object data in; alerts and debug messages out | continuous | ape | source: `compose/docker-compose.ape.yml:32,35`; [link](https://github.com/pacefactory/alert_processing_engine/blob/main/docs/architecture/README.md) |
 | `alert_processing_engine` | `dbserver` | internal | HTTP | dbserver:8050 | object and snapshot queries | on event | ape | source: `compose/docker-compose.ape.yml:33`; [link](https://github.com/pacefactory/alert_processing_engine/blob/main/docs/architecture/README.md) |
 | `ape_frame_playback` | `pf_mosquitto` | internal | MQTT | mqtt://pf_mosquitto:1883 | frame recording triggers TODO(source) | continuous | ape | source: `compose/docker-compose.ape.yml:58`; [link](https://github.com/pacefactory/alert_processing_engine/blob/main/docs/architecture/README.md) |
 | `ape_frame_playback` | `dbserver` | internal | HTTP | dbserver:8050 | snapshot queries | on demand | ape | source: `compose/docker-compose.ape.yml:59`; [link](https://github.com/pacefactory/alert_processing_engine/blob/main/docs/architecture/README.md) |
-| `apigateway` | `alert_processing_engine` | internal | HTTP | alert_processing_engine:5380 | proxied API calls | on demand | ape | source: `compose/docker-compose.ape.yml:67-68`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `ape_frame_playback` | internal | HTTP | ape_frame_playback:5381 | proxied playback | on demand | ape | source: `compose/docker-compose.ape.yml:69-70`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `apigateway` | `alert_processing_engine` | internal | HTTP | alert_processing_engine:5380 (/api/ape/) | proxied API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix | on demand | ape | source: `compose/docker-compose.ape.yml:67-68`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `ape_frame_playback` | internal | HTTP | ape_frame_playback:5381 (/api/ape-frame-playback/) | proxied playback; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix | on demand | ape | source: `compose/docker-compose.ape.yml:69-70`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 | `ext_web_clients` | `alert_processing_engine` | in | HTTP | ephemeral host port -> 5380 | direct API access | on demand | ape | source: `compose/docker-compose.ape.yml:38-39`; [link](https://github.com/pacefactory/alert_processing_engine/blob/main/docs/architecture/README.md) |
 | `ext_web_clients` | `ape_frame_playback` | in | HTTP | ephemeral host port -> 5381 | direct playback access | on demand | ape | source: `compose/docker-compose.ape.yml:62-63`; [link](https://github.com/pacefactory/alert_processing_engine/blob/main/docs/architecture/README.md) |
 | `expresso_server` | `alert_processing_engine` | internal | HTTP | alert_processing_engine:5380 | APE events integration | on demand | ape | source: `compose/docker-compose.ape.yml:101`; [link](https://github.com/pacefactory/expresso_server/blob/main/docs/architecture/README.md) |
@@ -369,15 +369,15 @@ flowchart LR
   service_audit_processing -->|"HTTP: audit config reads"| auditgui
   service_audit_processing -->|"HTTP: classification requests"| service_dtreeserver
   service_audit_processing -->|"MQTT: segment export messages"| pf_mosquitto
-  apigateway -->|"HTTP: proxied API calls"| dbserver
+  apigateway -->|"HTTP: proxied API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| dbserver
   apigateway -->|"HTTP: proxied API calls"| service_dtreeserver
   apigateway -->|"HTTP: proxied API calls"| service_gifwrapper
-  apigateway -->|"HTTP: proxied control-server API calls"| realtime
+  apigateway -->|"HTTP: proxied control-server API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| realtime
   apigateway -->|"HTTP: proxied UI and API calls"| auditgui
   apigateway -->|"HTTP: proxied status API calls"| service_audit_processing
   apigateway -->|"WS: MQTT over WebSocket for browsers (listener 7575, protocol websockets; anonymous read, admin publish)"| pf_mosquitto
   pf_mosquitto -->|"file: persistence database; password, ACL and mosquitto.conf files that shadow the image copies"| vol_mosquitto_data
-  ext_web_clients -->|"HTTP: web UI and API traffic (307 redirect to HTTPS when an https-* profile is enabled)"| apigateway
+  ext_web_clients -->|"HTTP: web UI and API traffic (/ redirects 302 to /scv3/; 307 redirect to HTTPS when an https-* profile is enabled)"| apigateway
   ext_cameras -->|"RTSP: H.264/H.265 video"| record_video
   record_video -->|"file: recorded video segments"| ext_host_fs
   stitch_videos <-->|"file: stitched MP4 per camera"| ext_host_fs
@@ -399,26 +399,26 @@ flowchart LR
   celery_worker -->|"HTTP: audit app version info for site-reliability snapshot"| auditgui
   celery_beat -->|"Redis: scheduled task enqueue"| redis
   celery_beat -->|"MongoDB wire: schedule state TODO(source)"| mongo_exp
-  apigateway -->|"HTTP: proxied API calls"| expresso_server
-  apigateway -->|"HTTP: proxied UI"| expresso_ui
+  apigateway -->|"HTTP: proxied API calls, WebSocket upgrade passed through"| expresso_server
+  apigateway -->|"HTTP: proxied UI, WebSocket upgrade passed through"| expresso_ui
   social_video_server -->|"HTTP: uiserver reads"| auditgui
   ext_web_clients -->|"HTTP: video streams"| social_video_server
   apigateway -->|"HTTP: proxied API calls"| social_video_server
-  apigateway -->|"HTTP: proxied UI"| social_web_app
+  apigateway -->|"HTTP: proxied UI (replaces the base 302 to /scv3/)"| social_web_app
   relational_dbserver <-->|"SQL: client records TODO(source)"| ext_client_sql
   ext_web_clients -->|"HTTP: API calls"| relational_dbserver
   apigateway -->|"HTTP: proxied API calls"| relational_dbserver
   service_audit_processing -->|"HTTP: relational lookups during audit processing"| relational_dbserver
   expresso_server -->|"HTTP: relational lookups"| relational_dbserver
   ext_web_clients -->|"HTTP: Node-RED editor and HTTP-in nodes"| nodered
-  apigateway -->|"HTTP: proxied UI"| nodered
+  apigateway -->|"HTTP: proxied editor, HTTP nodes and dashboard; WebSocket upgrade passed through"| nodered
   nodered <-->|"varies: site-specific TODO(source)"| ext_nodered_endpoints
   alert_processing_engine -->|"MQTT: object data in; alerts and debug messages out"| pf_mosquitto
   alert_processing_engine -->|"HTTP: object and snapshot queries"| dbserver
   ape_frame_playback -->|"MQTT: frame recording triggers TODO(source)"| pf_mosquitto
   ape_frame_playback -->|"HTTP: snapshot queries"| dbserver
-  apigateway -->|"HTTP: proxied API calls"| alert_processing_engine
-  apigateway -->|"HTTP: proxied playback"| ape_frame_playback
+  apigateway -->|"HTTP: proxied API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| alert_processing_engine
+  apigateway -->|"HTTP: proxied playback; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| ape_frame_playback
   ext_web_clients -->|"HTTP: direct API access"| alert_processing_engine
   ext_web_clients -->|"HTTP: direct playback access"| ape_frame_playback
   expresso_server -->|"HTTP: APE events integration"| alert_processing_engine

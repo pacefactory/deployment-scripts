@@ -2,7 +2,7 @@
 %% derived_from: scripts/docs/flows.tsv
 %% derived_from: scripts/docs/services.tsv
 %% derived_from: scripts/docs/externals.tsv
-%% last_verified: 2026-09-10 (794523d)
+%% last_verified: 2026-09-10 (08482b3)
 flowchart LR
   classDef optional stroke-dasharray: 5 5
   subgraph deployment["services touched by profile base"]
@@ -36,12 +36,12 @@ flowchart LR
   service_audit_processing -->|"HTTP: audit config reads"| auditgui
   service_audit_processing -->|"HTTP: classification requests"| service_dtreeserver
   service_audit_processing -->|"MQTT: segment export messages"| pf_mosquitto
-  apigateway -->|"HTTP: proxied API calls"| dbserver
+  apigateway -->|"HTTP: proxied API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| dbserver
   apigateway -->|"HTTP: proxied API calls"| service_dtreeserver
   apigateway -->|"HTTP: proxied API calls"| service_gifwrapper
-  apigateway -->|"HTTP: proxied control-server API calls"| realtime
+  apigateway -->|"HTTP: proxied control-server API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| realtime
   apigateway -->|"HTTP: proxied UI and API calls"| auditgui
   apigateway -->|"HTTP: proxied status API calls"| service_audit_processing
   apigateway -->|"WS: MQTT over WebSocket for browsers (listener 7575, protocol websockets; anonymous read, admin publish)"| pf_mosquitto
   pf_mosquitto -->|"file: persistence database; password, ACL and mosquitto.conf files that shadow the image copies"| vol_mosquitto_data
-  ext_web_clients -->|"HTTP: web UI and API traffic (307 redirect to HTTPS when an https-* profile is enabled)"| apigateway
+  ext_web_clients -->|"HTTP: web UI and API traffic (/ redirects 302 to /scv3/; 307 redirect to HTTPS when an https-* profile is enabled)"| apigateway

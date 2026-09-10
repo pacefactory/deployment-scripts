@@ -9,7 +9,7 @@ derived_from:
   - compose/docker-compose.ape.yml
   - scripts/docs/flows.tsv
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 9d0549a
 ---
 
 # MQTT clients
@@ -34,8 +34,10 @@ image makes no outbound connections
 - `mqtts-public` (sub-profile of every `https-*`, default on): publishes 8883,
   mounts the https-* certificate at `/etc/mosquitto-tls` and passes
   `SERVER_NAME` (`compose/docker-compose.mqtts-public.yml:18-24`).
-- `apigateway` (base): proxies the WebSocket listener at `/api/mqtt`
-  (`compose/docker-compose.base.yml:359-361`); the Expresso UI and web GUI use it
+- `apigateway` (base): proxies the WebSocket listener at `/api/mqtt/`
+  (`compose/docker-compose.base.yml:359-361`), passing the `Upgrade`,
+  `Connection` and `Host` headers through and stripping the `/api/mqtt/`
+  prefix ([apigateway route table](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md)); the Expresso UI and web GUI use it
   from the browser (`compose/docker-compose.expresso-010.yml:131-139`).
 - Internal publishers and subscribers (realtime, data_interconnector,
   service_audit_processing, celery_worker, alert_processing_engine,

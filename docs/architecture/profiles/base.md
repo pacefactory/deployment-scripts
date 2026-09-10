@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 08482b3
 ---
 
 # Profile: `base`
@@ -40,7 +40,7 @@ TODO(source): no `x-pf-info.description` in the fragment.
 | `service_gifwrapper` | `service_gifwrapper` | `pacefactory/service-gifwrapper:${GIFWRAPPER_TAG:-latest}` | [scv2_services_gifwrapper](https://github.com/pacefactory/scv2_services_gifwrapper) (internal) | Renders ghosted snapshot images and GIFs from the dbserver data volume |
 | `service_dtreeserver` | `service_dtreeserver` | `pacefactory/service-dtreeserver:${DTREESERVER_TAG:-latest}` | [scv2_services_dtreeserver](https://github.com/pacefactory/scv2_services_dtreeserver) (internal) | Decision-tree classifier service used by audit processing |
 | `service_audit_processing` | `service_audit_processing` | `pacefactory/service-audit-processing:${AUDIT_PROCESSING_TAG:-latest}` | [scv3_services_processing](https://github.com/pacefactory/scv3_services_processing) (internal) | Batch audit processing over dbserver data; exports segments over MQTT |
-| `apigateway` | `apigateway` | `pacefactory/apigateway:${APIGATEWAY_TAG:-latest}` | [scv2_apigateway](https://github.com/pacefactory/scv2_apigateway) (internal) | nginx reverse proxy; the only HTTP(S) entry point to the deployment |
+| `apigateway` | `apigateway` | `pacefactory/apigateway:${APIGATEWAY_TAG:-latest}` | [scv2_apigateway](https://github.com/pacefactory/scv2_apigateway) (internal) | nginx reverse proxy in front of every web UI and /api/* path; serves HTTP on 80 and, with an https-* profile, HTTPS on 443 |
 
 ## Services modified from other profiles
 
@@ -103,15 +103,15 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 | `service_audit_processing` | `auditgui` | internal | HTTP | auditgui:80 | audit config reads | polling | base | source: `compose/docker-compose.base.yml:325`; [link](https://github.com/pacefactory/scv3_services_processing/blob/main/docs/architecture/README.md) |
 | `service_audit_processing` | `service_dtreeserver` | internal | HTTP | service_dtreeserver:7272 | classification requests | on event | base | source: `compose/docker-compose.base.yml:326`; [link](https://github.com/pacefactory/scv3_services_processing/blob/main/docs/architecture/README.md) |
 | `service_audit_processing` | `pf_mosquitto` | internal | MQTT | pf_mosquitto:1883 (PF_MQTT_URL) | segment export messages | on event | base | source: `compose/docker-compose.base.yml:327`; [link](https://github.com/pacefactory/scv3_services_processing/blob/main/docs/architecture/README.md) |
-| `apigateway` | `dbserver` | internal | HTTP | dbserver:8050 (/api/dbserver) | proxied API calls | on demand | base | source: `compose/docker-compose.base.yml:347-348`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `service_dtreeserver` | internal | HTTP | service_dtreeserver:7272 | proxied API calls | on demand | base | source: `compose/docker-compose.base.yml:349-350`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `service_gifwrapper` | internal | HTTP | service_gifwrapper:7171 (/api/gif) | proxied API calls | on demand | base | source: `compose/docker-compose.base.yml:351-352`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `realtime` | internal | HTTP | realtime:8181 | proxied control-server API calls | on demand | base | source: `compose/docker-compose.base.yml:353-354`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `auditgui` | internal | HTTP | auditgui:80 (/scv3, /api/uiserver) | proxied UI and API calls | on demand | base | source: `compose/docker-compose.base.yml:355-356`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `service_audit_processing` | internal | HTTP | service_audit_processing:3005 | proxied status API calls | on demand | base | source: `compose/docker-compose.base.yml:357-358`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `apigateway` | `dbserver` | internal | HTTP | dbserver:8050 (/api/dbserver/) | proxied API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix | on demand | base | source: `compose/docker-compose.base.yml:347-348`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `service_dtreeserver` | internal | HTTP | service_dtreeserver:7272 (/api/dtree_classifier/) | proxied API calls | on demand | base | source: `compose/docker-compose.base.yml:349-350`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `service_gifwrapper` | internal | HTTP | service_gifwrapper:7171 (/api/gif/) | proxied API calls | on demand | base | source: `compose/docker-compose.base.yml:351-352`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `realtime` | internal | HTTP | realtime:8181 (/api/realtime/) | proxied control-server API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix | on demand | base | source: `compose/docker-compose.base.yml:353-354`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `auditgui` | internal | HTTP | auditgui:80 (/scv3/, /api/uiserver/; / answers 302 to scv3/) | proxied UI and API calls | on demand | base | source: `compose/docker-compose.base.yml:355-356`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `service_audit_processing` | internal | HTTP | service_audit_processing:3005 (/api/proc/) | proxied status API calls | on demand | base | source: `compose/docker-compose.base.yml:357-358`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 | `apigateway` | `pf_mosquitto` | internal | WS | pf_mosquitto:7575 (/api/mqtt) | MQTT over WebSocket for browsers (listener 7575, protocol websockets; anonymous read, admin publish) | continuous | base | source: `compose/docker-compose.base.yml:359-361`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
 | `pf_mosquitto` | `vol_mosquitto_data` | internal | file | /mosquitto (rw mount of mosquitto-data): persistence at /mosquitto/data/, config at /mosquitto/config/ | persistence database; password, ACL and mosquitto.conf files that shadow the image copies | continuous | base | source: `compose/docker-compose.base.yml:191`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
-| `ext_web_clients` | `apigateway` | in | HTTP | host port HTTP_PORT (default 80) | web UI and API traffic (307 redirect to HTTPS when an https-* profile is enabled) | on demand | base | source: `compose/docker-compose.base.yml:369-370`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `ext_web_clients` | `apigateway` | in | HTTP | host port HTTP_PORT (default 80) | web UI and API traffic (/ redirects 302 to /scv3/; 307 redirect to HTTPS when an https-* profile is enabled) | on demand | base | source: `compose/docker-compose.base.yml:369-370`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md#listeners) |
 
 ## Diagram
 
@@ -151,13 +151,13 @@ flowchart LR
   service_audit_processing -->|"HTTP: audit config reads"| auditgui
   service_audit_processing -->|"HTTP: classification requests"| service_dtreeserver
   service_audit_processing -->|"MQTT: segment export messages"| pf_mosquitto
-  apigateway -->|"HTTP: proxied API calls"| dbserver
+  apigateway -->|"HTTP: proxied API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| dbserver
   apigateway -->|"HTTP: proxied API calls"| service_dtreeserver
   apigateway -->|"HTTP: proxied API calls"| service_gifwrapper
-  apigateway -->|"HTTP: proxied control-server API calls"| realtime
+  apigateway -->|"HTTP: proxied control-server API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| realtime
   apigateway -->|"HTTP: proxied UI and API calls"| auditgui
   apigateway -->|"HTTP: proxied status API calls"| service_audit_processing
   apigateway -->|"WS: MQTT over WebSocket for browsers (listener 7575, protocol websockets; anonymous read, admin publish)"| pf_mosquitto
   pf_mosquitto -->|"file: persistence database; password, ACL and mosquitto.conf files that shadow the image copies"| vol_mosquitto_data
-  ext_web_clients -->|"HTTP: web UI and API traffic (307 redirect to HTTPS when an https-* profile is enabled)"| apigateway
+  ext_web_clients -->|"HTTP: web UI and API traffic (/ redirects 302 to /scv3/; 307 redirect to HTTPS when an https-* profile is enabled)"| apigateway
 ```

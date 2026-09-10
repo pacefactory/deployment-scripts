@@ -5,7 +5,7 @@ derived_from:
   - compose/docker-compose.*.yml
   - build.sh
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 08482b3
 ---
 
 # Profile dependencies

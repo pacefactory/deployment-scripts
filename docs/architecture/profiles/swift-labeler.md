@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 08482b3
 ---
 
 # Profile: `swift-labeler`
@@ -62,7 +62,8 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 |---|---|---|---|---|---|---|---|---|
 | `swift_labeler` | `dbserver` | internal | HTTP | dbserver (port TODO(source)) | object and snapshot queries | on demand | swift-labeler | source: `compose/docker-compose.swift-labeler.yml:26`; [link](https://github.com/pacefactory/swift-labeler/blob/main/docs/architecture/README.md) |
 | `ext_web_clients` | `swift_labeler` | in | HTTP | host port SWIFT_LABELER_PUBLIC_PORT (default 7474) | labelling UI | on demand | swift-labeler | source: `compose/docker-compose.swift-labeler.yml:14-15`; [link](https://github.com/pacefactory/swift-labeler/blob/main/docs/architecture/README.md) |
-| `apigateway` | `swift_labeler` | internal | HTTP | swift-labeler:7474 (/swift) | proxied UI and API; static assets via shared volume | on demand | swift-labeler | source: `compose/docker-compose.swift-labeler.yml:41-45`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `apigateway` | `swift_labeler` | internal | HTTP | swift-labeler:7474 (/swift/ and /api/swift/, both forwarded as /swift/) | proxied UI and API; adds Host and X-Real-IP | on demand | swift-labeler | source: `compose/docker-compose.swift-labeler.yml:41-43`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `vol_swift_labeler_static` | `apigateway` | internal | file | /www/static/swift-static (ro mount of swift-labeler-static), served at /swift/static/ | Django static assets written by swift-labeler, served with a 30-day cache expiry | on demand | swift-labeler | source: `compose/docker-compose.swift-labeler.yml:44-45; scv2_apigateway etc/nginx/templates.swift-labeler/locations/swift-labeler.conf.template`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 | `service_audit_processing` | `swift_labeler` | internal | HTTP | swift-labeler:7474/swift | label lookups TODO(source) | on demand | swift-labeler | source: `compose/docker-compose.swift-labeler.yml:51`; [link](https://github.com/pacefactory/scv3_services_processing/blob/main/docs/architecture/README.md) |
 
 ## Diagram
@@ -76,12 +77,14 @@ flowchart LR
     swift_labeler["swift-labeler (profile: swift-labeler)"]
     dbserver["dbserver"]
     apigateway["apigateway"]
+    vol_swift_labeler_static[("volume: swift_labeler_static")]
     service_audit_processing["service_audit_processing"]
   end
   ext_web_clients{{"Web browsers and API clients"}}
   swift_labeler -->|"HTTP: object and snapshot queries"| dbserver
   ext_web_clients -->|"HTTP: labelling UI"| swift_labeler
-  apigateway -->|"HTTP: proxied UI and API; static assets via shared volume"| swift_labeler
+  apigateway -->|"HTTP: proxied UI and API; adds Host and X-Real-IP"| swift_labeler
+  vol_swift_labeler_static -->|"file: Django static assets written by swift-labeler, served with a 30-day cache expiry"| apigateway
   service_audit_processing -->|"HTTP: label lookups TODO(source)"| swift_labeler
   class swift_labeler optional
 ```

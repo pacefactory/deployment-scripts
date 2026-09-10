@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 08482b3
 ---
 
 # Profile: `autozone`
@@ -64,7 +64,7 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 | `autozone` | `autozone_mongo` | internal | MongoDB wire | autozone_mongo:27017 | heatmaps and zones | on demand | autozone | source: `compose/docker-compose.autozone.yml:24`; [link](https://github.com/pacefactory/autozone/blob/main/docs/architecture/README.md) |
 | `autozone` | `dbserver` | internal | HTTP | dbserver:8050 | tracked object hulls | polling TODO(source) | autozone | source: `compose/docker-compose.autozone.yml:25`; [link](https://github.com/pacefactory/autozone/blob/main/docs/architecture/README.md) |
 | `autozone_api` | `autozone_mongo` | internal | MongoDB wire | autozone_mongo:27017 | zone results | on demand | autozone | source: `compose/docker-compose.autozone.yml:42`; [link](https://github.com/pacefactory/autozone/blob/main/docs/architecture/README.md) |
-| `apigateway` | `autozone_api` | internal | HTTP | autozone_api:4545 | proxied API calls | on demand | autozone | source: `compose/docker-compose.autozone.yml:63-64`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `apigateway` | `autozone_api` | internal | HTTP | autozone_api:4545 (/api/autozone/) | proxied API calls, WebSocket upgrade passed through | on demand | autozone | source: `compose/docker-compose.autozone.yml:63-64`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 | `service_audit_processing` | `autozone_api` | internal | HTTP | autozone_api:4545 | autozone entry lookups | on demand | autozone | source: `compose/docker-compose.autozone.yml:70`; [link](https://github.com/pacefactory/scv3_services_processing/blob/main/docs/architecture/README.md) |
 
 ## Diagram
@@ -85,7 +85,7 @@ flowchart LR
   autozone -->|"MongoDB wire: heatmaps and zones"| autozone_mongo
   autozone -->|"HTTP: tracked object hulls"| dbserver
   autozone_api -->|"MongoDB wire: zone results"| autozone_mongo
-  apigateway -->|"HTTP: proxied API calls"| autozone_api
+  apigateway -->|"HTTP: proxied API calls, WebSocket upgrade passed through"| autozone_api
   service_audit_processing -->|"HTTP: autozone entry lookups"| autozone_api
   class autozone_api,autozone_mongo,autozone optional
 ```

@@ -2,7 +2,7 @@
 %% derived_from: scripts/docs/flows.tsv
 %% derived_from: scripts/docs/services.tsv
 %% derived_from: scripts/docs/externals.tsv
-%% last_verified: 2026-09-10 (794523d)
+%% last_verified: 2026-09-10 (08482b3)
 flowchart LR
   classDef optional stroke-dasharray: 5 5
   subgraph deployment["services touched by profile node-red"]
@@ -12,6 +12,6 @@ flowchart LR
   ext_web_clients{{"Web browsers and API clients"}}
   ext_nodered_endpoints{{"Node-RED flow endpoints"}}
   ext_web_clients -->|"HTTP: Node-RED editor and HTTP-in nodes"| nodered
-  apigateway -->|"HTTP: proxied UI"| nodered
+  apigateway -->|"HTTP: proxied editor, HTTP nodes and dashboard; WebSocket upgrade passed through"| nodered
   nodered <-->|"varies: site-specific TODO(source)"| ext_nodered_endpoints
   class nodered optional

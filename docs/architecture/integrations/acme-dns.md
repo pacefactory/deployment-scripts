@@ -9,7 +9,7 @@ derived_from:
   - credentials/godaddy/credentials.ini.example
   - scripts/docs/flows.tsv
 last_verified: 2026-09-10
-verified_against: ac43569
+verified_against: 9d0549a
 ---
 
 # Let's Encrypt (ACME) and DNS provider APIs
@@ -32,11 +32,12 @@ verified_against: ac43569
   `compose/docker-compose.https-digitalocean.yml:63`,
   `compose/docker-compose.https-godaddy.yml:62`,
   `compose/docker-compose.https-manual.yml:51`,
-  `compose/docker-compose.mqtts-public.yml:22`). The flow table records the
-  `vol_certbot -> pf_mosquitto` rows. TODO(source): the matching
-  `vol_certbot -> apigateway` rows are missing from `scripts/docs/flows.tsv`;
-  add them, with the payload the gateway reads, during the scv2_apigateway
-  documentation bootstrap.
+  `compose/docker-compose.mqtts-public.yml:22`). The flow table records one
+  `vol_certbot -> pf_mosquitto` and one `vol_certbot -> apigateway` row per
+  certbot profile. The gateway reads `live/<SERVER_NAME>/fullchain.pem`,
+  `privkey.pem` and, when the key is encrypted, `privkey.pass`; it drops the
+  password directive when that file is absent
+  ([apigateway configuration reference: `ssl` profile](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/configuration.md#ssl-profile)).
 
 ## Direction and protocol(s)
 
@@ -70,7 +71,10 @@ written to the `certbot` volume under `/etc/letsencrypt/live/<name>/`.
 renewal (`TODO(source)`: renewal procedure). While no certificate exists the
 apigateway serves a temporary self-signed certificate
 (`compose/docker-compose.https-no-certbot.yml:10-12` describes the same
-behaviour for the file-based profile). Certbot run instructions:
+behaviour for the file-based profile). The gateway checks for the files only
+at container start, so after certbot has written them the deployment must be
+relaunched (`./update.sh`) for the real certificate to be served:
+[Replace the self-signed certificate](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/how-to/replace-the-self-signed-certificate.md). Certbot run instructions:
 [Enable HTTPS](../../how-to/enable-https.md).
 
 ## Variants

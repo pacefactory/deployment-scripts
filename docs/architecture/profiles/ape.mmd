@@ -2,7 +2,7 @@
 %% derived_from: scripts/docs/flows.tsv
 %% derived_from: scripts/docs/services.tsv
 %% derived_from: scripts/docs/externals.tsv
-%% last_verified: 2026-09-10 (794523d)
+%% last_verified: 2026-09-10 (08482b3)
 flowchart LR
   classDef optional stroke-dasharray: 5 5
   subgraph deployment["services touched by profile ape"]
@@ -20,8 +20,8 @@ flowchart LR
   alert_processing_engine -->|"HTTP: object and snapshot queries"| dbserver
   ape_frame_playback -->|"MQTT: frame recording triggers TODO(source)"| pf_mosquitto
   ape_frame_playback -->|"HTTP: snapshot queries"| dbserver
-  apigateway -->|"HTTP: proxied API calls"| alert_processing_engine
-  apigateway -->|"HTTP: proxied playback"| ape_frame_playback
+  apigateway -->|"HTTP: proxied API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| alert_processing_engine
+  apigateway -->|"HTTP: proxied playback; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| ape_frame_playback
   ext_web_clients -->|"HTTP: direct API access"| alert_processing_engine
   ext_web_clients -->|"HTTP: direct playback access"| ape_frame_playback
   expresso_server -->|"HTTP: APE events integration"| alert_processing_engine

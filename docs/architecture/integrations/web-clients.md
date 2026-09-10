@@ -25,8 +25,8 @@ derived_from:
   - compose/docker-compose.swift-labeler.yml
   - compose/docker-compose.tools.yml
   - scripts/docs/flows.tsv
-last_verified: 2026-09-09
-verified_against: ccf3768
+last_verified: 2026-09-10
+verified_against: 9d0549a
 ---
 
 # Web browsers and API clients
@@ -58,8 +58,18 @@ planned to disappear; see the linked issues.
 
 ## Direction and protocol(s)
 
-Inbound HTTP/HTTPS. Authentication is per UI (Expresso UI password gate via
-`EXPRESSO_UI_PASSWORD_PROTECTION`; others `TODO(source)` in their repos).
+Inbound HTTP/HTTPS. The apigateway adds no authentication of its own: no
+`auth_*` directive exists in its templates
+([route table](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md)). Authentication is per UI (Expresso UI password gate
+via `EXPRESSO_UI_PASSWORD_PROTECTION`; others `TODO(source)` in their repos).
+
+On the apigateway ports: plain HTTP on `HTTP_PORT`, where `/` answers a `302`
+to `/scv3/` (or proxies the social web app when `social` is enabled); with an
+`https-*` profile, HTTPS on `HTTPS_PORT` with TLS 1.2 and 1.3 and HTTP/2, a
+`Content-Security-Policy: frame-ancestors 'none'` header, and a `307` from the
+HTTP port to the HTTPS URL (carrying `:HTTPS_PORT` when it is not 443). Proxied
+requests have no body-size limit and 3600 s read and send timeouts. Details
+and sources: [apigateway listeners](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md#listeners).
 
 ## Client-side network requirements
 
@@ -74,8 +84,17 @@ the owning repos (see [glossary](../glossary.md#services)).
 
 ## Failure modes at the boundary
 
-Behind the apigateway a stopped upstream returns nginx errors; `update.sh`
-reloads nginx after `up` to refresh upstream DNS (`update.sh:120-121`).
+Behind the apigateway a stopped or unreachable upstream returns
+`502 Bad Gateway` for that path only; nginx resolves upstream names once at
+configuration load, so a recreated upstream container keeps returning `502`
+until `nginx -s reload`. `update.sh` issues that reload after every `up`
+(`update.sh:120-121`). An upstream name that does not resolve when the gateway
+starts stops nginx altogether (`host not found in upstream`), which is why
+every `apigateway` block lists its upstreams under `depends_on`. Recovery:
+[Recover from upstream errors](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/how-to/recover-from-upstream-errors.md). With an `https-*` profile and no
+certificate files, the gateway serves a temporary self-signed certificate
+rather than failing: [Replace the self-signed certificate](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/how-to/replace-the-self-signed-certificate.md).
+Internals: [apigateway architecture](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/architecture/README.md).
 
 ## Variants
 

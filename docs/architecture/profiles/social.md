@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 08482b3
 ---
 
 # Profile: `social`
@@ -63,8 +63,8 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 |---|---|---|---|---|---|---|---|---|
 | `social_video_server` | `auditgui` | internal | HTTP | auditgui:80 | uiserver reads | on demand | social | source: `compose/docker-compose.social.yml:42`; [link](https://github.com/pacefactory/social_video_server/blob/main/docs/architecture/README.md) |
 | `ext_web_clients` | `social_video_server` | in | HTTP | host port SOCIAL_VIDEO_PUBLIC_PORT (default 9999) | video streams | on demand | social | source: `compose/docker-compose.social.yml:43-44`; [link](https://github.com/pacefactory/social_video_server/blob/main/docs/architecture/README.md) |
-| `apigateway` | `social_video_server` | internal | HTTP | social_video_server:9999 (/api/video) | proxied API calls | on demand | social | source: `compose/docker-compose.social.yml:56`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `social_web_app` | internal | HTTP | social_web_app (port TODO(source); served at /) | proxied UI | on demand | social | source: `compose/docker-compose.social.yml:57`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `apigateway` | `social_video_server` | internal | HTTP | social_video_server:9999 (/api/video/) | proxied API calls | on demand | social | source: `compose/docker-compose.social.yml:56`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `social_web_app` | internal | HTTP | social_web_app:80 (/; SOCIAL_VIDO_APP_HOST carries no port, so nginx uses the http default 80) | proxied UI (replaces the base 302 to /scv3/) | on demand | social | source: `compose/docker-compose.social.yml:57; scv2_apigateway etc/nginx/templates.social/locations/root.conf.template`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 
 ## Diagram
 
@@ -83,6 +83,6 @@ flowchart LR
   social_video_server -->|"HTTP: uiserver reads"| auditgui
   ext_web_clients -->|"HTTP: video streams"| social_video_server
   apigateway -->|"HTTP: proxied API calls"| social_video_server
-  apigateway -->|"HTTP: proxied UI"| social_web_app
+  apigateway -->|"HTTP: proxied UI (replaces the base 302 to /scv3/)"| social_web_app
   class social_web_app,social_video_server optional
 ```

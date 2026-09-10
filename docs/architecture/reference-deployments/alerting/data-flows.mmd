@@ -3,7 +3,7 @@
 %% derived_from: scripts/docs/flows.tsv
 %% derived_from: scripts/docs/services.tsv
 %% derived_from: scripts/docs/externals.tsv
-%% last_verified: 2026-09-10 (794523d)
+%% last_verified: 2026-09-10 (08482b3)
 flowchart LR
   classDef optional stroke-dasharray: 5 5
   subgraph deployment["alerting"]
@@ -57,15 +57,15 @@ flowchart LR
   service_audit_processing -->|"HTTP: audit config reads"| auditgui
   service_audit_processing -->|"HTTP: classification requests"| service_dtreeserver
   service_audit_processing -->|"MQTT: segment export messages"| pf_mosquitto
-  apigateway -->|"HTTP: proxied API calls"| dbserver
+  apigateway -->|"HTTP: proxied API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| dbserver
   apigateway -->|"HTTP: proxied API calls"| service_dtreeserver
   apigateway -->|"HTTP: proxied API calls"| service_gifwrapper
-  apigateway -->|"HTTP: proxied control-server API calls"| realtime
+  apigateway -->|"HTTP: proxied control-server API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| realtime
   apigateway -->|"HTTP: proxied UI and API calls"| auditgui
   apigateway -->|"HTTP: proxied status API calls"| service_audit_processing
   apigateway -->|"WS: MQTT over WebSocket for browsers (listener 7575, protocol websockets; anonymous read, admin publish)"| pf_mosquitto
   pf_mosquitto -->|"file: persistence database; password, ACL and mosquitto.conf files that shadow the image copies"| vol_mosquitto_data
-  ext_web_clients -->|"HTTP: web UI and API traffic (307 redirect to HTTPS when an https-* profile is enabled)"| apigateway
+  ext_web_clients -->|"HTTP: web UI and API traffic (/ redirects 302 to /scv3/; 307 redirect to HTTPS when an https-* profile is enabled)"| apigateway
   ext_cameras -->|"RTSP: H.264/H.265 video"| record_video
   record_video -->|"file: recorded video segments"| ext_host_fs
   stitch_videos <-->|"file: stitched MP4 per camera"| ext_host_fs
@@ -87,26 +87,26 @@ flowchart LR
   celery_worker -->|"HTTP: audit app version info for site-reliability snapshot"| auditgui
   celery_beat -->|"Redis: scheduled task enqueue"| redis
   celery_beat -->|"MongoDB wire: schedule state TODO(source)"| mongo_exp
-  apigateway -->|"HTTP: proxied API calls"| expresso_server
-  apigateway -->|"HTTP: proxied UI"| expresso_ui
+  apigateway -->|"HTTP: proxied API calls, WebSocket upgrade passed through"| expresso_server
+  apigateway -->|"HTTP: proxied UI, WebSocket upgrade passed through"| expresso_ui
   social_video_server -->|"HTTP: uiserver reads"| auditgui
   ext_web_clients -->|"HTTP: video streams"| social_video_server
   apigateway -->|"HTTP: proxied API calls"| social_video_server
-  apigateway -->|"HTTP: proxied UI"| social_web_app
+  apigateway -->|"HTTP: proxied UI (replaces the base 302 to /scv3/)"| social_web_app
   relational_dbserver <-->|"SQL: client records TODO(source)"| ext_client_sql
   ext_web_clients -->|"HTTP: API calls"| relational_dbserver
   apigateway -->|"HTTP: proxied API calls"| relational_dbserver
   service_audit_processing -->|"HTTP: relational lookups during audit processing"| relational_dbserver
   expresso_server -->|"HTTP: relational lookups"| relational_dbserver
   ext_web_clients -->|"HTTP: Node-RED editor and HTTP-in nodes"| nodered
-  apigateway -->|"HTTP: proxied UI"| nodered
+  apigateway -->|"HTTP: proxied editor, HTTP nodes and dashboard; WebSocket upgrade passed through"| nodered
   nodered <-->|"varies: site-specific TODO(source)"| ext_nodered_endpoints
   alert_processing_engine -->|"MQTT: object data in; alerts and debug messages out"| pf_mosquitto
   alert_processing_engine -->|"HTTP: object and snapshot queries"| dbserver
   ape_frame_playback -->|"MQTT: frame recording triggers TODO(source)"| pf_mosquitto
   ape_frame_playback -->|"HTTP: snapshot queries"| dbserver
-  apigateway -->|"HTTP: proxied API calls"| alert_processing_engine
-  apigateway -->|"HTTP: proxied playback"| ape_frame_playback
+  apigateway -->|"HTTP: proxied API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| alert_processing_engine
+  apigateway -->|"HTTP: proxied playback; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| ape_frame_playback
   ext_web_clients -->|"HTTP: direct API access"| alert_processing_engine
   ext_web_clients -->|"HTTP: direct playback access"| ape_frame_playback
   expresso_server -->|"HTTP: APE events integration"| alert_processing_engine
