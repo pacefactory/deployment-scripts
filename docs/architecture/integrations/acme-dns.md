@@ -8,8 +8,8 @@ derived_from:
   - credentials/digitalocean/credentials.ini.example
   - credentials/godaddy/credentials.ini.example
   - scripts/docs/flows.tsv
-last_verified: 2026-09-09
-verified_against: ccf3768
+last_verified: 2026-09-10
+verified_against: ac43569
 ---
 
 # Let's Encrypt (ACME) and DNS provider APIs
@@ -28,7 +28,15 @@ verified_against: ccf3768
   profile: `certbot/dns-digitalocean:latest`, `miigotu/certbot-dns-godaddy`,
   `certbot/certbot`.
 - `apigateway` and `pf_mosquitto` consume the issued files from the `certbot`
-  volume (read-only mounts at `/etc/nginx/ssl` and `/etc/mosquitto-tls`).
+  volume (read-only mounts at `/etc/nginx/ssl` and `/etc/mosquitto-tls`,
+  `compose/docker-compose.https-digitalocean.yml:63`,
+  `compose/docker-compose.https-godaddy.yml:62`,
+  `compose/docker-compose.https-manual.yml:51`,
+  `compose/docker-compose.mqtts-public.yml:22`). The flow table records the
+  `vol_certbot -> pf_mosquitto` rows. TODO(source): the matching
+  `vol_certbot -> apigateway` rows are missing from `scripts/docs/flows.tsv`;
+  add them, with the payload the gateway reads, during the scv2_apigateway
+  documentation bootstrap.
 
 ## Direction and protocol(s)
 
