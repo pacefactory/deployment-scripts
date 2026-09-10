@@ -1,7 +1,7 @@
 %% derived_from: docs/architecture/network/site-requirements.md
 %% derived_from: scripts/remote/update-server.sh
 %% derived_from: compose/docker-compose.*.yml
-%% last_verified: 2026-09-09 (def9139)
+%% last_verified: 2026-09-10 (ba84b53)
 flowchart LR
   ext_fleet_operator{{"Fleet operator workstation (Windows, ssh)"}}
   ext_web_clients{{"Web browsers and API clients"}}
@@ -20,7 +20,7 @@ flowchart LR
   ext_cameras -->|"RTSP over TCP 554"| deployment
   ext_web_clients -->|"HTTP 80 / HTTPS 443"| deployment
   ext_mqtt_clients -->|"MQTT 1883 / MQTTS 8883"| deployment
-  deployment <-->|"SQL (TODO(source): port)"| ext_client_sql
+  deployment -->|"SQL out: TDS (mssql, example 1433) or PostgreSQL (example 5432), port per site"| ext_client_sql
   ext_fleet_operator -->|"SSH 22"| host
   checkout -->|"build.sh, update.sh"| deployment
   proxyhook -.-|"exports proxy env"| ext_proxy

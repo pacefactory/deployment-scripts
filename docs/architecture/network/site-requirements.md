@@ -8,8 +8,8 @@ derived_from:
   - build.sh
   - scripts/installYq.sh
   - scripts/docs/externals.tsv
-last_verified: 2026-09-09
-verified_against: def9139
+last_verified: 2026-09-10
+verified_against: ba84b53
 ---
 
 # Client site network requirements
@@ -67,7 +67,7 @@ Docker Hub pull path also uses `auth.docker.io` and `production.cloudflare.docke
 | DigitalOcean API | `api.digitalocean.com` | HTTPS 443 | DNS-01 challenge (https-digitalocean) | `compose/docker-compose.https-digitalocean.yml:38-41` |
 | GoDaddy API | `api.godaddy.com` | HTTPS 443 | DNS-01 challenge (https-godaddy) | `compose/docker-compose.https-godaddy.yml:36-41` |
 | Peer Pacefactory deployment | per site (`PF_REMOTE_TRAINER_URLS`) | HTTPS 443 | remote training (expresso-010) | `compose/docker-compose.expresso-010.yml:23-35` |
-| Client SQL database | per site | SQL, port `TODO(source)` | rdb integration | `compose/docker-compose.rdb.yml:5-7` |
+| Client SQL database | per site | SQL, outbound from the host: TDS (SQL Server, example port 1433) or PostgreSQL wire (example port 5432); the port is set per database in relational_dbserver's `connection.json` | rdb integration | `compose/docker-compose.rdb.yml:5-7`; [client SQL](../integrations/client-sql.md) |
 
 The Let's Encrypt, DigitalOcean and GoDaddy hostnames are the plugins' and
 CA's published endpoints, not literals in this repository (`TODO(source)`).
@@ -101,7 +101,7 @@ flowchart LR
   ext_cameras -->|"RTSP over TCP 554"| deployment
   ext_web_clients -->|"HTTP 80 / HTTPS 443"| deployment
   ext_mqtt_clients -->|"MQTT 1883 / MQTTS 8883"| deployment
-  deployment <-->|"SQL (TODO(source): port)"| ext_client_sql
+  deployment -->|"SQL out: TDS (mssql, example 1433) or PostgreSQL (example 5432), port per site"| ext_client_sql
   ext_fleet_operator -->|"SSH 22"| host
   checkout -->|"build.sh, update.sh"| deployment
   proxyhook -.-|"exports proxy env"| ext_proxy

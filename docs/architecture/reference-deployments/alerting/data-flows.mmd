@@ -3,7 +3,7 @@
 %% derived_from: scripts/docs/flows.tsv
 %% derived_from: scripts/docs/services.tsv
 %% derived_from: scripts/docs/externals.tsv
-%% last_verified: 2026-09-10 (08482b3)
+%% last_verified: 2026-09-10 (ba84b53)
 flowchart LR
   classDef optional stroke-dasharray: 5 5
   subgraph deployment["alerting"]
@@ -30,6 +30,7 @@ flowchart LR
     expresso_ui["expresso_ui"]
     social_web_app["social_web_app (profile: social)"]
     relational_dbserver["relational_dbserver (profile: rdb)"]
+    vol_relational_dbserver_data[("volume: relational_dbserver_data")]
     nodered["nodered (profile: node-red)"]
     alert_processing_engine["alert_processing_engine (profile: ape)"]
     ape_frame_playback["ape_frame_playback (profile: ape)"]
@@ -93,11 +94,12 @@ flowchart LR
   ext_web_clients -->|"HTTP: video streams"| social_video_server
   apigateway -->|"HTTP: proxied API calls"| social_video_server
   apigateway -->|"HTTP: proxied UI (replaces the base 302 to /scv3/)"| social_web_app
-  relational_dbserver <-->|"SQL: client records TODO(source)"| ext_client_sql
-  ext_web_clients -->|"HTTP: API calls"| relational_dbserver
-  apigateway -->|"HTTP: proxied API calls"| relational_dbserver
-  service_audit_processing -->|"HTTP: relational lookups during audit processing"| relational_dbserver
-  expresso_server -->|"HTTP: relational lookups"| relational_dbserver
+  relational_dbserver -->|"SQL: parameterised SQL statement from the route config (SELECT in every committed example), result rows returned"| ext_client_sql
+  relational_dbserver -->|"file: JSON configuration tree (db/<database>/connection.json, get/<route>.json, schema.json) read on every request and written by the /config API"| vol_relational_dbserver_data
+  ext_web_clients -->|"HTTP: GET /db/<database>/get/<route> query routes (JSON rows), /config/* management API (JSON, includes connection passwords), HTML route index; no authentication"| relational_dbserver
+  apigateway -->|"HTTP: proxied query routes and /config API, including browser calls from auditgui (WEBGUI_RDB_URL=/api/rdb)"| relational_dbserver
+  service_audit_processing -->|"HTTP: JSON rows from configured GET query routes during audit processing (which routes: TODO(source) in scv3_services_processing)"| relational_dbserver
+  expresso_server -->|"HTTP: JSON rows from configured GET query routes (which routes: TODO(source) in expresso_server)"| relational_dbserver
   ext_web_clients -->|"HTTP: Node-RED editor and HTTP-in nodes"| nodered
   apigateway -->|"HTTP: proxied editor, HTTP nodes and dashboard; WebSocket upgrade passed through"| nodered
   nodered <-->|"varies: site-specific TODO(source)"| ext_nodered_endpoints

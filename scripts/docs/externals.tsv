@@ -2,7 +2,7 @@
 # direction is from the deployment's point of view
 ext_cameras	IP cameras	RTSP	in	cameras-rtsp.md	Site cameras streaming video into realtime (and record_video)
 ext_mqtt_clients	MQTT clients	MQTT, MQTTS, MQTT over WebSocket	in	mqtt-clients.md	Third-party MQTT consumers and publishers connecting to the deployment's own broker
-ext_client_sql	Client SQL database	SQL (driver TODO(source))	bidi	client-sql.md	A client's existing relational database reached through relational_dbserver
+ext_client_sql	Client SQL database	SQL (TDS via the mssql driver, or PostgreSQL wire via pg; chosen per database by connection.json type)	out	client-sql.md	A client's existing SQL Server or PostgreSQL database queried by relational_dbserver
 ext_acme	Let's Encrypt (ACME)	HTTPS	out	acme-dns.md	Certificate authority contacted by certbot
 ext_dns_api	DNS provider API (DigitalOcean, GoDaddy)	HTTPS	out	acme-dns.md	DNS API used by certbot for DNS-01 challenges
 ext_peer_deployment	Peer Pacefactory deployment	HTTPS	bidi	peer-deployments.md	Another Pacefactory deployment acting as a remote trainer or dispatcher

@@ -3,7 +3,7 @@
 %% derived_from: compose/docker-compose.*.yml
 %% derived_from: scripts/remote/update-server.sh
 %% derived_from: update.sh
-%% last_verified: 2026-09-09 (ccf3768)
+%% last_verified: 2026-09-10 (ba84b53)
 flowchart LR
   ext_cameras{{"IP cameras"}}
   ext_web_clients{{"Web browsers and API clients"}}
@@ -29,7 +29,7 @@ flowchart LR
   ext_web_clients -->|"HTTP/HTTPS: web UI and APIs"| deployment
   ext_mqtt_clients -->|"MQTT 1883 / MQTTS 8883 / WS via gateway"| deployment
   ext_ntfy_clients -->|"HTTP: push notifications (profile ntfy)"| deployment
-  deployment <-->|"SQL: client records (profile rdb)"| ext_client_sql
+  deployment -->|"SQL: configured SELECT queries, rows returned (profile rdb)"| ext_client_sql
   deployment <-->|"varies: site flows (profile node-red)"| ext_nodered_endpoints
   deployment -->|"HTTPS: certificate orders (https-* with certbot)"| ext_acme
   deployment -->|"HTTPS: DNS-01 records (https-digitalocean, https-godaddy)"| ext_dns_api

@@ -5,7 +5,7 @@ derived_from:
   - scripts/docs/index.tsv
   - docs/
 last_verified: 2026-09-10
-verified_against: 08482b3
+verified_against: ba84b53
 ---
 
 # Documentation index
