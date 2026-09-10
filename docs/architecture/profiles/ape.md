@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 9d0549a
 ---
 
 # Profile: `ape`
@@ -67,8 +67,8 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 | `alert_processing_engine` | `dbserver` | internal | HTTP | dbserver:8050 | object and snapshot queries | on event | ape | source: `compose/docker-compose.ape.yml:33`; [link](https://github.com/pacefactory/alert_processing_engine/blob/main/docs/architecture/README.md) |
 | `ape_frame_playback` | `pf_mosquitto` | internal | MQTT | mqtt://pf_mosquitto:1883 | frame recording triggers TODO(source) | continuous | ape | source: `compose/docker-compose.ape.yml:58`; [link](https://github.com/pacefactory/alert_processing_engine/blob/main/docs/architecture/README.md) |
 | `ape_frame_playback` | `dbserver` | internal | HTTP | dbserver:8050 | snapshot queries | on demand | ape | source: `compose/docker-compose.ape.yml:59`; [link](https://github.com/pacefactory/alert_processing_engine/blob/main/docs/architecture/README.md) |
-| `apigateway` | `alert_processing_engine` | internal | HTTP | alert_processing_engine:5380 | proxied API calls | on demand | ape | source: `compose/docker-compose.ape.yml:67-68`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `ape_frame_playback` | internal | HTTP | ape_frame_playback:5381 | proxied playback | on demand | ape | source: `compose/docker-compose.ape.yml:69-70`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `apigateway` | `alert_processing_engine` | internal | HTTP | alert_processing_engine:5380 (/api/ape/) | proxied API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix | on demand | ape | source: `compose/docker-compose.ape.yml:67-68`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `ape_frame_playback` | internal | HTTP | ape_frame_playback:5381 (/api/ape-frame-playback/) | proxied playback; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix | on demand | ape | source: `compose/docker-compose.ape.yml:69-70`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 | `ext_web_clients` | `alert_processing_engine` | in | HTTP | ephemeral host port -> 5380 | direct API access | on demand | ape | source: `compose/docker-compose.ape.yml:38-39`; [link](https://github.com/pacefactory/alert_processing_engine/blob/main/docs/architecture/README.md) |
 | `ext_web_clients` | `ape_frame_playback` | in | HTTP | ephemeral host port -> 5381 | direct playback access | on demand | ape | source: `compose/docker-compose.ape.yml:62-63`; [link](https://github.com/pacefactory/alert_processing_engine/blob/main/docs/architecture/README.md) |
 | `expresso_server` | `alert_processing_engine` | internal | HTTP | alert_processing_engine:5380 | APE events integration | on demand | ape | source: `compose/docker-compose.ape.yml:101`; [link](https://github.com/pacefactory/expresso_server/blob/main/docs/architecture/README.md) |
@@ -97,8 +97,8 @@ flowchart LR
   alert_processing_engine -->|"HTTP: object and snapshot queries"| dbserver
   ape_frame_playback -->|"MQTT: frame recording triggers TODO(source)"| pf_mosquitto
   ape_frame_playback -->|"HTTP: snapshot queries"| dbserver
-  apigateway -->|"HTTP: proxied API calls"| alert_processing_engine
-  apigateway -->|"HTTP: proxied playback"| ape_frame_playback
+  apigateway -->|"HTTP: proxied API calls; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| alert_processing_engine
+  apigateway -->|"HTTP: proxied playback; adds X-Forwarded-For/Proto/Host and X-Forwarded-Prefix"| ape_frame_playback
   ext_web_clients -->|"HTTP: direct API access"| alert_processing_engine
   ext_web_clients -->|"HTTP: direct playback access"| ape_frame_playback
   expresso_server -->|"HTTP: APE events integration"| alert_processing_engine

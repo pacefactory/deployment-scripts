@@ -26,7 +26,7 @@ derived_from:
   - compose/docker-compose.tools.yml
   - scripts/docs/flows.tsv
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 9d0549a
 ---
 
 # Deployment host filesystem
@@ -73,8 +73,13 @@ recorded video segments and stitched files.
 
 ## Failure modes at the boundary
 
-Missing certificate files: the apigateway serves a temporary self-signed
-certificate and pf_mosquitto starts without its MQTTS listener
+Missing certificate files: the apigateway generates a self-signed
+certificate for `SERVER_NAME` inside the container and serves that until the
+files appear and the container is restarted
+([Replace the self-signed certificate](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/how-to/replace-the-self-signed-certificate.md)); an encrypted key without
+`privkey.pass` stops nginx at start
+([apigateway configuration reference](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/configuration.md#ssl-profile)). pf_mosquitto starts
+without its MQTTS listener
 ([Recover the MQTTS listener](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/how-to/recover-the-mqtts-listener.md)).
 Missing credentials files: certbot fails at start.
 

@@ -2,7 +2,7 @@
 %% derived_from: scripts/docs/flows.tsv
 %% derived_from: scripts/docs/services.tsv
 %% derived_from: scripts/docs/externals.tsv
-%% last_verified: 2026-09-10 (794523d)
+%% last_verified: 2026-09-10 (9d0549a)
 flowchart LR
   classDef optional stroke-dasharray: 5 5
   subgraph deployment["services touched by profile expresso-010"]
@@ -40,6 +40,6 @@ flowchart LR
   celery_worker -->|"HTTP: audit app version info for site-reliability snapshot"| auditgui
   celery_beat -->|"Redis: scheduled task enqueue"| redis
   celery_beat -->|"MongoDB wire: schedule state TODO(source)"| mongo_exp
-  apigateway -->|"HTTP: proxied API calls"| expresso_server
-  apigateway -->|"HTTP: proxied UI"| expresso_ui
+  apigateway -->|"HTTP: proxied API calls, WebSocket upgrade passed through"| expresso_server
+  apigateway -->|"HTTP: proxied UI, WebSocket upgrade passed through"| expresso_ui
   class social_video_server optional

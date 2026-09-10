@@ -5,8 +5,8 @@ derived_from:
   - scripts/remote/update-server.sh
   - scripts/remote/README.md
   - build.sh
-last_verified: 2026-09-09
-verified_against: ccf3768
+last_verified: 2026-09-10
+verified_against: 9d0549a
 ---
 
 # Corporate proxy
@@ -23,7 +23,9 @@ No compose service. The host shell sources `~/connect-to-proxy.sh` before
 its absence is a warning, not an error. The script's contents are per site and
 not in this repository. `TODO(source)`: whether containers themselves (certbot,
 expresso_server remote training) are proxy-aware; no fragment passes
-`HTTP_PROXY`/`HTTPS_PROXY` into a container.
+`HTTP_PROXY`/`HTTPS_PROXY` into a container. The apigateway needs no proxy: its
+only outbound connections are to upstream services on the compose network
+([apigateway architecture](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/architecture/README.md)).
 
 ## Direction and protocol(s)
 

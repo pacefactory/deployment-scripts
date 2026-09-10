@@ -5,8 +5,8 @@ derived_from:
   - compose/docker-compose.expresso-010.yml
   - .env.example
   - scripts/docs/flows.tsv
-last_verified: 2026-09-09
-verified_against: ccf3768
+last_verified: 2026-09-10
+verified_against: 9d0549a
 ---
 
 # Peer Pacefactory deployments (remote training)
@@ -22,8 +22,10 @@ remote trainer for Expresso, or that dispatches training to this one.
   peers listed in `PF_REMOTE_TRAINER_URLS` and receives callbacks at
   `<PF_EXPRESSO_PUBLIC_URL_BASE>/training/remote/callback`
   (`compose/docker-compose.expresso-010.yml:23-35, 84-91`).
-- `apigateway` terminates the inbound callback at `/api/expresso` and proxies
-  it to `expresso_server:8456`.
+- `apigateway` terminates the inbound callback at `/api/expresso/`, strips
+  that prefix and proxies to `expresso_server:8456` with WebSocket upgrade
+  headers passed through and no request-body limit
+  ([apigateway route table](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md)).
 
 ## Direction and protocol(s)
 

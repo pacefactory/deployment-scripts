@@ -2,18 +2,20 @@
 %% derived_from: scripts/docs/flows.tsv
 %% derived_from: scripts/docs/services.tsv
 %% derived_from: scripts/docs/externals.tsv
-%% last_verified: 2026-09-10 (794523d)
+%% last_verified: 2026-09-10 (9d0549a)
 flowchart LR
   classDef optional stroke-dasharray: 5 5
   subgraph deployment["services touched by profile swift-labeler"]
     swift_labeler["swift-labeler (profile: swift-labeler)"]
     dbserver["dbserver"]
     apigateway["apigateway"]
+    vol_swift_labeler_static[("volume: swift_labeler_static")]
     service_audit_processing["service_audit_processing"]
   end
   ext_web_clients{{"Web browsers and API clients"}}
   swift_labeler -->|"HTTP: object and snapshot queries"| dbserver
   ext_web_clients -->|"HTTP: labelling UI"| swift_labeler
-  apigateway -->|"HTTP: proxied UI and API; static assets via shared volume"| swift_labeler
+  apigateway -->|"HTTP: proxied UI and API; adds Host and X-Real-IP"| swift_labeler
+  vol_swift_labeler_static -->|"file: Django static assets written by swift-labeler, served with a 30-day cache expiry"| apigateway
   service_audit_processing -->|"HTTP: label lookups TODO(source)"| swift_labeler
   class swift_labeler optional

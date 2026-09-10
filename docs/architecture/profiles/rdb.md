@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 9d0549a
 ---
 
 # Profile: `rdb`
@@ -64,7 +64,7 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 |---|---|---|---|---|---|---|---|---|
 | `relational_dbserver` | `ext_client_sql` | bidi | SQL | client database host and driver TODO(source) | client records TODO(source) | on demand | rdb | source: `compose/docker-compose.rdb.yml:5-7`; [link](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/architecture/README.md) |
 | `ext_web_clients` | `relational_dbserver` | in | HTTP | host port RDB_PUBLIC_PORT (default 8282) | API calls | on demand | rdb | source: `compose/docker-compose.rdb.yml:22-23`; [link](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/architecture/README.md) |
-| `apigateway` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 (/api/rdb) | proxied API calls | on demand | rdb | source: `compose/docker-compose.rdb.yml:34-35`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `apigateway` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 (/api/rdb/) | proxied API calls | on demand | rdb | source: `compose/docker-compose.rdb.yml:34-35`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 | `service_audit_processing` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 | relational lookups during audit processing | on demand | rdb | source: `compose/docker-compose.rdb.yml:43`; [link](https://github.com/pacefactory/scv3_services_processing/blob/main/docs/architecture/README.md) |
 | `expresso_server` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 | relational lookups | on demand | rdb | source: `compose/docker-compose.rdb.yml:47`; [link](https://github.com/pacefactory/expresso_server/blob/main/docs/architecture/README.md) |
 

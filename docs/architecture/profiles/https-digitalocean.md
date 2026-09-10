@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 9d0549a
 ---
 
 # Profile: `https-digitalocean`
@@ -66,7 +66,8 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 | `certbot` | `ext_dns_api` | out | HTTPS | DigitalOcean API (credentials/digitalocean/credentials.ini) | DNS-01 TXT record | on demand | https-digitalocean | source: `compose/docker-compose.https-digitalocean.yml:38-41,56`; [link](https://certbot-dns-digitalocean.readthedocs.io/) |
 | `certbot` | `vol_certbot` | internal | file | /etc/letsencrypt | issued certificate and key | on demand | https-digitalocean | source: `compose/docker-compose.https-digitalocean.yml:57,63`; [link](https://eff-certbot.readthedocs.io/) |
 | `vol_certbot` | `pf_mosquitto` | internal | file | /etc/mosquitto-tls (ro mount of the certbot volume, MQTTS_CERT_SOURCE=certbot) | live/<SERVER_NAME>/fullchain.pem and privkey.pem issued by certbot | on demand (container start) | https-digitalocean | source: `compose/docker-compose.https-digitalocean.yml:20-21; compose/docker-compose.mqtts-public.yml:21-22`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/reference/configuration.md) |
-| `ext_web_clients` | `apigateway` | in | HTTPS | host port HTTPS_PORT (default 443) | web UI and API traffic (TLS) | on demand | https-digitalocean | source: `compose/docker-compose.https-digitalocean.yml:60-61`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `vol_certbot` | `apigateway` | internal | file | /etc/nginx/ssl (ro mount of the certbot volume) | live/<SERVER_NAME>/fullchain.pem and privkey.pem issued by certbot (privkey.pass optional); a self-signed pair is generated when they are missing | on demand (container start) | https-digitalocean | source: `compose/docker-compose.https-digitalocean.yml:62-63`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/configuration.md#ssl-profile) |
+| `ext_web_clients` | `apigateway` | in | HTTPS | host port HTTPS_PORT (default 443) | web UI and API traffic (TLS 1.2/1.3, HTTP/2; Content-Security-Policy frame-ancestors 'none') | on demand | https-digitalocean | source: `compose/docker-compose.https-digitalocean.yml:60-61`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md#listeners) |
 
 ## Diagram
 
@@ -88,6 +89,7 @@ flowchart LR
   certbot -->|"HTTPS: DNS-01 TXT record"| ext_dns_api
   certbot -->|"file: issued certificate and key"| vol_certbot
   vol_certbot -->|"file: live/<SERVER_NAME>/fullchain.pem and privkey.pem issued by certbot"| pf_mosquitto
-  ext_web_clients -->|"HTTPS: web UI and API traffic (TLS)"| apigateway
+  vol_certbot -->|"file: live/<SERVER_NAME>/fullchain.pem and privkey.pem issued by certbot (privkey.pass optional); a self-signed pair is generated when they are missing"| apigateway
+  ext_web_clients -->|"HTTPS: web UI and API traffic (TLS 1.2/1.3, HTTP/2; Content-Security-Policy frame-ancestors 'none')"| apigateway
   class certbot optional
 ```

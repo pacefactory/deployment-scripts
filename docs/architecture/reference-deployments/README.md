@@ -6,7 +6,7 @@ derived_from:
   - docs/architecture/reference-deployments/*/.settings
   - docs/architecture/reference-deployments/*/.env
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 9d0549a
 ---
 
 # Reference deployments

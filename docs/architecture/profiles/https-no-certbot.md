@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 9d0549a
 ---
 
 # Profile: `https-no-certbot`
@@ -58,9 +58,9 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 
 | From | To | Direction | Protocol | Port / endpoint / topic / table | Payload | Trigger | Profile | Details |
 |---|---|---|---|---|---|---|---|---|
-| `ext_host_fs` | `apigateway` | in | file | credentials/ssl/live/<SERVER_NAME>/ mounted at /etc/nginx/ssl (ro) | TLS certificate, key and optional privkey.pass | on demand (container start) | https-no-certbot | source: `compose/docker-compose.https-no-certbot.yml:32-33`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `ext_host_fs` | `apigateway` | in | file | credentials/ssl/live/<SERVER_NAME>/ mounted at /etc/nginx/ssl (ro) | TLS certificate (fullchain.pem), key (privkey.pem) and optional key password (privkey.pass); a self-signed pair is generated when the first two are missing | on demand (container start) | https-no-certbot | source: `compose/docker-compose.https-no-certbot.yml:32-33`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/configuration.md#ssl-profile) |
 | `ext_host_fs` | `pf_mosquitto` | in | file | credentials/ssl/live/<SERVER_NAME>/ (MQTTS_CERT_SOURCE=../credentials/ssl) mounted at /etc/mosquitto-tls (ro) | fullchain.pem, privkey.pem and optional privkey.pass | on demand (container start) | https-no-certbot | source: `compose/docker-compose.https-no-certbot.yml:24-25; compose/docker-compose.mqtts-public.yml:21-22`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/reference/configuration.md) |
-| `ext_web_clients` | `apigateway` | in | HTTPS | host port HTTPS_PORT (default 443) | web UI and API traffic (TLS) | on demand | https-no-certbot | source: `compose/docker-compose.https-no-certbot.yml:30-31`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `ext_web_clients` | `apigateway` | in | HTTPS | host port HTTPS_PORT (default 443) | web UI and API traffic (TLS 1.2/1.3, HTTP/2; Content-Security-Policy frame-ancestors 'none') | on demand | https-no-certbot | source: `compose/docker-compose.https-no-certbot.yml:30-31`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md#listeners) |
 
 ## Diagram
 
@@ -75,7 +75,7 @@ flowchart LR
   end
   ext_host_fs{{"Deployment host filesystem"}}
   ext_web_clients{{"Web browsers and API clients"}}
-  ext_host_fs -->|"file: TLS certificate, key and optional privkey.pass"| apigateway
+  ext_host_fs -->|"file: TLS certificate (fullchain.pem), key (privkey.pem) and optional key password (privkey.pass); a self-signed pair is generated when the first two are missing"| apigateway
   ext_host_fs -->|"file: fullchain.pem, privkey.pem and optional privkey.pass"| pf_mosquitto
-  ext_web_clients -->|"HTTPS: web UI and API traffic (TLS)"| apigateway
+  ext_web_clients -->|"HTTPS: web UI and API traffic (TLS 1.2/1.3, HTTP/2; Content-Security-Policy frame-ancestors 'none')"| apigateway
 ```

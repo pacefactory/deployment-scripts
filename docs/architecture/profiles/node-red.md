@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 9d0549a
 ---
 
 # Profile: `node-red`
@@ -61,7 +61,7 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 | From | To | Direction | Protocol | Port / endpoint / topic / table | Payload | Trigger | Profile | Details |
 |---|---|---|---|---|---|---|---|---|
 | `ext_web_clients` | `nodered` | in | HTTP | host port NODERED_PORT (default 1880) | Node-RED editor and HTTP-in nodes | on demand | node-red | source: `compose/docker-compose.node-red.yml:23-24`; [link](https://nodered.org/docs/) |
-| `apigateway` | `nodered` | internal | HTTP | nodered:1880 | proxied UI | on demand | node-red | source: `compose/docker-compose.node-red.yml:35-36`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `apigateway` | `nodered` | internal | HTTP | nodered:1880 (/api/nodered/, /dashboard/) | proxied editor, HTTP nodes and dashboard; WebSocket upgrade passed through | on demand | node-red | source: `compose/docker-compose.node-red.yml:35-36`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 | `nodered` | `ext_nodered_endpoints` | bidi | varies | configured per site in flows | site-specific TODO(source) | varies | node-red | source: `compose/docker-compose.node-red.yml (no endpoints in compose)`; [link](https://nodered.org/docs/) |
 
 ## Diagram
@@ -78,7 +78,7 @@ flowchart LR
   ext_web_clients{{"Web browsers and API clients"}}
   ext_nodered_endpoints{{"Node-RED flow endpoints"}}
   ext_web_clients -->|"HTTP: Node-RED editor and HTTP-in nodes"| nodered
-  apigateway -->|"HTTP: proxied UI"| nodered
+  apigateway -->|"HTTP: proxied editor, HTTP nodes and dashboard; WebSocket upgrade passed through"| nodered
   nodered <-->|"varies: site-specific TODO(source)"| ext_nodered_endpoints
   class nodered optional
 ```

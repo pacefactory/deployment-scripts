@@ -7,7 +7,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
 last_verified: 2026-09-10
-verified_against: 794523d
+verified_against: 9d0549a
 ---
 
 # Profile: `expresso-010`
@@ -87,8 +87,8 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 | `celery_worker` | `auditgui` | internal | HTTP | auditgui:80 | audit app version info for site-reliability snapshot | polling | expresso-010 | source: `compose/docker-compose.expresso-010.yml:204-205`; [link](https://github.com/pacefactory/expresso_server/blob/main/docs/architecture/README.md) |
 | `celery_beat` | `redis` | internal | Redis | redis | scheduled task enqueue | polling (schedule) | expresso-010 | source: `compose/docker-compose.expresso-010.yml:227`; [link](https://github.com/pacefactory/expresso_server/blob/main/docs/architecture/README.md) |
 | `celery_beat` | `mongo_exp` | internal | MongoDB wire | mongo_exp:27017 | schedule state TODO(source) | polling | expresso-010 | source: `compose/docker-compose.expresso-010.yml:228`; [link](https://github.com/pacefactory/expresso_server/blob/main/docs/architecture/README.md) |
-| `apigateway` | `expresso_server` | internal | HTTP | expresso_server:8456 (/api/expresso) | proxied API calls | on demand | expresso-010 | source: `compose/docker-compose.expresso-010.yml:253-254`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `expresso_ui` | internal | HTTP | expresso_ui:80 (/expresso) | proxied UI | on demand | expresso-010 | source: `compose/docker-compose.expresso-010.yml:255-256`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `apigateway` | `expresso_server` | internal | HTTP | expresso_server:8456 (/api/expresso/) | proxied API calls, WebSocket upgrade passed through | on demand | expresso-010 | source: `compose/docker-compose.expresso-010.yml:253-254`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
+| `apigateway` | `expresso_ui` | internal | HTTP | expresso_ui:80 (/expresso/) | proxied UI, WebSocket upgrade passed through | on demand | expresso-010 | source: `compose/docker-compose.expresso-010.yml:255-256`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 
 ## Diagram
 
@@ -132,7 +132,7 @@ flowchart LR
   celery_worker -->|"HTTP: audit app version info for site-reliability snapshot"| auditgui
   celery_beat -->|"Redis: scheduled task enqueue"| redis
   celery_beat -->|"MongoDB wire: schedule state TODO(source)"| mongo_exp
-  apigateway -->|"HTTP: proxied API calls"| expresso_server
-  apigateway -->|"HTTP: proxied UI"| expresso_ui
+  apigateway -->|"HTTP: proxied API calls, WebSocket upgrade passed through"| expresso_server
+  apigateway -->|"HTTP: proxied UI, WebSocket upgrade passed through"| expresso_ui
   class social_video_server optional
 ```
