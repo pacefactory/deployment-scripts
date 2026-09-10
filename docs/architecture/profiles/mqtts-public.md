@@ -6,8 +6,8 @@ derived_from:
   - build.sh
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
-last_verified: 2026-09-09
-verified_against: def9139
+last_verified: 2026-09-10
+verified_against: 794523d
 ---
 
 # Profile: `mqtts-public`
@@ -56,8 +56,7 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 
 | From | To | Direction | Protocol | Port / endpoint / topic / table | Payload | Trigger | Profile | Details |
 |---|---|---|---|---|---|---|---|---|
-| `ext_mqtt_clients` | `pf_mosquitto` | in | MQTTS | host port MQTTS_PUBLIC_PORT (default 8883) | MQTT over TLS using the https-* certificate | continuous | mqtts-public | source: `compose/docker-compose.mqtts-public.yml:18-24`; [link](https://github.com/pacefactory/pf_mosquitto/blob/main/docs/architecture/README.md) |
-| `ext_host_fs` | `pf_mosquitto` | in | file | MQTTS_CERT_SOURCE mounted at /etc/mosquitto-tls (ro) | TLS certificate and key | on demand (container start) | mqtts-public | source: `compose/docker-compose.mqtts-public.yml:21-22`; [link](https://github.com/pacefactory/pf_mosquitto/blob/main/docs/architecture/README.md) |
+| `ext_mqtt_clients` | `pf_mosquitto` | in | MQTTS | host port MQTTS_PUBLIC_PORT (default 8883) | MQTT over TLS (tls_version tlsv1.2, server certificate from the https-* profile), same credentials as 1883 | continuous | mqtts-public | source: `compose/docker-compose.mqtts-public.yml:18-24`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
 
 ## Diagram
 
@@ -70,7 +69,5 @@ flowchart LR
     pf_mosquitto["pf_mosquitto"]
   end
   ext_mqtt_clients{{"MQTT clients"}}
-  ext_host_fs{{"Deployment host filesystem"}}
-  ext_mqtt_clients -->|"MQTTS: MQTT over TLS using the https-* certificate"| pf_mosquitto
-  ext_host_fs -->|"file: TLS certificate and key"| pf_mosquitto
+  ext_mqtt_clients -->|"MQTTS: MQTT over TLS (tls_version tlsv1.2, server certificate from the https-* profile), same credentials as 1883"| pf_mosquitto
 ```

@@ -2,13 +2,15 @@
 %% derived_from: scripts/docs/flows.tsv
 %% derived_from: scripts/docs/services.tsv
 %% derived_from: scripts/docs/externals.tsv
-%% last_verified: 2026-09-09 (def9139)
+%% last_verified: 2026-09-10 (794523d)
 flowchart LR
   classDef optional stroke-dasharray: 5 5
   subgraph deployment["services touched by profile https-no-certbot"]
     apigateway["apigateway"]
+    pf_mosquitto["pf_mosquitto"]
   end
   ext_host_fs{{"Deployment host filesystem"}}
   ext_web_clients{{"Web browsers and API clients"}}
   ext_host_fs -->|"file: TLS certificate, key and optional privkey.pass"| apigateway
+  ext_host_fs -->|"file: fullchain.pem, privkey.pem and optional privkey.pass"| pf_mosquitto
   ext_web_clients -->|"HTTPS: web UI and API traffic (TLS)"| apigateway

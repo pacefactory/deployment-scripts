@@ -6,8 +6,8 @@ derived_from:
   - build.sh
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
-last_verified: 2026-09-09
-verified_against: def9139
+last_verified: 2026-09-10
+verified_against: 794523d
 ---
 
 # Profile: `offline`

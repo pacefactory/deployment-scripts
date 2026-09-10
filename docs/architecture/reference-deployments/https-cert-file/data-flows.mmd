@@ -3,7 +3,7 @@
 %% derived_from: scripts/docs/flows.tsv
 %% derived_from: scripts/docs/services.tsv
 %% derived_from: scripts/docs/externals.tsv
-%% last_verified: 2026-09-09 (def9139)
+%% last_verified: 2026-09-10 (794523d)
 flowchart LR
   classDef optional stroke-dasharray: 5 5
   subgraph deployment["https-cert-file"]
@@ -18,6 +18,7 @@ flowchart LR
     service_dtreeserver["service_dtreeserver"]
     service_audit_processing["service_audit_processing"]
     apigateway["apigateway"]
+    vol_mosquitto_data[("volume: mosquitto_data")]
     record_video["record_video"]
     stitch_videos["stitch_videos"]
     expresso_server["expresso_server"]
@@ -59,7 +60,8 @@ flowchart LR
   apigateway -->|"HTTP: proxied control-server API calls"| realtime
   apigateway -->|"HTTP: proxied UI and API calls"| auditgui
   apigateway -->|"HTTP: proxied status API calls"| service_audit_processing
-  apigateway -->|"WS: MQTT over WebSocket for browsers"| pf_mosquitto
+  apigateway -->|"WS: MQTT over WebSocket for browsers (listener 7575, protocol websockets; anonymous read, admin publish)"| pf_mosquitto
+  pf_mosquitto -->|"file: persistence database; password, ACL and mosquitto.conf files that shadow the image copies"| vol_mosquitto_data
   ext_web_clients -->|"HTTP: web UI and API traffic (307 redirect to HTTPS when an https-* profile is enabled)"| apigateway
   ext_cameras -->|"RTSP: H.264/H.265 video"| record_video
   record_video -->|"file: recorded video segments"| ext_host_fs
@@ -96,9 +98,9 @@ flowchart LR
   ext_web_clients -->|"HTTP: Node-RED editor and HTTP-in nodes"| nodered
   apigateway -->|"HTTP: proxied UI"| nodered
   nodered <-->|"varies: site-specific TODO(source)"| ext_nodered_endpoints
-  ext_mqtt_clients -->|"MQTT: MQTT publish/subscribe (credentials in pf_mosquitto repo)"| pf_mosquitto
-  ext_mqtt_clients -->|"MQTTS: MQTT over TLS using the https-* certificate"| pf_mosquitto
-  ext_host_fs -->|"file: TLS certificate and key"| pf_mosquitto
+  ext_mqtt_clients -->|"MQTT: MQTT publish (admin user, password committed in the pf_mosquitto Dockerfile) and subscribe (anonymous allowed)"| pf_mosquitto
+  ext_mqtt_clients -->|"MQTTS: MQTT over TLS (tls_version tlsv1.2, server certificate from the https-* profile), same credentials as 1883"| pf_mosquitto
   ext_host_fs -->|"file: TLS certificate, key and optional privkey.pass"| apigateway
+  ext_host_fs -->|"file: fullchain.pem, privkey.pem and optional privkey.pass"| pf_mosquitto
   ext_web_clients -->|"HTTPS: web UI and API traffic (TLS)"| apigateway
   class social_web_app,nodered,social_video_server,relational_dbserver optional

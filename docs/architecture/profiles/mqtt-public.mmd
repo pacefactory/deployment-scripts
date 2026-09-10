@@ -2,11 +2,11 @@
 %% derived_from: scripts/docs/flows.tsv
 %% derived_from: scripts/docs/services.tsv
 %% derived_from: scripts/docs/externals.tsv
-%% last_verified: 2026-09-09 (def9139)
+%% last_verified: 2026-09-10 (794523d)
 flowchart LR
   classDef optional stroke-dasharray: 5 5
   subgraph deployment["services touched by profile mqtt-public"]
     pf_mosquitto["pf_mosquitto"]
   end
   ext_mqtt_clients{{"MQTT clients"}}
-  ext_mqtt_clients -->|"MQTT: MQTT publish/subscribe (credentials in pf_mosquitto repo)"| pf_mosquitto
+  ext_mqtt_clients -->|"MQTT: MQTT publish (admin user, password committed in the pf_mosquitto Dockerfile) and subscribe (anonymous allowed)"| pf_mosquitto

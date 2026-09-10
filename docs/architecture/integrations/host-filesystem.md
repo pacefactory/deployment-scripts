@@ -25,8 +25,8 @@ derived_from:
   - compose/docker-compose.swift-labeler.yml
   - compose/docker-compose.tools.yml
   - scripts/docs/flows.tsv
-last_verified: 2026-09-09
-verified_against: ccf3768
+last_verified: 2026-09-10
+verified_against: 794523d
 ---
 
 # Deployment host filesystem
@@ -74,8 +74,9 @@ recorded video segments and stitched files.
 ## Failure modes at the boundary
 
 Missing certificate files: the apigateway serves a temporary self-signed
-certificate and pf_mosquitto starts without its MQTTS listener. Missing
-credentials files: certbot fails at start.
+certificate and pf_mosquitto starts without its MQTTS listener
+([Recover the MQTTS listener](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/how-to/recover-the-mqtts-listener.md)).
+Missing credentials files: certbot fails at start.
 
 ## Variants
 

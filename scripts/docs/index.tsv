@@ -26,6 +26,7 @@ docs/reference/environment-variables.md	Every variable build.sh reads or a fragm
 docs/reference/profile-dependencies.md	Sub-profile, requires and inferred-conflict graph of the build profiles (generated)
 docs/reference/profile-metadata.md	The x-pf-info schema build.sh reads from fragments
 docs/reference/mqtt-broker-listeners.md	Which pf_mosquitto listeners each profile publishes
+docs/reference/container-healthchecks.md	Every container healthcheck the fragments define, what each probe does and how its result is used
 docs/reference/ghosting.md	Ghosting enforcement variables and modes
 docs/reference/mongodb.md	How the main mongo service is sized and run as a single-node replica set
 docs/reference/backup-restore-cli.md	Options of the volume backup and restore scripts and the volumes they cover

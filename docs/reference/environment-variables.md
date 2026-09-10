@@ -6,8 +6,8 @@ derived_from:
   - scripts/common/projectName.sh
   - scripts/common/runYq.sh
   - compose/docker-compose.*.yml
-last_verified: 2026-09-09
-verified_against: def9139
+last_verified: 2026-09-10
+verified_against: 794523d
 ---
 
 # Environment variable reference
