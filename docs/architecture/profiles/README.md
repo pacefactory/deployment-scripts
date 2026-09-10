@@ -6,8 +6,8 @@ derived_from:
   - build.sh
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
-last_verified: 2026-09-09
-verified_against: def9139
+last_verified: 2026-09-10
+verified_against: 794523d
 ---
 
 # Profile catalog
@@ -37,7 +37,7 @@ cannot override anything a later fragment sets.
 | `https-manual` | prompted, default off | `certbot` (modifies `apigateway`) | volumes: certbot | `ext_acme`, `ext_web_clients` | none | none | none | `https-digitalocean` (same container name certbot; same host port 443)<br>`https-godaddy` (same container name certbot; same host port 443)<br>`https-no-certbot` (same host port 443) | third-party images only | [https-manual.md](https-manual.md) |
 | `https-no-certbot` | prompted, default off | none (modifies `apigateway`) | none | `ext_host_fs`, `ext_web_clients` | none | none | none | `https-digitalocean` (same host port 443)<br>`https-godaddy` (same host port 443)<br>`https-manual` (same host port 443) | third-party images only | [https-no-certbot.md](https-no-certbot.md) |
 | `mqtt-public` | sub-profile of base, default on | none (modifies `pf_mosquitto`) | none | `ext_mqtt_clients` | [`base`](base.md) | none | none | none found | third-party images only | [mqtt-public.md](mqtt-public.md) |
-| `mqtts-public` | sub-profile of https-digitalocean, https-godaddy, https-manual, https-no-certbot, default on | none (modifies `pf_mosquitto`) | none | `ext_host_fs`, `ext_mqtt_clients` | [`https-digitalocean`](https-digitalocean.md), [`https-godaddy`](https-godaddy.md), [`https-manual`](https-manual.md), [`https-no-certbot`](https-no-certbot.md) | none | none | none found | third-party images only | [mqtts-public.md](mqtts-public.md) |
+| `mqtts-public` | sub-profile of https-digitalocean, https-godaddy, https-manual, https-no-certbot, default on | none (modifies `pf_mosquitto`) | none | `ext_mqtt_clients` | [`https-digitalocean`](https-digitalocean.md), [`https-godaddy`](https-godaddy.md), [`https-manual`](https-manual.md), [`https-no-certbot`](https-no-certbot.md) | none | none | none found | third-party images only | [mqtts-public.md](mqtts-public.md) |
 | `node-red` | prompted, default on | `nodered` (modifies `apigateway`) | volumes: nodered-data | `ext_nodered_endpoints`, `ext_web_clients` | none | none | none | none found | third-party images only | [node-red.md](node-red.md) |
 | `ntfy` | prompted, default off | `ntfy` | volumes: ntfy-cache, ntfy-data | `ext_ntfy_clients` | none | none | none | none found | third-party images only | [ntfy.md](ntfy.md) |
 | `offline` | prompted, default off | none (modifies `dbserver`, `service_audit_processing`) | none | none | none | none | none | none found | third-party images only | [offline.md](offline.md) |

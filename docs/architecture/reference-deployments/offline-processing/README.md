@@ -8,8 +8,8 @@ derived_from:
   - docs/architecture/reference-deployments/offline-processing/build-command.txt
   - scripts/docs/flows.tsv
   - scripts/docs/deployments.tsv
-last_verified: 2026-09-09
-verified_against: def9139
+last_verified: 2026-09-10
+verified_against: 794523d
 ---
 
 # Reference deployment: Offline processing
@@ -149,7 +149,8 @@ One row per directed flow (standard §7a). Node IDs are defined in the [glossary
 | `apigateway` | `realtime` | internal | HTTP | realtime:8181 | proxied control-server API calls | on demand | base | source: `compose/docker-compose.base.yml:353-354`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
 | `apigateway` | `auditgui` | internal | HTTP | auditgui:80 (/scv3, /api/uiserver) | proxied UI and API calls | on demand | base | source: `compose/docker-compose.base.yml:355-356`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
 | `apigateway` | `service_audit_processing` | internal | HTTP | service_audit_processing:3005 | proxied status API calls | on demand | base | source: `compose/docker-compose.base.yml:357-358`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `pf_mosquitto` | internal | WS | pf_mosquitto:7575 (/api/mqtt) | MQTT over WebSocket for browsers | continuous | base | source: `compose/docker-compose.base.yml:359-361`; [link](https://github.com/pacefactory/pf_mosquitto/blob/main/docs/architecture/README.md) |
+| `apigateway` | `pf_mosquitto` | internal | WS | pf_mosquitto:7575 (/api/mqtt) | MQTT over WebSocket for browsers (listener 7575, protocol websockets; anonymous read, admin publish) | continuous | base | source: `compose/docker-compose.base.yml:359-361`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
+| `pf_mosquitto` | `vol_mosquitto_data` | internal | file | /mosquitto (rw mount of mosquitto-data): persistence at /mosquitto/data/, config at /mosquitto/config/ | persistence database; password, ACL and mosquitto.conf files that shadow the image copies | continuous | base | source: `compose/docker-compose.base.yml:191`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
 | `ext_web_clients` | `apigateway` | in | HTTP | host port HTTP_PORT (default 80) | web UI and API traffic (307 redirect to HTTPS when an https-* profile is enabled) | on demand | base | source: `compose/docker-compose.base.yml:369-370`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
 | `ext_cameras` | `record_video` | in | RTSP | rtsp:// URL of the selected camera | H.264/H.265 video | on demand | tools | source: `record_cli.py:96-134`; record_cli.py |
 | `record_video` | `ext_host_fs` | out | file | ~/scv2/videos/<date>/<camera>/ | recorded video segments | on demand | tools | source: `compose/docker-compose.tools.yml:23; record_cli.py`; record_cli.py |
@@ -186,9 +187,8 @@ One row per directed flow (standard §7a). Node IDs are defined in the [glossary
 | `ext_web_clients` | `nodered` | in | HTTP | host port NODERED_PORT (default 1880) | Node-RED editor and HTTP-in nodes | on demand | node-red | source: `compose/docker-compose.node-red.yml:23-24`; [link](https://nodered.org/docs/) |
 | `apigateway` | `nodered` | internal | HTTP | nodered:1880 | proxied UI | on demand | node-red | source: `compose/docker-compose.node-red.yml:35-36`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
 | `nodered` | `ext_nodered_endpoints` | bidi | varies | configured per site in flows | site-specific TODO(source) | varies | node-red | source: `compose/docker-compose.node-red.yml (no endpoints in compose)`; [link](https://nodered.org/docs/) |
-| `ext_mqtt_clients` | `pf_mosquitto` | in | MQTT | host port PF_MOSQUITTO_PUBLIC_PORT (default 1883) | MQTT publish/subscribe (credentials in pf_mosquitto repo) | continuous | mqtt-public | source: `compose/docker-compose.mqtt-public.yml:16-18`; [link](https://github.com/pacefactory/pf_mosquitto/blob/main/docs/architecture/README.md) |
-| `ext_mqtt_clients` | `pf_mosquitto` | in | MQTTS | host port MQTTS_PUBLIC_PORT (default 8883) | MQTT over TLS using the https-* certificate | continuous | mqtts-public | source: `compose/docker-compose.mqtts-public.yml:18-24`; [link](https://github.com/pacefactory/pf_mosquitto/blob/main/docs/architecture/README.md) |
-| `ext_host_fs` | `pf_mosquitto` | in | file | MQTTS_CERT_SOURCE mounted at /etc/mosquitto-tls (ro) | TLS certificate and key | on demand (container start) | mqtts-public | source: `compose/docker-compose.mqtts-public.yml:21-22`; [link](https://github.com/pacefactory/pf_mosquitto/blob/main/docs/architecture/README.md) |
+| `ext_mqtt_clients` | `pf_mosquitto` | in | MQTT | host port PF_MOSQUITTO_PUBLIC_PORT (default 1883) | MQTT publish (admin user, password committed in the pf_mosquitto Dockerfile) and subscribe (anonymous allowed) | continuous | mqtt-public | source: `compose/docker-compose.mqtt-public.yml:16-18`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
+| `ext_mqtt_clients` | `pf_mosquitto` | in | MQTTS | host port MQTTS_PUBLIC_PORT (default 8883) | MQTT over TLS (tls_version tlsv1.2, server certificate from the https-* profile), same credentials as 1883 | continuous | mqtts-public | source: `compose/docker-compose.mqtts-public.yml:18-24`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
 
 ## Diagrams
 
@@ -302,6 +302,7 @@ flowchart LR
     service_dtreeserver["service_dtreeserver"]
     service_audit_processing["service_audit_processing"]
     apigateway["apigateway"]
+    vol_mosquitto_data[("volume: mosquitto_data")]
     record_video["record_video"]
     stitch_videos["stitch_videos"]
     expresso_server["expresso_server"]
@@ -343,7 +344,8 @@ flowchart LR
   apigateway -->|"HTTP: proxied control-server API calls"| realtime
   apigateway -->|"HTTP: proxied UI and API calls"| auditgui
   apigateway -->|"HTTP: proxied status API calls"| service_audit_processing
-  apigateway -->|"WS: MQTT over WebSocket for browsers"| pf_mosquitto
+  apigateway -->|"WS: MQTT over WebSocket for browsers (listener 7575, protocol websockets; anonymous read, admin publish)"| pf_mosquitto
+  pf_mosquitto -->|"file: persistence database; password, ACL and mosquitto.conf files that shadow the image copies"| vol_mosquitto_data
   ext_web_clients -->|"HTTP: web UI and API traffic (307 redirect to HTTPS when an https-* profile is enabled)"| apigateway
   ext_cameras -->|"RTSP: H.264/H.265 video"| record_video
   record_video -->|"file: recorded video segments"| ext_host_fs
@@ -380,9 +382,8 @@ flowchart LR
   ext_web_clients -->|"HTTP: Node-RED editor and HTTP-in nodes"| nodered
   apigateway -->|"HTTP: proxied UI"| nodered
   nodered <-->|"varies: site-specific TODO(source)"| ext_nodered_endpoints
-  ext_mqtt_clients -->|"MQTT: MQTT publish/subscribe (credentials in pf_mosquitto repo)"| pf_mosquitto
-  ext_mqtt_clients -->|"MQTTS: MQTT over TLS using the https-* certificate"| pf_mosquitto
-  ext_host_fs -->|"file: TLS certificate and key"| pf_mosquitto
+  ext_mqtt_clients -->|"MQTT: MQTT publish (admin user, password committed in the pf_mosquitto Dockerfile) and subscribe (anonymous allowed)"| pf_mosquitto
+  ext_mqtt_clients -->|"MQTTS: MQTT over TLS (tls_version tlsv1.2, server certificate from the https-* profile), same credentials as 1883"| pf_mosquitto
   class social_web_app,nodered,social_video_server,relational_dbserver optional
 ```
 

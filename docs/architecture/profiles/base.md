@@ -6,8 +6,8 @@ derived_from:
   - build.sh
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
-last_verified: 2026-09-09
-verified_against: def9139
+last_verified: 2026-09-10
+verified_against: 794523d
 ---
 
 # Profile: `base`
@@ -33,7 +33,7 @@ TODO(source): no `x-pf-info.description` in the fragment.
 |---|---|---|---|---|
 | `mongo` | `mongo` | `mongo:4.2.3-bionic` | [mongo](https://hub.docker.com/_/mongo) (third-party) | Primary MongoDB 4.2 store behind dbserver and data_interconnector, run as a single-node replica set |
 | `dbserver` | `dbserver` | `pacefactory/dbserver:${DBSERVER_TAG:-latest}` | [scv2_dbserver](https://github.com/pacefactory/scv2_dbserver) (internal) | HTTP data API over mongo; owns the snapshot/object data volume |
-| `pf_mosquitto` | `pf_mosquitto` | `pacefactory/pf_mosquitto:${PF_MOSQUITTO_TAG:-latest}` | [pf_mosquitto](https://github.com/pacefactory/pf_mosquitto) (internal) | MQTT broker used by every real-time producer and consumer in the deployment |
+| `pf_mosquitto` | `pf_mosquitto` | `pacefactory/pf_mosquitto:${PF_MOSQUITTO_TAG:-latest}` | [pf_mosquitto](https://github.com/pacefactory/pf_mosquitto) (internal) | Eclipse Mosquitto MQTT broker (plain 1883, WebSocket 7575, TLS 8883 when a certificate is mounted) used by every real-time producer and consumer in the deployment |
 | `data_interconnector` | `data_interconnector` | `pacefactory/data_interconnector:${DATA_INTERCONNECTOR_TAG:-latest}` | [data_interconnector](https://github.com/pacefactory/data_interconnector) (internal) | Ingests MQTT object data into mongo (and TimescaleDB when ape is enabled) |
 | `realtime` | `realtime` | `pacefactory/realtime:${REALTIME_TAG:-${REALTIME_TAG_DEFAULT_GPU:-latest}}` | [scv2_realtime](https://github.com/pacefactory/scv2_realtime) (internal) | Camera ingest and real-time processing; publishes to MQTT and writes to dbserver |
 | `auditgui` | `auditgui` | `pacefactory/scv3_webgui:${AUDITGUI_TAG:-latest}` | [scv3_webgui](https://github.com/pacefactory/scv3_webgui) (internal) | Audit web UI and the uiserver API other services read audit config from |
@@ -109,7 +109,8 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 | `apigateway` | `realtime` | internal | HTTP | realtime:8181 | proxied control-server API calls | on demand | base | source: `compose/docker-compose.base.yml:353-354`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
 | `apigateway` | `auditgui` | internal | HTTP | auditgui:80 (/scv3, /api/uiserver) | proxied UI and API calls | on demand | base | source: `compose/docker-compose.base.yml:355-356`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
 | `apigateway` | `service_audit_processing` | internal | HTTP | service_audit_processing:3005 | proxied status API calls | on demand | base | source: `compose/docker-compose.base.yml:357-358`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
-| `apigateway` | `pf_mosquitto` | internal | WS | pf_mosquitto:7575 (/api/mqtt) | MQTT over WebSocket for browsers | continuous | base | source: `compose/docker-compose.base.yml:359-361`; [link](https://github.com/pacefactory/pf_mosquitto/blob/main/docs/architecture/README.md) |
+| `apigateway` | `pf_mosquitto` | internal | WS | pf_mosquitto:7575 (/api/mqtt) | MQTT over WebSocket for browsers (listener 7575, protocol websockets; anonymous read, admin publish) | continuous | base | source: `compose/docker-compose.base.yml:359-361`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
+| `pf_mosquitto` | `vol_mosquitto_data` | internal | file | /mosquitto (rw mount of mosquitto-data): persistence at /mosquitto/data/, config at /mosquitto/config/ | persistence database; password, ACL and mosquitto.conf files that shadow the image copies | continuous | base | source: `compose/docker-compose.base.yml:191`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
 | `ext_web_clients` | `apigateway` | in | HTTP | host port HTTP_PORT (default 80) | web UI and API traffic (307 redirect to HTTPS when an https-* profile is enabled) | on demand | base | source: `compose/docker-compose.base.yml:369-370`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
 
 ## Diagram
@@ -131,6 +132,7 @@ flowchart LR
     service_dtreeserver["service_dtreeserver"]
     service_audit_processing["service_audit_processing"]
     apigateway["apigateway"]
+    vol_mosquitto_data[("volume: mosquitto_data")]
   end
   ext_cameras{{"IP cameras"}}
   ext_web_clients{{"Web browsers and API clients"}}
@@ -155,6 +157,7 @@ flowchart LR
   apigateway -->|"HTTP: proxied control-server API calls"| realtime
   apigateway -->|"HTTP: proxied UI and API calls"| auditgui
   apigateway -->|"HTTP: proxied status API calls"| service_audit_processing
-  apigateway -->|"WS: MQTT over WebSocket for browsers"| pf_mosquitto
+  apigateway -->|"WS: MQTT over WebSocket for browsers (listener 7575, protocol websockets; anonymous read, admin publish)"| pf_mosquitto
+  pf_mosquitto -->|"file: persistence database; password, ACL and mosquitto.conf files that shadow the image copies"| vol_mosquitto_data
   ext_web_clients -->|"HTTP: web UI and API traffic (307 redirect to HTTPS when an https-* profile is enabled)"| apigateway
 ```

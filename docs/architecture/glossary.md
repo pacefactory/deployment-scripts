@@ -6,8 +6,8 @@ derived_from:
   - scripts/docs/externals.tsv
   - build.sh
   - compose/docker-compose.*.yml
-last_verified: 2026-09-09
-verified_against: def9139
+last_verified: 2026-09-10
+verified_against: 794523d
 ---
 
 # Glossary
@@ -59,7 +59,7 @@ standard path `docs/architecture/README.md` and may not exist yet in that repo.
 |---|---|---|---|---|---|---|
 | `mongo` | `mongo` | `mongo` | [`base`](profiles/base.md) | [mongo](https://hub.docker.com/_/mongo) | third-party | Primary MongoDB 4.2 store behind dbserver and data_interconnector, run as a single-node replica set |
 | `dbserver` | `dbserver` | `pacefactory/dbserver` | [`base`](profiles/base.md) | [scv2_dbserver](https://github.com/pacefactory/scv2_dbserver) | internal | HTTP data API over mongo; owns the snapshot/object data volume |
-| `pf_mosquitto` | `pf_mosquitto` | `pacefactory/pf_mosquitto` | [`base`](profiles/base.md) | [pf_mosquitto](https://github.com/pacefactory/pf_mosquitto) | internal | MQTT broker used by every real-time producer and consumer in the deployment |
+| `pf_mosquitto` | `pf_mosquitto` | `pacefactory/pf_mosquitto` | [`base`](profiles/base.md) | [pf_mosquitto](https://github.com/pacefactory/pf_mosquitto) | internal | Eclipse Mosquitto MQTT broker (plain 1883, WebSocket 7575, TLS 8883 when a certificate is mounted) used by every real-time producer and consumer in the deployment |
 | `data_interconnector` | `data_interconnector` | `pacefactory/data_interconnector` | [`base`](profiles/base.md) | [data_interconnector](https://github.com/pacefactory/data_interconnector) | internal | Ingests MQTT object data into mongo (and TimescaleDB when ape is enabled) |
 | `realtime` | `realtime` | `pacefactory/realtime` | [`base`](profiles/base.md) | [scv2_realtime](https://github.com/pacefactory/scv2_realtime) | internal | Camera ingest and real-time processing; publishes to MQTT and writes to dbserver |
 | `auditgui` | `auditgui` | `pacefactory/scv3_webgui` | [`base`](profiles/base.md) | [scv3_webgui](https://github.com/pacefactory/scv3_webgui) | internal | Audit web UI and the uiserver API other services read audit config from |

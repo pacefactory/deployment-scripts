@@ -6,8 +6,8 @@ derived_from:
   - build.sh
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
-last_verified: 2026-09-09
-verified_against: def9139
+last_verified: 2026-09-10
+verified_against: 794523d
 ---
 
 # Profile: `https-no-certbot`
@@ -59,6 +59,7 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 | From | To | Direction | Protocol | Port / endpoint / topic / table | Payload | Trigger | Profile | Details |
 |---|---|---|---|---|---|---|---|---|
 | `ext_host_fs` | `apigateway` | in | file | credentials/ssl/live/<SERVER_NAME>/ mounted at /etc/nginx/ssl (ro) | TLS certificate, key and optional privkey.pass | on demand (container start) | https-no-certbot | source: `compose/docker-compose.https-no-certbot.yml:32-33`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
+| `ext_host_fs` | `pf_mosquitto` | in | file | credentials/ssl/live/<SERVER_NAME>/ (MQTTS_CERT_SOURCE=../credentials/ssl) mounted at /etc/mosquitto-tls (ro) | fullchain.pem, privkey.pem and optional privkey.pass | on demand (container start) | https-no-certbot | source: `compose/docker-compose.https-no-certbot.yml:24-25; compose/docker-compose.mqtts-public.yml:21-22`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/reference/configuration.md) |
 | `ext_web_clients` | `apigateway` | in | HTTPS | host port HTTPS_PORT (default 443) | web UI and API traffic (TLS) | on demand | https-no-certbot | source: `compose/docker-compose.https-no-certbot.yml:30-31`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
 
 ## Diagram
@@ -70,9 +71,11 @@ flowchart LR
   classDef optional stroke-dasharray: 5 5
   subgraph deployment["services touched by profile https-no-certbot"]
     apigateway["apigateway"]
+    pf_mosquitto["pf_mosquitto"]
   end
   ext_host_fs{{"Deployment host filesystem"}}
   ext_web_clients{{"Web browsers and API clients"}}
   ext_host_fs -->|"file: TLS certificate, key and optional privkey.pass"| apigateway
+  ext_host_fs -->|"file: fullchain.pem, privkey.pem and optional privkey.pass"| pf_mosquitto
   ext_web_clients -->|"HTTPS: web UI and API traffic (TLS)"| apigateway
 ```

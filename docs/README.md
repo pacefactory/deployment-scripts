@@ -4,8 +4,8 @@ type: other
 derived_from:
   - scripts/docs/index.tsv
   - docs/
-last_verified: 2026-09-09
-verified_against: 3630e2f
+last_verified: 2026-09-10
+verified_against: 794523d
 ---
 
 # Documentation index
@@ -89,6 +89,7 @@ Read the two standards first:
 | [reference/profile-dependencies.md](reference/profile-dependencies.md) | Sub-profile, requires and inferred-conflict graph of the build profiles (generated) |
 | [reference/profile-metadata.md](reference/profile-metadata.md) | The x-pf-info schema build.sh reads from fragments |
 | [reference/mqtt-broker-listeners.md](reference/mqtt-broker-listeners.md) | Which pf_mosquitto listeners each profile publishes |
+| [reference/container-healthchecks.md](reference/container-healthchecks.md) | Every container healthcheck the fragments define, what each probe does and how its result is used |
 | [reference/ghosting.md](reference/ghosting.md) | Ghosting enforcement variables and modes |
 | [reference/mongodb.md](reference/mongodb.md) | How the main mongo service is sized and run as a single-node replica set |
 | [reference/backup-restore-cli.md](reference/backup-restore-cli.md) | Options of the volume backup and restore scripts and the volumes they cover |

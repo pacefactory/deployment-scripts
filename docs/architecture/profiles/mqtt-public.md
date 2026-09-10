@@ -6,8 +6,8 @@ derived_from:
   - build.sh
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
-last_verified: 2026-09-09
-verified_against: def9139
+last_verified: 2026-09-10
+verified_against: 794523d
 ---
 
 # Profile: `mqtt-public`
@@ -56,7 +56,7 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 
 | From | To | Direction | Protocol | Port / endpoint / topic / table | Payload | Trigger | Profile | Details |
 |---|---|---|---|---|---|---|---|---|
-| `ext_mqtt_clients` | `pf_mosquitto` | in | MQTT | host port PF_MOSQUITTO_PUBLIC_PORT (default 1883) | MQTT publish/subscribe (credentials in pf_mosquitto repo) | continuous | mqtt-public | source: `compose/docker-compose.mqtt-public.yml:16-18`; [link](https://github.com/pacefactory/pf_mosquitto/blob/main/docs/architecture/README.md) |
+| `ext_mqtt_clients` | `pf_mosquitto` | in | MQTT | host port PF_MOSQUITTO_PUBLIC_PORT (default 1883) | MQTT publish (admin user, password committed in the pf_mosquitto Dockerfile) and subscribe (anonymous allowed) | continuous | mqtt-public | source: `compose/docker-compose.mqtt-public.yml:16-18`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
 
 ## Diagram
 
@@ -69,5 +69,5 @@ flowchart LR
     pf_mosquitto["pf_mosquitto"]
   end
   ext_mqtt_clients{{"MQTT clients"}}
-  ext_mqtt_clients -->|"MQTT: MQTT publish/subscribe (credentials in pf_mosquitto repo)"| pf_mosquitto
+  ext_mqtt_clients -->|"MQTT: MQTT publish (admin user, password committed in the pf_mosquitto Dockerfile) and subscribe (anonymous allowed)"| pf_mosquitto
 ```

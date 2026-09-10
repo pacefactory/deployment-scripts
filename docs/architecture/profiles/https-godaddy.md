@@ -6,8 +6,8 @@ derived_from:
   - build.sh
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
-last_verified: 2026-09-09
-verified_against: def9139
+last_verified: 2026-09-10
+verified_against: 794523d
 ---
 
 # Profile: `https-godaddy`
@@ -65,6 +65,7 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 | `certbot` | `ext_acme` | out | HTTPS | acme-v02.api.letsencrypt.org TODO(source) | ACME certificate order | on demand | https-godaddy | source: `compose/docker-compose.https-godaddy.yml:32-50`; [link](https://eff-certbot.readthedocs.io/) |
 | `certbot` | `ext_dns_api` | out | HTTPS | GoDaddy API (credentials/godaddy/credentials.ini) | DNS-01 TXT record | on demand | https-godaddy | source: `compose/docker-compose.https-godaddy.yml:36-41,55`; [link](https://github.com/miigotu/certbot-dns-godaddy) |
 | `certbot` | `vol_certbot` | internal | file | /etc/letsencrypt | issued certificate and key | on demand | https-godaddy | source: `compose/docker-compose.https-godaddy.yml:56,62`; [link](https://eff-certbot.readthedocs.io/) |
+| `vol_certbot` | `pf_mosquitto` | internal | file | /etc/mosquitto-tls (ro mount of the certbot volume, MQTTS_CERT_SOURCE=certbot) | live/<SERVER_NAME>/fullchain.pem and privkey.pem issued by certbot | on demand (container start) | https-godaddy | source: `compose/docker-compose.https-godaddy.yml:20-21; compose/docker-compose.mqtts-public.yml:21-22`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/reference/configuration.md) |
 | `ext_web_clients` | `apigateway` | in | HTTPS | host port HTTPS_PORT (default 443) | web UI and API traffic (TLS) | on demand | https-godaddy | source: `compose/docker-compose.https-godaddy.yml:59-60`; [link](https://github.com/pacefactory/scv2_apigateway/blob/main/docs/architecture/README.md) |
 
 ## Diagram
@@ -77,6 +78,7 @@ flowchart LR
   subgraph deployment["services touched by profile https-godaddy"]
     certbot["certbot (profile: https-digitalocean)"]
     vol_certbot[("volume: certbot")]
+    pf_mosquitto["pf_mosquitto"]
     apigateway["apigateway"]
   end
   ext_acme{{"Let's Encrypt (ACME)"}}
@@ -85,6 +87,7 @@ flowchart LR
   certbot -->|"HTTPS: ACME certificate order"| ext_acme
   certbot -->|"HTTPS: DNS-01 TXT record"| ext_dns_api
   certbot -->|"file: issued certificate and key"| vol_certbot
+  vol_certbot -->|"file: live/<SERVER_NAME>/fullchain.pem and privkey.pem issued by certbot"| pf_mosquitto
   ext_web_clients -->|"HTTPS: web UI and API traffic (TLS)"| apigateway
   class certbot optional
 ```

@@ -6,8 +6,8 @@ derived_from:
   - docs/reference/
   - scripts/docs/
   - build.sh
-last_verified: 2026-09-09
-verified_against: ccf3768
+last_verified: 2026-09-10
+verified_against: 794523d
 ---
 
 # Pacefactory Cross-Repo Architecture Documentation Standard
@@ -473,9 +473,15 @@ adopted. Until then:
 
 ## 8. Cross-repo linking
 
-- Links to service repos point at a **path**, not a line number, and prefer
-  the default branch (`.../blob/main/docs/...`). Pinning to a SHA is allowed
-  only when the doc is itself pinned to a release.
+- Links to service repos point at a **path**, not a line number, on the
+  repository's **default branch**. Pacefactory repositories use either `main`
+  or `master` as the default branch and it varies by repository, so check
+  before linking: `.../deployment-scripts/blob/main/docs/...` and
+  `.../pf_mosquitto/blob/master/docs/...` are both correct, and a link to a
+  branch the repository does not have returns 404. Each service repo records
+  its default branch in the "Repo-specific overrides" section of its
+  `CLAUDE.md`. Pinning to a SHA is allowed only when the doc is itself pinned
+  to a release.
 - Each reference to a service includes a link to that service's
   `docs/architecture/README.md`. Add the link the first time the service is
   mentioned on a page. Until a service repo adopts the standard, the link may

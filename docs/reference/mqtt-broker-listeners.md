@@ -9,8 +9,8 @@ derived_from:
   - compose/docker-compose.https-godaddy.yml
   - compose/docker-compose.https-manual.yml
   - compose/docker-compose.https-no-certbot.yml
-last_verified: 2026-09-09
-verified_against: ccf3768
+last_verified: 2026-09-10
+verified_against: 794523d
 ---
 
 # MQTT broker listeners
@@ -39,9 +39,16 @@ settings (`compose/docker-compose.mqtts-public.yml:22-24`):
 
 The broker receives `SERVER_NAME=${SERVER_NAME}${MQTTS_FQDN_SUFFIX:-}` and is
 expected to find `live/<SERVER_NAME>/{fullchain.pem,privkey.pem}` (optionally
-`privkey.pass`) under the mount; if the files are missing it starts without the
-MQTTS listener. Details: pf_mosquitto entrypoint (`TODO(source)`: link to its
-configuration reference once published).
+`privkey.pass`) under the mount; if `SERVER_NAME` is unset, a file is missing
+or the key cannot be decrypted, it logs one line and starts without the MQTTS
+listener. Details and the exact log lines: pf_mosquitto
+[configuration reference](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/reference/configuration.md)
+and [Recover the MQTTS listener](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/how-to/recover-the-mqtts-listener.md).
+
+With a certbot `https-*` parent the mount source is the `certbot` named
+volume; with `https-no-certbot` it is the host directory `credentials/ssl`.
+The flow tables record these as `vol_certbot -> pf_mosquitto` and
+`ext_host_fs -> pf_mosquitto` respectively.
 
 ## Disabling a listener
 
@@ -64,4 +71,8 @@ mosquitto_sub -h <SERVER> -p 8883 --capath /etc/ssl/certs -u admin -P <PASSWORD>
 
 The default `admin` password is committed in
 `compose/docker-compose.base.yml:183-185` (healthcheck) and
-`compose/docker-compose.ape.yml:32,58`; rotate it per site.
+`compose/docker-compose.ape.yml:32,58`, and originates in the pf_mosquitto
+image. Rotate it per site with the pf_mosquitto how-to
+[Rotate the admin password](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/how-to/rotate-the-admin-password.md),
+updating those two fragments in the same change. The broker's healthcheck is
+described in [container health checks](container-healthchecks.md).
