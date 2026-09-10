@@ -40,6 +40,9 @@ x-pf-info:
     PERF_EVAL_TRIM_STITCH:
       description: The A/B switch — false = run A baseline (legacy), true = run B (trim/stitch/lookback on)
       default: false
+    PERF_EVAL_SOURCE_CACHE_ENTRIES_PER_CAMERA:
+      description: Shared source-data cache bound for the shadow instance (payloads per camera). Empty = the image default; 0 = cache off, to A/B the cache itself on one image
+      default: ""
     PERF_EVAL_START_TIME:
       description: Start of the pinned benchmark window (epoch ms or ISO date, e.g. 2026-07-20). Empty = derive from PERF_EVAL_REPORT_RANGE_HOURS (live-tail)
       default: ""
@@ -186,6 +189,9 @@ services:
       - "PF_ENABLE_MQTT_EXPORT=false"
       # The A/B switch: run A = false (legacy baseline), run B = true
       - "PF_ENABLE_SEGMENT_TRIM_STITCH=${PERF_EVAL_TRIM_STITCH:-false}"
+      # Shared source-data cache bound (empty = image default, 0 = off). The service treats an
+      # empty PF_* value as unset, so leaving this blank keeps the image's default
+      - "PF_SOURCE_CACHE_ENTRIES_PER_CAMERA=${PERF_EVAL_SOURCE_CACHE_ENTRIES_PER_CAMERA:-}"
       # Reproducible workload pinning
       - "PF_RUN_ONCE=${PERF_EVAL_RUN_ONCE:-true}"
       - "PF_START_TIME=${PERF_EVAL_START_TIME:-}"
