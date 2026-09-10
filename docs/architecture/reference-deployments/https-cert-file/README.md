@@ -9,7 +9,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/deployments.tsv
 last_verified: 2026-09-10
-verified_against: 9d0549a
+verified_against: 08482b3
 ---
 
 # Reference deployment: HTTPS via TLS cert file

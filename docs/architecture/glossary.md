@@ -7,7 +7,7 @@ derived_from:
   - build.sh
   - compose/docker-compose.*.yml
 last_verified: 2026-09-10
-verified_against: 9d0549a
+verified_against: 08482b3
 ---
 
 # Glossary

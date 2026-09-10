@@ -3,18 +3,18 @@ title: "Pacefactory Documentation Standard (Service Repos)"
 type: standard
 derived_from:
   - docs/
-last_verified: 2026-09-09
-verified_against: ccf3768
+last_verified: 2026-09-10
+verified_against: 08482b3
 ---
 
 # Pacefactory Documentation Standard (Service Repos)
 
-Version: 0.2-draft
+Version: 0.3-draft
 Canonical location: `pacefactory/deployment-scripts`, `docs/DOCUMENTATION_STANDARD.md` on the default branch
 (<https://github.com/pacefactory/deployment-scripts/blob/main/docs/DOCUMENTATION_STANDARD.md>).
 Applies to: every Pacefactory service repository. Cross-repo architecture
 documentation is governed separately by the deployment-scripts
-[`ARCHITECTURE_DOCS_STANDARD.md`](architecture/ARCHITECTURE_DOCS_STANDARD.md),
+[`ARCHITECTURE_DOCS_STANDARD.md`](https://github.com/pacefactory/deployment-scripts/blob/main/docs/architecture/ARCHITECTURE_DOCS_STANDARD.md),
 which extends this document. Repositories that are not services
 (deployment-scripts itself, `scv2_base_images`) follow §1, §2, §4, §6, §7 and
 §9; their required document set is defined by the architecture standard
@@ -82,6 +82,12 @@ upgrade notes, etc.) as they see fit. Only `reference/`, `how-to/`, and
 - Generators live outside `docs/` (for example `scripts/docs/`) together
   with any data files they read. A generated doc states in its first
   paragraph which script produced it.
+- `docs/` is documentation, not a runtime artifact, and is never shipped in a
+  container image. A repo whose `Dockerfile` copies the repository root (or
+  any parent of `docs/`) excludes it in `.dockerignore` (`docs/`, plus
+  `CLAUDE.md` and the vendored standard if they are not already covered).
+  Repos that copy only specific paths into the image need no entry, but
+  state so in the "Repo-specific overrides" section of `CLAUDE.md`.
 
 ---
 
@@ -190,7 +196,7 @@ verified_against: <git short SHA or tag>
 
 - Product name is **Pacefactory**. Do not abbreviate in docs.
 - Deployment vocabulary is defined once, in the deployment-scripts
-  [glossary](architecture/glossary.md), and used consistently: *site*,
+  [glossary](https://github.com/pacefactory/deployment-scripts/blob/main/docs/architecture/glossary.md), and used consistently: *site*,
   *deployment*, *build profile* (a compose fragment `build.sh` can enable;
   "profile" unqualified means this), *compose profile* (Docker Compose's own
   `profiles:` key, used for on-demand services), *sub-profile*, *required
@@ -256,6 +262,7 @@ Before merging a docs change, confirm:
 - [ ] `docs/README.md` index updated.
 - [ ] `last_verified` and `verified_against` updated.
 - [ ] `docs/DOCUMENTATION_STANDARD.md` is the unmodified vendored copy (`sync-standard.sh --check`).
+- [ ] `docs/` is excluded from the container image (`.dockerignore`, §2) or `CLAUDE.md` says why no entry is needed.
 
 ---
 
@@ -265,7 +272,7 @@ This file is versioned. Its canonical copy lives in
 `pacefactory/deployment-scripts` at `docs/DOCUMENTATION_STANDARD.md`. Changes
 are proposed as a pull request to that repository and announced to repo
 owners. After a change merges, the copies in the service repos are refreshed
-with the sync script (§11, [how-to](how-to/sync-documentation-standard.md)); service repos never edit their copy directly.
+with the sync script (§11, [how-to](https://github.com/pacefactory/deployment-scripts/blob/main/docs/how-to/sync-documentation-standard.md)); service repos never edit their copy directly.
 
 ---
 
