@@ -26,7 +26,7 @@ derived_from:
   - compose/docker-compose.tools.yml
   - scripts/docs/flows.tsv
 last_verified: 2026-09-10
-verified_against: 9d0549a
+verified_against: ba84b53
 ---
 
 # Web browsers and API clients
@@ -61,7 +61,10 @@ planned to disappear; see the linked issues.
 Inbound HTTP/HTTPS. The apigateway adds no authentication of its own: no
 `auth_*` directive exists in its templates
 ([route table](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md)). Authentication is per UI (Expresso UI password gate
-via `EXPRESSO_UI_PASSWORD_PROTECTION`; others `TODO(source)` in their repos).
+via `EXPRESSO_UI_PASSWORD_PROTECTION`; `relational_dbserver` has none, and its
+`/config` API returns database passwords in clear, see its
+[API reference](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/reference/api.md);
+others `TODO(source)` in their repos).
 
 On the apigateway ports: plain HTTP on `HTTP_PORT`, where `/` answers a `302`
 to `/scv3/` (or proxies the social web app when `social` is enabled); with an

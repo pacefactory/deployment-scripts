@@ -9,7 +9,7 @@ derived_from:
   - scripts/docs/flows.tsv
   - scripts/docs/deployments.tsv
 last_verified: 2026-09-10
-verified_against: 08482b3
+verified_against: ba84b53
 ---
 
 # Reference deployment: Default build
@@ -178,11 +178,12 @@ One row per directed flow (standard §7a). Node IDs are defined in the [glossary
 | `ext_web_clients` | `social_video_server` | in | HTTP | host port SOCIAL_VIDEO_PUBLIC_PORT (default 9999) | video streams | on demand | social | source: `compose/docker-compose.social.yml:43-44`; [link](https://github.com/pacefactory/social_video_server/blob/main/docs/architecture/README.md) |
 | `apigateway` | `social_video_server` | internal | HTTP | social_video_server:9999 (/api/video/) | proxied API calls | on demand | social | source: `compose/docker-compose.social.yml:56`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 | `apigateway` | `social_web_app` | internal | HTTP | social_web_app:80 (/; SOCIAL_VIDO_APP_HOST carries no port, so nginx uses the http default 80) | proxied UI (replaces the base 302 to /scv3/) | on demand | social | source: `compose/docker-compose.social.yml:57; scv2_apigateway etc/nginx/templates.social/locations/root.conf.template`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
-| `relational_dbserver` | `ext_client_sql` | bidi | SQL | client database host and driver TODO(source) | client records TODO(source) | on demand | rdb | source: `compose/docker-compose.rdb.yml:5-7`; [link](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/architecture/README.md) |
-| `ext_web_clients` | `relational_dbserver` | in | HTTP | host port RDB_PUBLIC_PORT (default 8282) | API calls | on demand | rdb | source: `compose/docker-compose.rdb.yml:22-23`; [link](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/architecture/README.md) |
-| `apigateway` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 (/api/rdb/) | proxied API calls | on demand | rdb | source: `compose/docker-compose.rdb.yml:34-35`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
-| `service_audit_processing` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 | relational lookups during audit processing | on demand | rdb | source: `compose/docker-compose.rdb.yml:43`; [link](https://github.com/pacefactory/scv3_services_processing/blob/main/docs/architecture/README.md) |
-| `expresso_server` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 | relational lookups | on demand | rdb | source: `compose/docker-compose.rdb.yml:47`; [link](https://github.com/pacefactory/expresso_server/blob/main/docs/architecture/README.md) |
+| `relational_dbserver` | `ext_client_sql` | out | SQL | host and port from db/<database>/connection.json on the relational_dbserver volume; TypeORM type mssql (TDS, example port 1433) or postgres (PostgreSQL wire, example port 5432); connection opened by relational_dbserver on first use | parameterised SQL statement from the route config (SELECT in every committed example), result rows returned | on demand | rdb | source: `compose/docker-compose.rdb.yml:5-7; scv2_relational_dbserver src/services/db/connection-manager-subclass.ts, package.json:127-128`; [link](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/reference/schemas/connection-config.md) |
+| `relational_dbserver` | `vol_relational_dbserver_data` | internal | file | /home/scv2/volume (rw mount of relational_dbserver-data); config tree at config/rdbserver-config/ | JSON configuration tree (db/<database>/connection.json, get/<route>.json, schema.json) read on every request and written by the /config API | on demand | rdb | source: `compose/docker-compose.rdb.yml:24-25,49-50; scv2_relational_dbserver docker/Dockerfile:31`; [link](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/reference/schemas/config-tree.md) |
+| `ext_web_clients` | `relational_dbserver` | in | HTTP | host port RDB_PUBLIC_PORT (default 8282) | GET /db/<database>/get/<route> query routes (JSON rows), /config/* management API (JSON, includes connection passwords), HTML route index; no authentication | on demand | rdb | source: `compose/docker-compose.rdb.yml:22-23`; [link](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/reference/api.md) |
+| `apigateway` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 (/api/rdb/ on the gateway, served at / by the service) | proxied query routes and /config API, including browser calls from auditgui (WEBGUI_RDB_URL=/api/rdb) | on demand | rdb | source: `compose/docker-compose.rdb.yml:29-39`; [link](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/reference/api.md) |
+| `service_audit_processing` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 (/db/<database>/get/<route>) | JSON rows from configured GET query routes during audit processing (which routes: TODO(source) in scv3_services_processing) | on demand | rdb | source: `compose/docker-compose.rdb.yml:41-43`; [link](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/reference/api.md) |
+| `expresso_server` | `relational_dbserver` | internal | HTTP | relational_dbserver:8282 (/db/<database>/get/<route>) | JSON rows from configured GET query routes (which routes: TODO(source) in expresso_server) | on demand | rdb | source: `compose/docker-compose.rdb.yml:45-47`; [link](https://github.com/pacefactory/scv2_relational_dbserver/blob/main/docs/reference/api.md) |
 | `ext_web_clients` | `nodered` | in | HTTP | host port NODERED_PORT (default 1880) | Node-RED editor and HTTP-in nodes | on demand | node-red | source: `compose/docker-compose.node-red.yml:23-24`; [link](https://nodered.org/docs/) |
 | `apigateway` | `nodered` | internal | HTTP | nodered:1880 (/api/nodered/, /dashboard/) | proxied editor, HTTP nodes and dashboard; WebSocket upgrade passed through | on demand | node-red | source: `compose/docker-compose.node-red.yml:35-36`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md) |
 | `nodered` | `ext_nodered_endpoints` | bidi | varies | configured per site in flows | site-specific TODO(source) | varies | node-red | source: `compose/docker-compose.node-red.yml (no endpoints in compose)`; [link](https://nodered.org/docs/) |
@@ -313,6 +314,7 @@ flowchart LR
     expresso_ui["expresso_ui"]
     social_web_app["social_web_app (profile: social)"]
     relational_dbserver["relational_dbserver (profile: rdb)"]
+    vol_relational_dbserver_data[("volume: relational_dbserver_data")]
     nodered["nodered (profile: node-red)"]
   end
   ext_cameras{{"IP cameras"}}
@@ -373,11 +375,12 @@ flowchart LR
   ext_web_clients -->|"HTTP: video streams"| social_video_server
   apigateway -->|"HTTP: proxied API calls"| social_video_server
   apigateway -->|"HTTP: proxied UI (replaces the base 302 to /scv3/)"| social_web_app
-  relational_dbserver <-->|"SQL: client records TODO(source)"| ext_client_sql
-  ext_web_clients -->|"HTTP: API calls"| relational_dbserver
-  apigateway -->|"HTTP: proxied API calls"| relational_dbserver
-  service_audit_processing -->|"HTTP: relational lookups during audit processing"| relational_dbserver
-  expresso_server -->|"HTTP: relational lookups"| relational_dbserver
+  relational_dbserver -->|"SQL: parameterised SQL statement from the route config (SELECT in every committed example), result rows returned"| ext_client_sql
+  relational_dbserver -->|"file: JSON configuration tree (db/<database>/connection.json, get/<route>.json, schema.json) read on every request and written by the /config API"| vol_relational_dbserver_data
+  ext_web_clients -->|"HTTP: GET /db/<database>/get/<route> query routes (JSON rows), /config/* management API (JSON, includes connection passwords), HTML route index; no authentication"| relational_dbserver
+  apigateway -->|"HTTP: proxied query routes and /config API, including browser calls from auditgui (WEBGUI_RDB_URL=/api/rdb)"| relational_dbserver
+  service_audit_processing -->|"HTTP: JSON rows from configured GET query routes during audit processing (which routes: TODO(source) in scv3_services_processing)"| relational_dbserver
+  expresso_server -->|"HTTP: JSON rows from configured GET query routes (which routes: TODO(source) in expresso_server)"| relational_dbserver
   ext_web_clients -->|"HTTP: Node-RED editor and HTTP-in nodes"| nodered
   apigateway -->|"HTTP: proxied editor, HTTP nodes and dashboard; WebSocket upgrade passed through"| nodered
   nodered <-->|"varies: site-specific TODO(source)"| ext_nodered_endpoints

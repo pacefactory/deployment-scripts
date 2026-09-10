@@ -21,7 +21,7 @@ mongo_exp	mongo_exp	mongo_exp	mongodb/mongodb-community-server	https://hub.docke
 trainer	trainer	trainer	pacefactory/trainer	https://github.com/pacefactory/trainer	internal	GPU Celery worker for model training and synthetic data generation
 social_web_app	social_web_app	social_web_app	pacefactory/social_web_app	https://github.com/pacefactory/social_web_app	internal	Video-based social web app served behind the apigateway
 social_video_server	social_video_server	social_video_server	pacefactory/social_video_server	https://github.com/pacefactory/social_video_server	internal	Video server for the social web app
-relational_dbserver	relational_dbserver	relational_dbserver	pacefactory/relational-dbserver	https://github.com/pacefactory/scv2_relational_dbserver	internal	Bridge between the deployment and a client's existing SQL database
+relational_dbserver	relational_dbserver	relational_dbserver	pacefactory/relational-dbserver	https://github.com/pacefactory/scv2_relational_dbserver	internal	Express HTTP API that runs SQL queries defined in JSON config files against a client's SQL Server or PostgreSQL database (TypeORM) and returns the rows
 nodered	nodered	nodered	nodered/node-red	https://hub.docker.com/r/nodered/node-red	third-party	Node-RED flow engine for site-specific integrations
 ntfy	ntfy	ntfy	binwiederhier/ntfy	https://hub.docker.com/r/binwiederhier/ntfy	third-party	Push notification server
 alert_processing_engine	alert_processing_engine	alert_processing_engine	pacefactory/alert_processing_engine	https://github.com/pacefactory/alert_processing_engine	internal	Alert Processing Engine: real-time alerts from MQTT object data
