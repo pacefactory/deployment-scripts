@@ -2,8 +2,9 @@
 %% derived_from: scripts/docs/flows.tsv
 %% derived_from: compose/docker-compose.*.yml
 %% derived_from: scripts/remote/update-server.sh
+%% derived_from: scripts/release/fetch-release.sh
 %% derived_from: update.sh
-%% last_verified: 2026-09-09 (ccf3768)
+%% last_verified: 2026-09-11 (8d85e22)
 flowchart LR
   ext_cameras{{"IP cameras"}}
   ext_web_clients{{"Web browsers and API clients"}}
@@ -36,8 +37,8 @@ flowchart LR
   deployment <-->|"HTTPS: remote training dispatch and callbacks (expresso-010)"| ext_peer_deployment
   ext_host_fs -->|"file: TLS material, CLI scripts"| deployment
   deployment -->|"file: recorded videos (tools)"| ext_host_fs
-  host -->|"HTTPS: image pulls (update.sh)"| ext_registry
-  host -->|"HTTPS: git pull, yq and compose binaries"| ext_github
+  host -->|"HTTPS: service image pulls (update.sh), release image pull (fetch-release.sh)"| ext_registry
+  host -->|"HTTPS: install.sh bootstrap via get.pacefactory.dev (install/repair only), yq and compose binaries"| ext_github
   host -.-|"HTTP CONNECT: egress via ~/connect-to-proxy.sh when present"| ext_proxy
-  ext_fleet_operator -->|"SSH: git pull, build.sh -q, update.sh -q"| host
+  ext_fleet_operator -->|"SSH: fetch-release.sh, build.sh -q, update.sh -q"| host
   user_operator -->|"shell: build.sh, update.sh, tools"| host

@@ -8,8 +8,8 @@ derived_from:
   - docs/architecture/reference-deployments/default-build/build-command.txt
   - scripts/docs/flows.tsv
   - scripts/docs/deployments.tsv
-last_verified: 2026-09-10
-verified_against: 08482b3
+last_verified: 2026-09-11
+verified_against: 8d85e22
 ---
 
 # Reference deployment: Default build
@@ -188,6 +188,7 @@ One row per directed flow (standard §7a). Node IDs are defined in the [glossary
 | `nodered` | `ext_nodered_endpoints` | bidi | varies | configured per site in flows | site-specific TODO(source) | varies | node-red | source: `compose/docker-compose.node-red.yml (no endpoints in compose)`; [link](https://nodered.org/docs/) |
 | `ext_mqtt_clients` | `pf_mosquitto` | in | MQTT | host port PF_MOSQUITTO_PUBLIC_PORT (default 1883) | MQTT publish (admin user, password committed in the pf_mosquitto Dockerfile) and subscribe (anonymous allowed) | continuous | mqtt-public | source: `compose/docker-compose.mqtt-public.yml:16-18`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
 | `ext_mqtt_clients` | `pf_mosquitto` | in | MQTTS | host port MQTTS_PUBLIC_PORT (default 8883) | MQTT over TLS (tls_version tlsv1.2, server certificate from the https-* profile), same credentials as 1883 | continuous | mqtts-public | source: `compose/docker-compose.mqtts-public.yml:18-24`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
+| `ext_host_fs` | `ext_registry` | out | HTTPS | registry-1.docker.io: pacefactory/deployment-scripts:<PF_RELEASE> (default latest) | deployment-scripts release image (file-only, FROM scratch): the scripts tree synced into ~/scv2/git_clones/deployment-scripts by manifest | on demand | base | source: `scripts/release/fetch-release.sh:121,147-148; scripts/release/Dockerfile:10-11`; [link](https://github.com/pacefactory/deployment-scripts/blob/main/docs/how-to/install-deployment-scripts.md) |
 
 ## Diagrams
 
@@ -322,6 +323,7 @@ flowchart LR
   ext_client_sql{{"Client SQL database"}}
   ext_nodered_endpoints{{"Node-RED flow endpoints"}}
   ext_mqtt_clients{{"MQTT clients"}}
+  ext_registry{{"Container registry (Docker Hub)"}}
   ext_cameras -->|"RTSP: H.264/H.265 video"| realtime
   realtime -->|"HTTP: object metadata and snapshots TODO(source)"| dbserver
   realtime -->|"MQTT: real-time object data"| pf_mosquitto
@@ -383,6 +385,7 @@ flowchart LR
   nodered <-->|"varies: site-specific TODO(source)"| ext_nodered_endpoints
   ext_mqtt_clients -->|"MQTT: MQTT publish (admin user, password committed in the pf_mosquitto Dockerfile) and subscribe (anonymous allowed)"| pf_mosquitto
   ext_mqtt_clients -->|"MQTTS: MQTT over TLS (tls_version tlsv1.2, server certificate from the https-* profile), same credentials as 1883"| pf_mosquitto
+  ext_host_fs -->|"HTTPS: deployment-scripts release image (file-only, FROM scratch): the scripts tree synced into ~/scv2/git_clones/deployment-scripts by manifest"| ext_registry
   class social_web_app,nodered,social_video_server,relational_dbserver optional
 ```
 

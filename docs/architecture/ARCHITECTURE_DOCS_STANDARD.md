@@ -6,8 +6,8 @@ derived_from:
   - docs/reference/
   - scripts/docs/
   - build.sh
-last_verified: 2026-09-10
-verified_against: 794523d
+last_verified: 2026-09-11
+verified_against: 8d85e22
 ---
 
 # Pacefactory Cross-Repo Architecture Documentation Standard
@@ -398,8 +398,8 @@ OPC) are **not** listed until a fragment or service-repo doc shows them.
 | Let's Encrypt (ACME) | `ext_acme` | out | certbot services in the three certbot `https-*` fragments |
 | DNS provider API | `ext_dns_api` | out | certbot DNS plugins and `credentials/*/credentials.ini` |
 | Peer Pacefactory deployment | `ext_peer_deployment` | bidi | `PF_EXPRESSO_PUBLIC_URL_BASE`, `PF_REMOTE_TRAINER_URLS` |
-| Container registry | `ext_registry` | out | `update.sh` pull, `runYq.sh`, offline-install tooling |
-| GitHub | `ext_github` | out | `git pull` in fleet tooling, yq and compose binary downloads |
+| Container registry | `ext_registry` | out | `update.sh` pull, the deployment-scripts release image pulled by `scripts/release/fetch-release.sh`, `runYq.sh`, offline-install tooling |
+| GitHub | `ext_github` | out | the `install.sh` bootstrap on GitHub Pages (`get.pacefactory.dev`), yq and compose binary downloads |
 | Web browsers and API clients | `ext_web_clients` | in | every published HTTP(S) port |
 | ntfy subscribers | `ext_ntfy_clients` | in | `ntfy` fragment |
 | Node-RED flow endpoints | `ext_nodered_endpoints` | bidi | `node-red` fragment (endpoints are runtime configuration) |

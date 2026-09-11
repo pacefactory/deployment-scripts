@@ -3,7 +3,7 @@
 %% derived_from: scripts/docs/flows.tsv
 %% derived_from: scripts/docs/services.tsv
 %% derived_from: scripts/docs/externals.tsv
-%% last_verified: 2026-09-10 (08482b3)
+%% last_verified: 2026-09-11 (8d85e22)
 flowchart LR
   classDef optional stroke-dasharray: 5 5
   subgraph deployment["offline-processing"]
@@ -39,6 +39,7 @@ flowchart LR
   ext_client_sql{{"Client SQL database"}}
   ext_nodered_endpoints{{"Node-RED flow endpoints"}}
   ext_mqtt_clients{{"MQTT clients"}}
+  ext_registry{{"Container registry (Docker Hub)"}}
   ext_cameras -->|"RTSP: H.264/H.265 video"| realtime
   realtime -->|"HTTP: object metadata and snapshots TODO(source)"| dbserver
   realtime -->|"MQTT: real-time object data"| pf_mosquitto
@@ -100,4 +101,5 @@ flowchart LR
   nodered <-->|"varies: site-specific TODO(source)"| ext_nodered_endpoints
   ext_mqtt_clients -->|"MQTT: MQTT publish (admin user, password committed in the pf_mosquitto Dockerfile) and subscribe (anonymous allowed)"| pf_mosquitto
   ext_mqtt_clients -->|"MQTTS: MQTT over TLS (tls_version tlsv1.2, server certificate from the https-* profile), same credentials as 1883"| pf_mosquitto
+  ext_host_fs -->|"HTTPS: deployment-scripts release image (file-only, FROM scratch): the scripts tree synced into ~/scv2/git_clones/deployment-scripts by manifest"| ext_registry
   class social_web_app,nodered,social_video_server,relational_dbserver optional

@@ -6,8 +6,8 @@ ext_client_sql	Client SQL database	SQL (driver TODO(source))	bidi	client-sql.md	
 ext_acme	Let's Encrypt (ACME)	HTTPS	out	acme-dns.md	Certificate authority contacted by certbot
 ext_dns_api	DNS provider API (DigitalOcean, GoDaddy)	HTTPS	out	acme-dns.md	DNS API used by certbot for DNS-01 challenges
 ext_peer_deployment	Peer Pacefactory deployment	HTTPS	bidi	peer-deployments.md	Another Pacefactory deployment acting as a remote trainer or dispatcher
-ext_registry	Container registry (Docker Hub)	HTTPS	out	registry-egress.md	Image pulls by update.sh and the offline-install tooling
-ext_github	GitHub	HTTPS	out	registry-egress.md	Source of this repository and of the yq and compose binaries
+ext_registry	Container registry (Docker Hub)	HTTPS	out	registry-egress.md	Image pulls by update.sh, the deployment-scripts release image pulled by fetch-release.sh and install.sh, and the offline-install tooling
+ext_github	GitHub	HTTPS	out	registry-egress.md	GitHub Pages host of the install.sh bootstrap (get.pacefactory.dev) and source of the yq and compose binaries
 ext_web_clients	Web browsers and API clients	HTTP, HTTPS	in	web-clients.md	People and scripts using the published HTTP(S) ports
 ext_ntfy_clients	ntfy subscribers	HTTP	in	push-clients.md	Devices subscribing to the ntfy push server
 ext_nodered_endpoints	Node-RED flow endpoints	varies	bidi	node-red-flows.md	Whatever a site's Node-RED flows connect to

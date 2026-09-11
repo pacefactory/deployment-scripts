@@ -4,14 +4,47 @@ type: other
 derived_from:
   - compose/docker-compose.base.yml
   - compose/docker-compose.audit-perf-eval.yml
-last_verified: 2026-09-09
-verified_against: ccf3768
+  - scripts/release/fetch-release.sh
+  - scripts/remote/update-server.sh
+  - .github/workflows/ci.yml
+last_verified: 2026-09-11
+verified_against: 8d85e22
 ---
 
 # Upgrade notes
 
 Behaviour changes operators need to know about when pulling a new release.
 Newest first.
+
+## 2026-09: deployment-scripts ships as a Docker Hub release image
+
+The repository becomes private; servers no longer `git pull`. The scripts
+tree is published as the file-only image `pacefactory/deployment-scripts`
+(`.github/workflows/ci.yml`), fetched with the server's existing Docker Hub
+login, and synced into `~/scv2/git_clones/deployment-scripts` by
+`scripts/release/fetch-release.sh`. What changes for operators:
+
+- **One-time migration per server.** Run
+  `curl -fsSL https://get.pacefactory.dev/install.sh | bash` as the operating
+  account. It converts the checkout in place; `.env`, `.settings`,
+  `docker-compose.yml`, credentials and custom fragments are untouched. Paths
+  that are not part of the release are removed from the server, `docs/`
+  included; read the docs on GitHub. `.git` stays unless `PF_REMOVE_GIT=true`.
+  See [Install or repair deployment-scripts on a server](how-to/install-deployment-scripts.md).
+- **Routine updates.** `./scripts/release/fetch-release.sh` replaces
+  `git pull --ff-only`; `./build.sh` and `./update.sh` are unchanged
+  ([Update a deployment](how-to/update-a-deployment.md)). `git pull` on an
+  unmigrated server fails with an authentication or repository-not-found error
+  once the repository is private.
+- **Versions.** `latest` follows `main` as `git pull` did; `vX.Y.Z` and
+  `sha-<short>` tags pin or roll back (`PF_RELEASE=<tag>`). The installed
+  release is in `.pf-release/VERSION`.
+- **Fleet tooling.** `update-fleet.ps1` requires migrated servers and reports
+  unmigrated ones as `NOT MIGRATED` (payload exit 17,
+  `scripts/remote/update-server.sh:49-50`); run the one-liner on those first.
+- **Credentials.** Servers must stay logged in to Docker Hub as `pacefactory`
+  with their per-server token in `~/scv2/docker_oat.sh`; answer `n` to
+  "Logout from DockerHub?" in `update.sh`.
 
 ## 2026-07: audit processing per-entry segment trimming
 

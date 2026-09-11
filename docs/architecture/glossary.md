@@ -6,8 +6,8 @@ derived_from:
   - scripts/docs/externals.tsv
   - build.sh
   - compose/docker-compose.*.yml
-last_verified: 2026-09-10
-verified_against: 08482b3
+last_verified: 2026-09-11
+verified_against: 8d85e22
 ---
 
 # Glossary
@@ -103,8 +103,8 @@ standard path `docs/architecture/README.md` and may not exist yet in that repo.
 | Let's Encrypt (ACME) | `ext_acme` | HTTPS | out | [acme-dns.md](integrations/acme-dns.md) | Certificate authority contacted by certbot |
 | DNS provider API (DigitalOcean, GoDaddy) | `ext_dns_api` | HTTPS | out | [acme-dns.md](integrations/acme-dns.md) | DNS API used by certbot for DNS-01 challenges |
 | Peer Pacefactory deployment | `ext_peer_deployment` | HTTPS | bidi | [peer-deployments.md](integrations/peer-deployments.md) | Another Pacefactory deployment acting as a remote trainer or dispatcher |
-| Container registry (Docker Hub) | `ext_registry` | HTTPS | out | [registry-egress.md](integrations/registry-egress.md) | Image pulls by update.sh and the offline-install tooling |
-| GitHub | `ext_github` | HTTPS | out | [registry-egress.md](integrations/registry-egress.md) | Source of this repository and of the yq and compose binaries |
+| Container registry (Docker Hub) | `ext_registry` | HTTPS | out | [registry-egress.md](integrations/registry-egress.md) | Image pulls by update.sh, the deployment-scripts release image pulled by fetch-release.sh and install.sh, and the offline-install tooling |
+| GitHub | `ext_github` | HTTPS | out | [registry-egress.md](integrations/registry-egress.md) | GitHub Pages host of the install.sh bootstrap (get.pacefactory.dev) and source of the yq and compose binaries |
 | Web browsers and API clients | `ext_web_clients` | HTTP, HTTPS | in | [web-clients.md](integrations/web-clients.md) | People and scripts using the published HTTP(S) ports |
 | ntfy subscribers | `ext_ntfy_clients` | HTTP | in | [push-clients.md](integrations/push-clients.md) | Devices subscribing to the ntfy push server |
 | Node-RED flow endpoints | `ext_nodered_endpoints` | varies | bidi | [node-red-flows.md](integrations/node-red-flows.md) | Whatever a site's Node-RED flows connect to |

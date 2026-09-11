@@ -6,8 +6,8 @@ derived_from:
   - scripts/remote/install-ssh-key.ps1
   - scripts/remote/update-server.sh
   - .gitattributes
-last_verified: 2026-09-09
-verified_against: ccf3768
+last_verified: 2026-09-11
+verified_against: 8d85e22
 ---
 
 # Fleet operator workstation (SSH)
@@ -21,9 +21,12 @@ update many deployment hosts.
 
 No compose service. The host's `pacefactory` account receives an ssh session
 that streams `scripts/remote/update-server.sh` to `bash -s`
-(`scripts/remote/update-server.sh:5-7`). The payload runs `git pull`,
-`./build.sh -q`, `./update.sh -q` and a container health check in
-`~/scv2/git_clones/deployment-scripts`.
+(`scripts/remote/update-server.sh:9-15`). The payload runs
+`scripts/release/fetch-release.sh` (the release image fetch that replaced
+`git pull`, `scripts/remote/update-server.sh:140-150`), `./build.sh -q`,
+`./update.sh -q` and a container health check in
+`~/scv2/git_clones/deployment-scripts`, and reports markers in protocol v2
+(`scripts/remote/update-server.sh:21-39`).
 
 ## Direction and protocol(s)
 
@@ -39,7 +42,8 @@ SSH from the operator network (or VPN) to every deployment host. See
 
 ## Payload summary
 
-Shell script over stdin; `PF|...` marker lines back over stdout.
+Shell script over stdin; `PF|...` marker lines back over stdout, including the
+installed release before and after and whether the server is migrated.
 
 ## Failure modes at the boundary
 

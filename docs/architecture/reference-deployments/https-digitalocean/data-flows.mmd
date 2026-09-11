@@ -3,7 +3,7 @@
 %% derived_from: scripts/docs/flows.tsv
 %% derived_from: scripts/docs/services.tsv
 %% derived_from: scripts/docs/externals.tsv
-%% last_verified: 2026-09-10 (08482b3)
+%% last_verified: 2026-09-11 (8d85e22)
 flowchart LR
   classDef optional stroke-dasharray: 5 5
   subgraph deployment["https-digitalocean"]
@@ -43,6 +43,7 @@ flowchart LR
   ext_mqtt_clients{{"MQTT clients"}}
   ext_acme{{"Let's Encrypt (ACME)"}}
   ext_dns_api{{"DNS provider API (DigitalOcean, GoDaddy)"}}
+  ext_registry{{"Container registry (Docker Hub)"}}
   ext_cameras -->|"RTSP: H.264/H.265 video"| realtime
   realtime -->|"HTTP: object metadata and snapshots TODO(source)"| dbserver
   realtime -->|"MQTT: real-time object data"| pf_mosquitto
@@ -110,4 +111,5 @@ flowchart LR
   vol_certbot -->|"file: live/<SERVER_NAME>/fullchain.pem and privkey.pem issued by certbot"| pf_mosquitto
   vol_certbot -->|"file: live/<SERVER_NAME>/fullchain.pem and privkey.pem issued by certbot (privkey.pass optional); a self-signed pair is generated when they are missing"| apigateway
   ext_web_clients -->|"HTTPS: web UI and API traffic (TLS 1.2/1.3, HTTP/2; Content-Security-Policy frame-ancestors 'none')"| apigateway
+  ext_host_fs -->|"HTTPS: deployment-scripts release image (file-only, FROM scratch): the scripts tree synced into ~/scv2/git_clones/deployment-scripts by manifest"| ext_registry
   class certbot,social_web_app,nodered,social_video_server,relational_dbserver optional

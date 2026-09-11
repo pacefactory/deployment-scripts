@@ -13,18 +13,32 @@ documentation (profiles, reference deployments, data flows, integrations).
 Prerequisites: a Linux host with Docker and the docker compose plugin (Docker
 28.x with compose 2.35+ confirmed), mikefarah `yq` v4 on PATH
 ([Install yq](docs/how-to/install-yq.md); the Python `yq` wrapper is not
-compatible), and the repository checked out at
-`~/scv2/git_clones/deployment-scripts`.
+compatible), and the server's Docker Hub token in `~/scv2/docker_oat.sh`.
+
+The tree is distributed as the private Docker Hub image
+`pacefactory/deployment-scripts` and installed at
+`~/scv2/git_clones/deployment-scripts` by a public bootstrap; the same command
+converts an old `git clone` in place or repairs an install
+([Install or repair deployment-scripts on a server](docs/how-to/install-deployment-scripts.md)):
 
 ```bash
+curl -fsSL https://get.pacefactory.dev/install.sh | bash
+```
+
+Then, in the install directory:
+
+```bash
+./scripts/release/fetch-release.sh   # routine updates of the tree (replaces git pull)
 ./build.sh     # choose profiles and settings; writes .settings, .env, docker-compose.yml
 ./update.sh    # pull images and (re)launch; offers to run build.sh first
 ```
 
-Non-interactive: `./build.sh -q` then `./update.sh -q`. Details:
-[Build a deployment](docs/how-to/build-a-deployment.md),
+Non-interactive: `./scripts/release/fetch-release.sh && ./build.sh -q && ./update.sh -q`.
+Details: [Build a deployment](docs/how-to/build-a-deployment.md),
 [Update a deployment](docs/how-to/update-a-deployment.md),
+[Publish a deployment-scripts release](docs/how-to/publish-a-release.md),
 [Build and update scripts reference](docs/reference/build-script.md).
+The image excludes `docs/`; read the documentation on GitHub.
 
 ## Where to look
 

@@ -4,8 +4,8 @@ type: other
 derived_from:
   - scripts/docs/index.tsv
   - docs/
-last_verified: 2026-09-10
-verified_against: 08482b3
+last_verified: 2026-09-11
+verified_against: 8d85e22
 ---
 
 # Documentation index
@@ -32,7 +32,7 @@ Read the two standards first:
 | [architecture/integrations/client-sql.md](architecture/integrations/client-sql.md) | A client's SQL database behind relational_dbserver |
 | [architecture/integrations/acme-dns.md](architecture/integrations/acme-dns.md) | Let's Encrypt and the DigitalOcean / GoDaddy DNS APIs used by certbot |
 | [architecture/integrations/peer-deployments.md](architecture/integrations/peer-deployments.md) | Remote-training exchange between Pacefactory deployments |
-| [architecture/integrations/registry-egress.md](architecture/integrations/registry-egress.md) | Docker Hub and GitHub egress from the host tooling |
+| [architecture/integrations/registry-egress.md](architecture/integrations/registry-egress.md) | Docker Hub (service images and the release image) and GitHub (bootstrap, binaries) egress from the host tooling |
 | [architecture/integrations/web-clients.md](architecture/integrations/web-clients.md) | Published HTTP(S) ports and the clients that use them |
 | [architecture/integrations/host-filesystem.md](architecture/integrations/host-filesystem.md) | Host paths bind-mounted into containers |
 | [architecture/integrations/push-clients.md](architecture/integrations/push-clients.md) | ntfy push notification subscribers |
@@ -99,7 +99,9 @@ Read the two standards first:
 | Doc | Purpose |
 |---|---|
 | [how-to/build-a-deployment.md](how-to/build-a-deployment.md) | Choose profiles and settings and produce docker-compose.yml |
-| [how-to/update-a-deployment.md](how-to/update-a-deployment.md) | Pull images and relaunch the compose project |
+| [how-to/update-a-deployment.md](how-to/update-a-deployment.md) | Fetch the current release, pull images and relaunch the compose project |
+| [how-to/install-deployment-scripts.md](how-to/install-deployment-scripts.md) | Install, convert or repair the deployment-scripts tree on a server from the Docker Hub release image |
+| [how-to/publish-a-release.md](how-to/publish-a-release.md) | What builds and tags the pacefactory/deployment-scripts release image, and how to verify it |
 | [how-to/add-a-profile.md](how-to/add-a-profile.md) | Add a compose fragment and its derived docs |
 | [how-to/add-an-environment-variable.md](how-to/add-an-environment-variable.md) | Expose a new build-time variable to a service |
 | [how-to/rebuild-reference-deployments.md](how-to/rebuild-reference-deployments.md) | Rebuild the committed reference outputs and regenerate all derived docs |

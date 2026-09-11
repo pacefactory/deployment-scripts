@@ -1,7 +1,8 @@
 %% derived_from: docs/architecture/network/site-requirements.md
 %% derived_from: scripts/remote/update-server.sh
+%% derived_from: scripts/release/fetch-release.sh
 %% derived_from: compose/docker-compose.*.yml
-%% last_verified: 2026-09-09 (def9139)
+%% last_verified: 2026-09-11 (8d85e22)
 flowchart LR
   ext_fleet_operator{{"Fleet operator workstation (Windows, ssh)"}}
   ext_web_clients{{"Web browsers and API clients"}}
@@ -10,13 +11,13 @@ flowchart LR
     ext_cameras{{"IP cameras"}}
     ext_client_sql{{"Client SQL database"}}
     subgraph host["Deployment host: Linux + docker compose"]
-      checkout["~/scv2/git_clones/deployment-scripts"]
+      checkout["~/scv2/git_clones/deployment-scripts (release install)"]
       deployment["compose project deployment-scripts"]
       proxyhook["~/connect-to-proxy.sh (optional)"]
     end
     ext_proxy{{"Corporate proxy (optional)"}}
   end
-  internet["Internet: Docker Hub, GitHub, Let's Encrypt, DNS APIs, peer deployments"]
+  internet["Internet: Docker Hub (service and release images), get.pacefactory.dev (install/repair only), GitHub, Let's Encrypt, DNS APIs, peer deployments"]
   ext_cameras -->|"RTSP over TCP 554"| deployment
   ext_web_clients -->|"HTTP 80 / HTTPS 443"| deployment
   ext_mqtt_clients -->|"MQTT 1883 / MQTTS 8883"| deployment

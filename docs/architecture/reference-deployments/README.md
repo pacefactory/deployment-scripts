@@ -5,8 +5,8 @@ derived_from:
   - scripts/docs/deployments.tsv
   - docs/architecture/reference-deployments/*/.settings
   - docs/architecture/reference-deployments/*/.env
-last_verified: 2026-09-10
-verified_against: 08482b3
+last_verified: 2026-09-11
+verified_against: 8d85e22
 ---
 
 # Reference deployments

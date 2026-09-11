@@ -27,8 +27,8 @@ derived_from:
   - compose/docker-compose.social.yml
   - compose/docker-compose.swift-labeler.yml
   - compose/docker-compose.tools.yml
-last_verified: 2026-09-09
-verified_against: ccf3768
+last_verified: 2026-09-11
+verified_against: 8d85e22
 ---
 
 # Build a deployment
@@ -42,7 +42,7 @@ answering their settings.
 
 - [ ] Linux host with Docker and the docker compose plugin (`docker compose version`).
 - [ ] mikefarah `yq` v4 on PATH (`yq --version` prints `yq (https://github.com/mikefarah/yq/) version v4…`), or Docker access to pull `mikefarah/yq:latest`. See [Install yq](install-yq.md). If `yq --version` prints a jq-style version, that is the Python wrapper; `build.sh` will silently produce an almost empty compose file with it.
-- [ ] Repository checked out at `~/scv2/git_clones/deployment-scripts` (the path the fleet tooling and reference deployments assume).
+- [ ] deployment-scripts installed at `~/scv2/git_clones/deployment-scripts` from the release image ([Install or repair deployment-scripts on a server](install-deployment-scripts.md)); the path is the one the fleet tooling and reference deployments assume.
 - [ ] For `https-*` profiles: credentials or certificate files in place first (see [Enable HTTPS](enable-https.md)).
 - [ ] `<PROJECT_NAME>`: lowercase letters, digits, `-`, `_`, starting with a letter or digit. Default `deployment-scripts`.
 

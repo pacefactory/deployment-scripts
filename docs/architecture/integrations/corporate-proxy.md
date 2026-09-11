@@ -5,8 +5,8 @@ derived_from:
   - scripts/remote/update-server.sh
   - scripts/remote/README.md
   - build.sh
-last_verified: 2026-09-10
-verified_against: 9d0549a
+last_verified: 2026-09-11
+verified_against: 8d85e22
 ---
 
 # Corporate proxy
@@ -19,7 +19,7 @@ to reach Docker Hub, GitHub, Let's Encrypt and DNS APIs.
 ## Which Pacefactory services participate, and via which profile(s)
 
 No compose service. The host shell sources `~/connect-to-proxy.sh` before
-`git pull`, `build.sh` and `update.sh` (`scripts/remote/update-server.sh:39,72-80`);
+`fetch-release.sh`, `build.sh` and `update.sh` (`scripts/remote/update-server.sh:58,94-102`);
 its absence is a warning, not an error. The script's contents are per site and
 not in this repository. `TODO(source)`: whether containers themselves (certbot,
 expresso_server remote training) are proxy-aware; no fragment passes
@@ -43,8 +43,8 @@ Tunnelled HTTPS.
 
 ## Failure modes at the boundary
 
-Pulls and `git pull` fail; the fleet payload reports `FAIL` with exit codes
-12 (git) or 14 (update) (`scripts/remote/update-server.sh:27-35`).
+Image pulls and the release fetch fail; the fleet payload reports `FAIL` with
+exit codes 12 (release fetch) or 14 (update) (`scripts/remote/update-server.sh:41-50`).
 
 ## Variants
 

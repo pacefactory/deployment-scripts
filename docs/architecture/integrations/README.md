@@ -4,8 +4,8 @@ type: reference
 derived_from:
   - scripts/docs/externals.tsv
   - scripts/docs/flows.tsv
-last_verified: 2026-09-09
-verified_against: ccf3768
+last_verified: 2026-09-11
+verified_against: 8d85e22
 ---
 
 # Integration types
@@ -27,7 +27,7 @@ script in this repository evidences them. Add a row to
 | Client SQL database | `ext_client_sql` | SQL | bidi | relational_dbserver (rdb) | [client-sql.md](client-sql.md) |
 | Let's Encrypt and DNS provider APIs | `ext_acme`, `ext_dns_api` | HTTPS | out | certbot (https-digitalocean, https-godaddy, https-manual) | [acme-dns.md](acme-dns.md) |
 | Peer Pacefactory deployment | `ext_peer_deployment` | HTTPS | bidi | expresso_server, apigateway (expresso-010) | [peer-deployments.md](peer-deployments.md) |
-| Container registry and GitHub | `ext_registry`, `ext_github` | HTTPS | out | host tooling: update.sh, runYq.sh, scripts/offline, scripts/remote | [registry-egress.md](registry-egress.md) |
+| Container registry and GitHub | `ext_registry`, `ext_github` | HTTPS | out | host tooling: update.sh, scripts/release/fetch-release.sh (release image), the install.sh bootstrap, runYq.sh, scripts/offline, scripts/remote | [registry-egress.md](registry-egress.md) |
 | Web browsers and API clients | `ext_web_clients` | HTTP, HTTPS | in | apigateway and every service with a published port | [web-clients.md](web-clients.md) |
 | Deployment host filesystem | `ext_host_fs` | file | bidi | record_video, stitch_videos (tools); certbot (https-digitalocean, https-godaddy); apigateway, pf_mosquitto (https-no-certbot, mqtts-public) | [host-filesystem.md](host-filesystem.md) |
 | ntfy subscribers | `ext_ntfy_clients` | HTTP | in | ntfy (ntfy) | [push-clients.md](push-clients.md) |

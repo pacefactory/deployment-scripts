@@ -6,8 +6,8 @@ derived_from:
   - build.sh
   - scripts/docs/flows.tsv
   - scripts/docs/services.tsv
-last_verified: 2026-09-10
-verified_against: 08482b3
+last_verified: 2026-09-11
+verified_against: 8d85e22
 ---
 
 # Profile: `base`
@@ -112,6 +112,7 @@ Flows this profile originates or terminates. Node IDs are defined in the [glossa
 | `apigateway` | `pf_mosquitto` | internal | WS | pf_mosquitto:7575 (/api/mqtt) | MQTT over WebSocket for browsers (listener 7575, protocol websockets; anonymous read, admin publish) | continuous | base | source: `compose/docker-compose.base.yml:359-361`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
 | `pf_mosquitto` | `vol_mosquitto_data` | internal | file | /mosquitto (rw mount of mosquitto-data): persistence at /mosquitto/data/, config at /mosquitto/config/ | persistence database; password, ACL and mosquitto.conf files that shadow the image copies | continuous | base | source: `compose/docker-compose.base.yml:191`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/architecture/README.md) |
 | `ext_web_clients` | `apigateway` | in | HTTP | host port HTTP_PORT (default 80) | web UI and API traffic (/ redirects 302 to /scv3/; 307 redirect to HTTPS when an https-* profile is enabled) | on demand | base | source: `compose/docker-compose.base.yml:369-370`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md#listeners) |
+| `ext_host_fs` | `ext_registry` | out | HTTPS | registry-1.docker.io: pacefactory/deployment-scripts:<PF_RELEASE> (default latest) | deployment-scripts release image (file-only, FROM scratch): the scripts tree synced into ~/scv2/git_clones/deployment-scripts by manifest | on demand | base | source: `scripts/release/fetch-release.sh:121,147-148; scripts/release/Dockerfile:10-11`; [link](https://github.com/pacefactory/deployment-scripts/blob/main/docs/how-to/install-deployment-scripts.md) |
 
 ## Diagram
 
@@ -136,6 +137,8 @@ flowchart LR
   end
   ext_cameras{{"IP cameras"}}
   ext_web_clients{{"Web browsers and API clients"}}
+  ext_host_fs{{"Deployment host filesystem"}}
+  ext_registry{{"Container registry (Docker Hub)"}}
   ext_cameras -->|"RTSP: H.264/H.265 video"| realtime
   realtime -->|"HTTP: object metadata and snapshots TODO(source)"| dbserver
   realtime -->|"MQTT: real-time object data"| pf_mosquitto
@@ -160,4 +163,5 @@ flowchart LR
   apigateway -->|"WS: MQTT over WebSocket for browsers (listener 7575, protocol websockets; anonymous read, admin publish)"| pf_mosquitto
   pf_mosquitto -->|"file: persistence database; password, ACL and mosquitto.conf files that shadow the image copies"| vol_mosquitto_data
   ext_web_clients -->|"HTTP: web UI and API traffic (/ redirects 302 to /scv3/; 307 redirect to HTTPS when an https-* profile is enabled)"| apigateway
+  ext_host_fs -->|"HTTPS: deployment-scripts release image (file-only, FROM scratch): the scripts tree synced into ~/scv2/git_clones/deployment-scripts by manifest"| ext_registry
 ```

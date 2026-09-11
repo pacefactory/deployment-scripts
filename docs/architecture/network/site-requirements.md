@@ -5,11 +5,13 @@ derived_from:
   - compose/docker-compose.*.yml
   - update.sh
   - scripts/remote/update-server.sh
+  - scripts/release/fetch-release.sh
+  - scripts/common/dockerLogin.sh
   - build.sh
   - scripts/installYq.sh
   - scripts/docs/externals.tsv
-last_verified: 2026-09-09
-verified_against: def9139
+last_verified: 2026-09-11
+verified_against: 8d85e22
 ---
 
 # Client site network requirements
@@ -25,9 +27,9 @@ adopted (architecture standard §7b). Everything not cited below is
 | Requirement | Evidence |
 |---|---|
 | Linux host running Docker with the docker compose plugin (Docker 28.x with compose 2.35+ confirmed) | `build.sh:16`, root README prerequisites |
-| Repository checked out at `~/scv2/git_clones/deployment-scripts`. A user named `pacefactory` is recommended rather than required; fleet updating assumes it | `scripts/remote/update-server.sh:38`; [Update the fleet from Windows](../../how-to/update-fleet-from-windows.md) |
-| `~/connect-to-proxy.sh` present when the site requires an egress proxy | `scripts/remote/update-server.sh:39,72-80` |
-| Docker Hub credentials stored for the account (`docker login`) | `update.sh:79-83` |
+| deployment-scripts installed at `~/scv2/git_clones/deployment-scripts` from the release image (`PF_INSTALL_DIR` default). A user named `pacefactory` is recommended rather than required; fleet updating assumes it | `scripts/remote/update-server.sh:57`, `scripts/release/fetch-release.sh:19-21`; [Install or repair deployment-scripts on a server](../../how-to/install-deployment-scripts.md) |
+| `~/connect-to-proxy.sh` present when the site requires an egress proxy | `scripts/remote/update-server.sh:58,94-102` |
+| The server's Docker Hub Organization Access Token in `~/scv2/docker_oat.sh` (mode 700, `export DOCKER_OAT=...`) and a standing `docker login` as `pacefactory`. Issuance: Pacefactory Deployment Guide (`TODO(source)`) | `scripts/common/dockerLogin.sh:5-13,32,81`; `update.sh:79-83` |
 | mikefarah `yq` v4 on PATH, or Docker access to pull `mikefarah/yq` | `scripts/common/runYq.sh:26-32`; [Install yq](../../how-to/install-yq.md) |
 | Optional, GPU deployments only: NVIDIA driver and nvidia container toolkit. Egress needed to install them: `TODO(source)`, to be filled in with the CUDA install guide | `compose/docker-compose.cuda.yml:14-24`; [Install CUDA support](../../how-to/install-cuda-support.md) |
 
@@ -61,8 +63,9 @@ Docker Hub pull path also uses `auth.docker.io` and `production.cloudflare.docke
 | Destination | FQDN(s) to allow | Protocol / port | Purpose | Evidence |
 |---|---|---|---|---|
 | Site cameras | site-specific | RTSP over TCP 554 (8554 alternate) | video ingest | `record_cli.py:129`; [cameras](../integrations/cameras-rtsp.md) |
-| Docker Hub | `registry-1.docker.io`, `auth.docker.io`, `production.cloudflare.docker.com` | HTTPS 443 | image pulls (`update.sh`), `mikefarah/yq` fallback | `update.sh:87`, `scripts/common/runYq.sh:29` |
-| GitHub | `github.com`, `objects.githubusercontent.com` | HTTPS 443 | `git pull`; yq and compose binaries | `scripts/remote/update-server.sh:88`, `scripts/installYq.sh:37`, `scripts/Dockerfile.build:15,19` |
+| Docker Hub | `registry-1.docker.io`, `auth.docker.io`, `production.cloudflare.docker.com` | HTTPS 443 | service image pulls (`update.sh`), the deployment-scripts release image (`fetch-release.sh`, `install.sh`), `mikefarah/yq` fallback | `update.sh:87`, `scripts/release/fetch-release.sh:121`, `scripts/common/runYq.sh:29` |
+| Bootstrap host (GitHub Pages) | `get.pacefactory.dev` | HTTPS 443 | `install.sh` one-liner: **install and repair only**, not needed for routine updates | `scripts/release/fetch-release.sh:138`, `scripts/common/dockerLogin.sh:46`; [Install or repair](../../how-to/install-deployment-scripts.md) |
+| GitHub | `github.com`, `objects.githubusercontent.com` | HTTPS 443 | yq and compose binaries (no `git pull` since the repository went private) | `scripts/installYq.sh:37`, `scripts/Dockerfile.build:15,19` |
 | Let's Encrypt | `acme-v02.api.letsencrypt.org` | HTTPS 443 | certificate orders (certbot https-* profiles) | certbot fragments; [ACME and DNS](../integrations/acme-dns.md) |
 | DigitalOcean API | `api.digitalocean.com` | HTTPS 443 | DNS-01 challenge (https-digitalocean) | `compose/docker-compose.https-digitalocean.yml:38-41` |
 | GoDaddy API | `api.godaddy.com` | HTTPS 443 | DNS-01 challenge (https-godaddy) | `compose/docker-compose.https-godaddy.yml:36-41` |
@@ -91,13 +94,13 @@ flowchart LR
     ext_cameras{{"IP cameras"}}
     ext_client_sql{{"Client SQL database"}}
     subgraph host["Deployment host: Linux + docker compose"]
-      checkout["~/scv2/git_clones/deployment-scripts"]
+      checkout["~/scv2/git_clones/deployment-scripts (release install)"]
       deployment["compose project deployment-scripts"]
       proxyhook["~/connect-to-proxy.sh (optional)"]
     end
     ext_proxy{{"Corporate proxy (optional)"}}
   end
-  internet["Internet: Docker Hub, GitHub, Let's Encrypt, DNS APIs, peer deployments"]
+  internet["Internet: Docker Hub (service and release images), get.pacefactory.dev (install/repair only), GitHub, Let's Encrypt, DNS APIs, peer deployments"]
   ext_cameras -->|"RTSP over TCP 554"| deployment
   ext_web_clients -->|"HTTP 80 / HTTPS 443"| deployment
   ext_mqtt_clients -->|"MQTT 1883 / MQTTS 8883"| deployment

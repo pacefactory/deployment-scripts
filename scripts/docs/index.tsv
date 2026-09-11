@@ -12,7 +12,7 @@ docs/architecture/integrations/mqtt-clients.md	Third-party MQTT clients of the d
 docs/architecture/integrations/client-sql.md	A client's SQL database behind relational_dbserver
 docs/architecture/integrations/acme-dns.md	Let's Encrypt and the DigitalOcean / GoDaddy DNS APIs used by certbot
 docs/architecture/integrations/peer-deployments.md	Remote-training exchange between Pacefactory deployments
-docs/architecture/integrations/registry-egress.md	Docker Hub and GitHub egress from the host tooling
+docs/architecture/integrations/registry-egress.md	Docker Hub (service images and the release image) and GitHub (bootstrap, binaries) egress from the host tooling
 docs/architecture/integrations/web-clients.md	Published HTTP(S) ports and the clients that use them
 docs/architecture/integrations/host-filesystem.md	Host paths bind-mounted into containers
 docs/architecture/integrations/push-clients.md	ntfy push notification subscribers
@@ -32,7 +32,9 @@ docs/reference/mongodb.md	How the main mongo service is sized and run as a singl
 docs/reference/backup-restore-cli.md	Options of the volume backup and restore scripts and the volumes they cover
 docs/design/mongodb-memory-bounding.md	Why mongo runs memory-bounded as a single-node replica set
 docs/how-to/build-a-deployment.md	Choose profiles and settings and produce docker-compose.yml
-docs/how-to/update-a-deployment.md	Pull images and relaunch the compose project
+docs/how-to/update-a-deployment.md	Fetch the current release, pull images and relaunch the compose project
+docs/how-to/install-deployment-scripts.md	Install, convert or repair the deployment-scripts tree on a server from the Docker Hub release image
+docs/how-to/publish-a-release.md	What builds and tags the pacefactory/deployment-scripts release image, and how to verify it
 docs/how-to/add-a-profile.md	Add a compose fragment and its derived docs
 docs/how-to/add-an-environment-variable.md	Expose a new build-time variable to a service
 docs/how-to/rebuild-reference-deployments.md	Rebuild the committed reference outputs and regenerate all derived docs

@@ -4,8 +4,8 @@ type: how-to
 derived_from:
   - scripts/backup_restore/backup_volume.sh
   - scripts/backup_restore/restore_volume.sh
-last_verified: 2026-09-09
-verified_against: ccf3768
+last_verified: 2026-09-11
+verified_against: 8d85e22
 ---
 
 # Migrate a deployment to a new server
@@ -17,7 +17,7 @@ deployment up there.
 
 ## Prerequisites
 
-- [ ] New host prepared per [Build a deployment](build-a-deployment.md) prerequisites, repository cloned, `./build.sh` run with the same profile selection (copy `.settings` and `.env` from the old host).
+- [ ] New host prepared per [Build a deployment](build-a-deployment.md) prerequisites: its own Docker Hub token in `~/scv2/docker_oat.sh`, deployment-scripts installed with the one-liner ([Install or repair deployment-scripts on a server](install-deployment-scripts.md)), `./build.sh` run with the same profile selection (copy `.settings`, `.env` and any `compose/docker-compose.custom.yml` from the old host; the install never touches them).
 - [ ] Decide the path by network situation (below): `<USER>@<NEW_HOST>`, `<USER>@<OLD_HOST>`.
 - [ ] Downtime window on the old host.
 

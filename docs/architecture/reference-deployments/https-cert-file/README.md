@@ -8,8 +8,8 @@ derived_from:
   - docs/architecture/reference-deployments/https-cert-file/build-command.txt
   - scripts/docs/flows.tsv
   - scripts/docs/deployments.tsv
-last_verified: 2026-09-10
-verified_against: 08482b3
+last_verified: 2026-09-11
+verified_against: 8d85e22
 ---
 
 # Reference deployment: HTTPS via TLS cert file
@@ -196,6 +196,7 @@ One row per directed flow (standard §7a). Node IDs are defined in the [glossary
 | `ext_host_fs` | `apigateway` | in | file | credentials/ssl/live/<SERVER_NAME>/ mounted at /etc/nginx/ssl (ro) | TLS certificate (fullchain.pem), key (privkey.pem) and optional key password (privkey.pass); a self-signed pair is generated when the first two are missing | on demand (container start) | https-no-certbot | source: `compose/docker-compose.https-no-certbot.yml:32-33`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/configuration.md#ssl-profile) |
 | `ext_host_fs` | `pf_mosquitto` | in | file | credentials/ssl/live/<SERVER_NAME>/ (MQTTS_CERT_SOURCE=../credentials/ssl) mounted at /etc/mosquitto-tls (ro) | fullchain.pem, privkey.pem and optional privkey.pass | on demand (container start) | https-no-certbot | source: `compose/docker-compose.https-no-certbot.yml:24-25; compose/docker-compose.mqtts-public.yml:21-22`; [link](https://github.com/pacefactory/pf_mosquitto/blob/master/docs/reference/configuration.md) |
 | `ext_web_clients` | `apigateway` | in | HTTPS | host port HTTPS_PORT (default 443) | web UI and API traffic (TLS 1.2/1.3, HTTP/2; Content-Security-Policy frame-ancestors 'none') | on demand | https-no-certbot | source: `compose/docker-compose.https-no-certbot.yml:30-31`; [link](https://github.com/pacefactory/scv2_apigateway/blob/master/docs/reference/api.md#listeners) |
+| `ext_host_fs` | `ext_registry` | out | HTTPS | registry-1.docker.io: pacefactory/deployment-scripts:<PF_RELEASE> (default latest) | deployment-scripts release image (file-only, FROM scratch): the scripts tree synced into ~/scv2/git_clones/deployment-scripts by manifest | on demand | base | source: `scripts/release/fetch-release.sh:121,147-148; scripts/release/Dockerfile:10-11`; [link](https://github.com/pacefactory/deployment-scripts/blob/main/docs/how-to/install-deployment-scripts.md) |
 
 ## Diagrams
 
@@ -334,6 +335,7 @@ flowchart LR
   ext_client_sql{{"Client SQL database"}}
   ext_nodered_endpoints{{"Node-RED flow endpoints"}}
   ext_mqtt_clients{{"MQTT clients"}}
+  ext_registry{{"Container registry (Docker Hub)"}}
   ext_cameras -->|"RTSP: H.264/H.265 video"| realtime
   realtime -->|"HTTP: object metadata and snapshots TODO(source)"| dbserver
   realtime -->|"MQTT: real-time object data"| pf_mosquitto
@@ -398,6 +400,7 @@ flowchart LR
   ext_host_fs -->|"file: TLS certificate (fullchain.pem), key (privkey.pem) and optional key password (privkey.pass); a self-signed pair is generated when the first two are missing"| apigateway
   ext_host_fs -->|"file: fullchain.pem, privkey.pem and optional privkey.pass"| pf_mosquitto
   ext_web_clients -->|"HTTPS: web UI and API traffic (TLS 1.2/1.3, HTTP/2; Content-Security-Policy frame-ancestors 'none')"| apigateway
+  ext_host_fs -->|"HTTPS: deployment-scripts release image (file-only, FROM scratch): the scripts tree synced into ~/scv2/git_clones/deployment-scripts by manifest"| ext_registry
   class social_web_app,nodered,social_video_server,relational_dbserver optional
 ```
 
