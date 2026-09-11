@@ -21,3 +21,6 @@ credentials/ssl/live/*/privkey.pass
 # Reference deployment inputs are committed on purpose (docs/architecture/ARCHITECTURE_DOCS_STANDARD.md §4)
 !docs/architecture/reference-deployments/*/.env
 !docs/architecture/reference-deployments/*/.settings
+
+# Release image staging output (scripts/release/stage.sh)
+scripts/release/stage/

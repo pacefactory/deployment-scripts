@@ -1,0 +1,107 @@
+# Builds and publishes the deployment-scripts release image
+# (pacefactory/deployment-scripts). The image is FROM scratch and contains only
+# the files servers need (scripts/release/stage.sh decides which), so unlike
+# the service repos it is built for a single platform with the default buildx
+# driver: no Build Cloud, no per-arch digest merge, no matrix.
+#
+# Tags (docker/metadata-action):
+#   push to main          -> main, latest, sha-<short>
+#   tag push vX.Y.Z       -> X.Y.Z, X.Y, sha-<short>
+#   pull_request          -> pr-<n> (built, never pushed)
+#   workflow_dispatch     -> <branch>, sha-<short> (pushed)
+# Servers that used to follow main with `git pull` follow `latest`; the v* tags
+# are for pinning (PF_RELEASE=<tag>) and release notes; sha-<short> is an
+# immutable rollback target for every build.
+#
+# Credentials: the organization-level DOCKER_USER variable and DOCKER_PAT
+# secret, shared with the service repos. No repository secrets.
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE: pacefactory/deployment-scripts
+
+jobs:
+  release-image:
+    name: release image
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # stage.sh records the exact tag (git describe) and the full commit.
+          fetch-depth: 0
+
+      - name: Lint release scripts (pull requests)
+        if: github.event_name == 'pull_request'
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q shellcheck
+          bash -n scripts/release/stage.sh scripts/release/fetch-release.sh scripts/common/dockerLogin.sh scripts/remote/update-server.sh
+          shellcheck scripts/release/stage.sh scripts/release/fetch-release.sh scripts/common/dockerLogin.sh scripts/remote/update-server.sh
+
+      - name: Sync unit test (pull requests)
+        if: github.event_name == 'pull_request'
+        run: bash scripts/dev/test-fetch-release.sh
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Stage release tree
+        run: scripts/release/stage.sh --tag "${{ steps.meta.outputs.version }}" --image "${{ env.IMAGE }}"
+
+      - name: Check manifest (pull requests)
+        if: github.event_name == 'pull_request'
+        run: |
+          m=scripts/release/stage/.pf-release/MANIFEST
+          echo "manifest: $(wc -l < "$m") files"
+          for must in build.sh update.sh scripts/release/fetch-release.sh scripts/common/dockerLogin.sh compose/docker-compose.base.yml; do
+            grep -qx "$must" "$m" || { echo "missing from manifest: $must"; exit 1; }
+          done
+          if grep -E '^(docs/|scv2_base_images/|CLAUDE\.md$|\.claude/|\.gitattributes$|\.gitignore$|\.github/|scripts/docs/|scripts/dev/)' "$m"; then
+            echo "excluded paths present in manifest"; exit 1
+          fi
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PAT }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: scripts/release
+          file: scripts/release/Dockerfile
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          sbom: true
+          provenance: mode=max
