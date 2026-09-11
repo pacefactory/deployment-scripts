@@ -3,12 +3,14 @@
 # fetch-release.sh - fetch a deployment-scripts release and sync it into the
 # install directory. This is the in-tree updater: it replaces `git pull`.
 #
-#   scripts/release/fetch-release.sh [--check] [--from <extracted-dir>]
+#   scripts/release/fetch-release.sh [--check] [--no-pull] [--from <extracted-dir>]
 #
 # Modes:
 #   default        docker pull ${PF_IMAGE}:${PF_RELEASE}, extract it with
 #                  docker create + docker cp into a temp dir next to the install
 #                  dir, sync, clean up (also on failure).
+#   --no-pull      skip the pull and use the image already present locally
+#                  (offline hosts after `docker load`); fails if it is absent.
 #   --from <dir>   sync from an already extracted release tree (the public
 #                  bootstrap install.sh calls this after doing the pull itself).
 #   --check        report what would change and exit 3 if an update is
@@ -55,6 +57,7 @@ PF_OAT_FILE="${PF_OAT_FILE:-$HOME/scv2/docker_oat.sh}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FROM_DIR=""
 CHECK_MODE=false
+NO_PULL=false
 INSTALL_DIR=""
 TMP_DIR=""
 CONTAINER_ID=""
@@ -88,6 +91,7 @@ parse_args() {
     case "$1" in
       --from)  FROM_DIR="${2:?--from needs a directory}"; shift 2 ;;
       --check) CHECK_MODE=true; shift ;;
+      --no-pull) NO_PULL=true; shift ;;
       -h|--help) usage; exit 0 ;;
       *) echo >&2 "fetch-release: unknown argument '$1'"; usage >&2; exit 2 ;;
     esac
@@ -108,6 +112,11 @@ resolve_install_dir() {
 
 pull_image() {
   local ref="$PF_IMAGE:$PF_RELEASE"
+  if [[ "$NO_PULL" == "true" ]]; then
+    docker image inspect "$ref" >/dev/null 2>&1 || die "--no-pull: image $ref is not present locally (docker load it first)"
+    log "Using local image $ref (--no-pull)"
+    return 0
+  fi
   log "Pulling $ref ..."
   if docker pull --quiet "$ref" >/dev/null; then
     return 0
