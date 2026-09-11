@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2329,SC1090,SC1091,SC2034
+# (step functions are invoked indirectly by run_step; the proxy script,
+# .settings and projectName.sh are sourced from the server's tree; QUIET_MODE
+# is read by the sourced projectName.sh)
 #
 # update-server.sh - per-server update payload for the fleet update tooling.
 #
@@ -16,27 +20,45 @@
 #
 # Machine-readable markers (all other output is normal passthrough):
 #
-#   PF|BEGIN|v1|<hostname>|<epoch>
-#   PF|INFO|<key>|<value>
-#   PF|STEP|<step>|<rc>|<duration_sec>   steps: proxy repo git_pull git_fetch
-#                                               build tag_scan update health
+#   PF|BEGIN|v2|<hostname>|<epoch>
+#   PF|INFO|<key>|<value>               keys: mode migrated branch release_before
+#                                             release_after update_available
+#                                             nonstandard_tags project_name
+#                                             containers_up containers_total
+#   PF|STEP|<step>|<rc>|<duration_sec>   steps: proxy repo fetch build tag_scan
+#                                               update health
 #   PF|TAG|<image_ref>                   pacefactory image not on latest/latest-gpu
 #   PF|HEALTH|<container>|<status>       one per container that is not Up/healthy
 #   PF|END|<exit_code>
 #
+# Marker protocol v2 (release image distribution): the tree is updated by the
+# in-tree updater scripts/release/fetch-release.sh instead of `git pull`, and
+# versions are read from .pf-release/VERSION as "<TAG> (<commit7>)". `migrated`
+# is true when the updater exists in the tree; `branch` is only emitted while a
+# .git directory is still present. v1 (git_pull/git_fetch steps, commit_before/
+# commit_after) is still understood by update-fleet.ps1 for old payloads.
+#
 # Exit codes:
 #   0   success (warnings, if any, are carried by the markers)
 #   11  repo directory missing
-#   12  git pull failed
+#   12  release fetch failed (pull, extract or sync; conversion refused)
 #   13  build.sh failed or produced an invalid docker-compose.yml
 #   14  update.sh failed (or never reported "Deployment complete")
 #   15  health check found no containers (deployment absent or docker down)
 #   16  health check found degraded containers
+#   17  server not migrated: no scripts/release/fetch-release.sh in the tree
+#       (still a plain git checkout; run the install one-liner on it)
 #
-# A step rc of 124 means the step was killed by its timeout.
+# The fetch step's own rc in check mode: 0 up to date, 3 update available,
+# 4 conversion blocked by modified tracked files, 17 not migrated, anything
+# else is a pull/login error. A step rc of 124 means the step was killed by
+# its timeout.
 
-REPO_DIR="$HOME/scv2/git_clones/deployment-scripts"
+REPO_DIR="${PF_INSTALL_DIR:-$HOME/scv2/git_clones/deployment-scripts}"
 PROXY_SCRIPT="$HOME/connect-to-proxy.sh"
+FETCH_SCRIPT="scripts/release/fetch-release.sh"
+VERSION_FILE=".pf-release/VERSION"
+INSTALL_ONE_LINER="curl -fsSL https://get.pacefactory.dev/install.sh | bash"
 HEALTH_DELAY=15
 CHECK_MODE=false
 LAST_RC=0
@@ -83,20 +105,65 @@ step_repo() {
   cd "$REPO_DIR" || { echo "repo: cannot cd to $REPO_DIR"; return 1; }
 }
 
-step_git_pull() {
-  pf_marker INFO commit_before "$(git rev-parse --short HEAD 2>/dev/null | pf_clean)"
-  GIT_TERMINAL_PROMPT=0 timeout 600 git pull --ff-only
+# "<TAG> (<commit7>)" from .pf-release/VERSION, or "none" before migration.
+release_version() {
+  local tag commit
+  if [[ ! -f "$VERSION_FILE" ]]; then
+    printf 'none'
+    return
+  fi
+  tag="$(sed -n 's/^TAG=//p' "$VERSION_FILE" | head -1)"
+  commit="$(sed -n 's/^COMMIT=//p' "$VERSION_FILE" | head -1)"
+  printf '%s (%s)' "${tag:-?}" "${commit:0:7}" | pf_clean
+}
+
+# migrated / branch markers; run after step_repo in both modes.
+emit_tree_info() {
+  if [[ -f "$FETCH_SCRIPT" ]]; then
+    pf_marker INFO migrated true
+  else
+    pf_marker INFO migrated false
+  fi
+  if [[ -d .git ]]; then
+    pf_marker INFO branch "$(git rev-parse --abbrev-ref HEAD 2>/dev/null | pf_clean)"
+  fi
+  pf_marker INFO release_before "$(release_version)"
+}
+
+not_migrated_message() {
+  echo "fetch: $FETCH_SCRIPT not found in $REPO_DIR: this server has not been migrated to the release image."
+  echo "fetch: run this on the server, then re-run the fleet update:"
+  echo "fetch:   $INSTALL_ONE_LINER"
+}
+
+# Update mode: fetch the release with the in-tree updater (replaces git pull).
+step_fetch() {
+  if [[ ! -f "$FETCH_SCRIPT" ]]; then
+    not_migrated_message
+    pf_marker INFO release_after "$(release_version)"
+    return 17
+  fi
+  timeout 600 bash "$FETCH_SCRIPT"
   local rc=$?
-  pf_marker INFO commit_after "$(git rev-parse --short HEAD 2>/dev/null | pf_clean)"
+  pf_marker INFO release_after "$(release_version)"
   return "$rc"
 }
 
-step_git_fetch() {
-  GIT_TERMINAL_PROMPT=0 timeout 120 git fetch
+# Check mode: read-only comparison against the published release.
+step_fetch_check() {
+  if [[ ! -f "$FETCH_SCRIPT" ]]; then
+    not_migrated_message
+    pf_marker INFO update_available unknown
+    return 17
+  fi
+  timeout 300 bash "$FETCH_SCRIPT" --check
   local rc=$?
-  local behind
-  behind="$(git rev-list --count 'HEAD..@{u}' 2>/dev/null)"
-  pf_marker INFO behind "${behind:-unknown}"
+  case "$rc" in
+    0) pf_marker INFO update_available no ;;
+    3) pf_marker INFO update_available yes ;;
+    4) pf_marker INFO update_available blocked ;;
+    *) pf_marker INFO update_available unknown ;;
+  esac
   return "$rc"
 }
 
@@ -218,7 +285,11 @@ step_health() {
 main_update() {
   run_step proxy step_proxy                  # warning only, never aborts
   run_step repo step_repo || return 11
-  run_step git_pull step_git_pull || return 12
+  emit_tree_info
+  if ! run_step fetch step_fetch; then
+    [[ "$LAST_RC" -eq 17 ]] && return 17
+    return 12
+  fi
   run_step build step_build || return 13
   run_step tag_scan step_tag_scan            # report only, never aborts
 
@@ -234,13 +305,12 @@ main_update() {
   return 0
 }
 
-# Read-only preflight: connectivity, pending commits, current tags and health.
+# Read-only preflight: connectivity, pending release, current tags and health.
 main_check() {
   run_step proxy step_proxy
   run_step repo step_repo || return 11
-  pf_marker INFO branch "$(git rev-parse --abbrev-ref HEAD 2>/dev/null | pf_clean)"
-  pf_marker INFO commit_before "$(git rev-parse --short HEAD 2>/dev/null | pf_clean)"
-  run_step git_fetch step_git_fetch
+  emit_tree_info
+  run_step fetch step_fetch_check            # report only, never aborts
   run_step tag_scan step_tag_scan
   run_step health step_health 0
   return 0
@@ -254,7 +324,7 @@ main() {
   local mode="update"
   [[ "$CHECK_MODE" == "true" ]] && mode="check"
 
-  pf_marker BEGIN v1 "$(hostname | pf_clean)" "$(date +%s)"
+  pf_marker BEGIN v2 "$(hostname | pf_clean)" "$(date +%s)"
   pf_marker INFO mode "$mode"
 
   if [[ "$mode" == "check" ]]; then

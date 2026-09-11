@@ -23,10 +23,19 @@
     Statuses:
       OK          - updated, all containers up
       WARN        - updated, but something needs attention (non-standard image
-                    tags, degraded containers, missing proxy script)
-      FAIL        - a step failed on the server (see Detail and the log file)
+                    tags, degraded containers, missing proxy script; in -DryRun
+                    also: a release update is available, or the server is NOT
+                    MIGRATED to the release image)
+      FAIL        - a step failed on the server (see Detail and the log file);
+                    a server that has not been migrated fails the update with
+                    "NOT MIGRATED" and must be converted with the install
+                    one-liner (docs/how-to/install-deployment-scripts.md)
       UNREACHABLE - ssh could not connect
       SKIPPED     - not attempted; the run was cancelled with Ctrl+C
+
+    The payload speaks marker protocol v2 (release versions from
+    .pf-release/VERSION, a 'fetch' step in place of git pull). v1 markers from
+    an old payload are still parsed; such servers are labelled "v1 payload".
 
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File .\update-fleet.ps1
@@ -243,6 +252,7 @@ function ConvertFrom-Markers {
     $m = @{
         Begin       = $false
         End         = $false
+        Version     = ''
         PayloadExit = ''
         Steps       = @{}
         Tags        = New-Object System.Collections.ArrayList
@@ -256,7 +266,10 @@ function ConvertFrom-Markers {
         $f = $t.Split('|')
         if ($f.Count -lt 2) { continue }
         switch ($f[1]) {
-            'BEGIN' { $m.Begin = $true }
+            'BEGIN' {
+                $m.Begin = $true
+                if ($f.Count -ge 3) { $m.Version = $f[2] }
+            }
             'END' {
                 $m.End = $true
                 if ($f.Count -ge 3) { $m.PayloadExit = $f[2] }
@@ -308,11 +321,27 @@ function Get-ServerStatus {
         return [pscustomobject]@{ Status = 'FAIL'; Detail = 'connection lost mid-run (no END marker)' }
     }
 
-    foreach ($step in @('repo', 'git_pull', 'build', 'update')) {
+    $isV1 = ($Marks.Version -eq 'v1')
+    $migrated = Get-InfoValue $Marks 'migrated'
+
+    # In update mode the fetch step fails with 17 on a server that is still a
+    # plain git checkout; that is the one failure with a fixed remedy.
+    if (-not $IsDryRun) {
+        $fetchRc = Get-StepRc $Marks 'fetch'
+        if ($fetchRc -eq 17) {
+            return [pscustomobject]@{ Status = 'FAIL'; Detail = 'NOT MIGRATED to the release image: run the install one-liner on the server, then re-run' }
+        }
+    }
+
+    # In check mode the fetch step is report-only (handled as WARN below).
+    $failSteps = @('repo', 'fetch', 'git_pull', 'build', 'update')
+    if ($IsDryRun) { $failSteps = @('repo') }
+    foreach ($step in $failSteps) {
         $rc = Get-StepRc $Marks $step
         if (($rc -ne '') -and ($rc -ne 0)) {
             $note = ''
             if ($rc -eq 124) { $note = ' (timed out)' }
+            if (($step -eq 'fetch') -and ($rc -eq 4)) { $note = ' (conversion refused: modified tracked files in the git checkout)' }
             return [pscustomobject]@{ Status = 'FAIL'; Detail = ("step '{0}' failed with rc {1}{2}" -f $step, $rc, $note) }
         }
     }
@@ -332,25 +361,51 @@ function Get-ServerStatus {
     if (($proxyRc -ne '') -and ($proxyRc -ne 0)) {
         $warns += 'proxy script missing or failed'
     }
-    $fetchRc = Get-StepRc $Marks 'git_fetch'
-    if (($fetchRc -ne '') -and ($fetchRc -ne 0)) {
-        $warns += 'git fetch failed'
-    }
-    if ($IsDryRun) {
-        $behind = Get-InfoValue $Marks 'behind'
-        if (($behind -ne '') -and ($behind -ne '0') -and ($behind -ne 'unknown')) {
-            $warns += ('{0} commit(s) behind origin' -f $behind)
+    if ($isV1) {
+        $warns += 'v1 payload (server not migrated to the release image)'
+        $gitFetchRc = Get-StepRc $Marks 'git_fetch'
+        if (($gitFetchRc -ne '') -and ($gitFetchRc -ne 0)) {
+            $warns += 'git fetch failed'
         }
+        if ($IsDryRun) {
+            $behind = Get-InfoValue $Marks 'behind'
+            if (($behind -ne '') -and ($behind -ne '0') -and ($behind -ne 'unknown')) {
+                $warns += ('{0} commit(s) behind origin' -f $behind)
+            }
+        }
+    }
+    elseif ($IsDryRun) {
+        # v2 check mode: the fetch step is report-only. 0 up to date, 3 update
+        # available, 4 conversion blocked, 17 not migrated, other = check failed.
+        $checkRc = Get-StepRc $Marks 'fetch'
+        if (($checkRc -ne '') -and ($checkRc -ne 0)) {
+            switch ($checkRc) {
+                3 { $warns += ('release update available (installed: {0})' -f (Get-InfoValue $Marks 'release_before')) }
+                4 { $warns += 'conversion blocked: modified tracked files in the git checkout' }
+                17 { $warns += 'NOT MIGRATED to the release image (run the install one-liner)' }
+                default { $warns += ('release check failed (rc {0}; pull or login problem)' -f $checkRc) }
+            }
+        }
+    }
+    if (($migrated -eq 'false') -and -not ($warns -match 'NOT MIGRATED')) {
+        $warns += 'NOT MIGRATED to the release image'
     }
     if ($warns.Count -gt 0) {
         return [pscustomobject]@{ Status = 'WARN'; Detail = ($warns -join '; ') }
     }
 
     $detail = 'ok'
-    $before = Get-InfoValue $Marks 'commit_before'
-    $after = Get-InfoValue $Marks 'commit_after'
+    if ($isV1) {
+        $before = Get-InfoValue $Marks 'commit_before'
+        $after = Get-InfoValue $Marks 'commit_after'
+    }
+    else {
+        $before = Get-InfoValue $Marks 'release_before'
+        $after = Get-InfoValue $Marks 'release_after'
+    }
     if ($IsDryRun) {
         $detail = 'reachable, up to date'
+        if ($before -ne '') { $detail = ('reachable, up to date on {0}' -f $before) }
     }
     elseif (($before -ne '') -and ($after -ne '')) {
         if ($before -eq $after) { $detail = ('already on {0}' -f $after) }
@@ -451,6 +506,12 @@ foreach ($server in $servers) {
                 Status          = 'SKIPPED'
                 Detail          = 'run cancelled before this server'
                 Containers      = ''
+                Protocol        = ''
+                Migrated        = ''
+                Branch          = ''
+                ReleaseBefore   = ''
+                ReleaseAfter    = ''
+                UpdateAvailable = ''
                 CommitBefore    = ''
                 CommitAfter     = ''
                 Behind          = ''
@@ -459,6 +520,7 @@ foreach ($server in $servers) {
                 ContainersUp    = ''
                 ContainersTotal = ''
                 Proxy           = ''
+                Fetch           = ''
                 GitPull         = ''
                 GitFetch        = ''
                 Build           = ''
@@ -543,6 +605,12 @@ foreach ($server in $servers) {
         Status          = $verdict.Status
         Detail          = $verdict.Detail
         Containers      = $containers
+        Protocol        = $marks.Version
+        Migrated        = Get-InfoValue $marks 'migrated'
+        Branch          = Get-InfoValue $marks 'branch'
+        ReleaseBefore   = Get-InfoValue $marks 'release_before'
+        ReleaseAfter    = Get-InfoValue $marks 'release_after'
+        UpdateAvailable = Get-InfoValue $marks 'update_available'
         CommitBefore    = Get-InfoValue $marks 'commit_before'
         CommitAfter     = Get-InfoValue $marks 'commit_after'
         Behind          = Get-InfoValue $marks 'behind'
@@ -551,6 +619,7 @@ foreach ($server in $servers) {
         ContainersUp    = $containersUp
         ContainersTotal = $containersTotal
         Proxy           = Get-StepRc $marks 'proxy'
+        Fetch           = Get-StepRc $marks 'fetch'
         GitPull         = Get-StepRc $marks 'git_pull'
         GitFetch        = Get-StepRc $marks 'git_fetch'
         Build           = Get-StepRc $marks 'build'
@@ -575,14 +644,24 @@ foreach ($server in $servers) {
 
 $csvPath = Join-Path $runDir 'summary.csv'
 $results |
-    Select-Object Server, Status, Detail, CommitBefore, CommitAfter, Behind, ProjectName,
-        NonStandardTags, ContainersUp, ContainersTotal, Proxy, GitPull, GitFetch, Build,
+    Select-Object Server, Status, Detail, Protocol, Migrated, Branch, ReleaseBefore, ReleaseAfter,
+        UpdateAvailable, CommitBefore, CommitAfter, Behind, ProjectName,
+        NonStandardTags, ContainersUp, ContainersTotal, Proxy, Fetch, GitPull, GitFetch, Build,
         TagScan, Update, Health, PayloadExit, SshExit, DurationSec, LogFile |
     Export-Csv -Path $csvPath -NoTypeInformation -Encoding UTF8
 
 Write-Host '==================== SUMMARY ====================' -ForegroundColor Cyan
+# Release column: the version after the run (v2), or the commit for a v1
+# payload, marked so unmigrated servers stand out in the table.
 $results |
-    Select-Object Server, Status, Containers, @{ Name = 'Tags'; Expression = { $_.NonStandardTags } }, DurationSec, Detail |
+    Select-Object Server, Status, Containers,
+        @{ Name = 'Release'; Expression = {
+                if ($_.Protocol -eq 'v1') { ('git {0} (v1 payload)' -f $_.CommitAfter) }
+                elseif ($_.Migrated -eq 'false') { 'NOT MIGRATED' }
+                elseif ($_.ReleaseAfter -ne '') { $_.ReleaseAfter }
+                else { $_.ReleaseBefore }
+            } },
+        @{ Name = 'Tags'; Expression = { $_.NonStandardTags } }, DurationSec, Detail |
     Format-Table -AutoSize -Wrap |
     Out-Host
 
